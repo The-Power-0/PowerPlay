@@ -48,6 +48,46 @@ enum PowerPlayPalette {
     Color(0xFF4A2840),
     Color(0xFFFCF5F9),
   ),
+  aurora(
+    'Aurora',
+    'Teal and violet accents across midnight-blue panels',
+    Color(0xFF58EDD4),
+    Color(0xFF087A77),
+    Color(0xFF0A1422),
+    Color(0xFF242038),
+    Color(0xFFF4F7FF),
+    secondaryDarkAccent: Color(0xFFB58AFF),
+    secondaryLightAccent: Color(0xFF7056BF),
+  ),
+  synthwave(
+    'Synthwave',
+    'Electric cyan and magenta with plum-tinted surfaces',
+    Color(0xFF55E7FF),
+    Color(0xFF087B9D),
+    Color(0xFF171024),
+    Color(0xFF351A39),
+    Color(0xFFFFF3FA),
+    secondaryDarkAccent: Color(0xFFFF67CF),
+    secondaryLightAccent: Color(0xFFA9317A),
+  ),
+  midnightGold(
+    'Midnight Gold',
+    'Soft golden accents on ink-blue surfaces',
+    Color(0xFFF2C870),
+    Color(0xFF8C5C1A),
+    Color(0xFF101723),
+    Color(0xFF242B36),
+    Color(0xFFFBF8F0),
+  ),
+  oceanDepths(
+    'Ocean Depths',
+    'Sea-glass teal against the deep ocean',
+    Color(0xFF6FE4DC),
+    Color(0xFF126B7F),
+    Color(0xFF0B1C2A),
+    Color(0xFF1A3442),
+    Color(0xFFF0F9FA),
+  ),
   monochrome(
     'Monochrome',
     'The original minimalist PowerPlay appearance',
@@ -65,8 +105,10 @@ enum PowerPlayPalette {
     this.lightAccent,
     this.darkBackground,
     this.darkSurface,
-    this.lightBackground,
-  );
+    this.lightBackground, {
+    this.secondaryDarkAccent,
+    this.secondaryLightAccent,
+  });
 
   final String label;
   final String description;
@@ -75,6 +117,10 @@ enum PowerPlayPalette {
   final Color darkBackground;
   final Color darkSurface;
   final Color lightBackground;
+  /// Optional secondary hue for multicolor themes. Cards, outlines and the
+  /// theme chooser reveal this color while primary controls stay legible.
+  final Color? secondaryDarkAccent;
+  final Color? secondaryLightAccent;
 
   /// A painted swatch, independent of the viewer's brightness setting.
   Color get swatch => darkAccent;
@@ -119,8 +165,10 @@ enum PowerPlayPalette {
       return PowerPlayPaletteColors(
         background: const Color(0xFF000000),
         // Dark cards may be tinted; the actual scaffold stays OLED black.
-        surface: const Color(0xFF0A0A0A),
-        outline: const Color(0x30FFFFFF),
+        surface: secondaryDarkAccent == null
+            ? const Color(0xFF0A0A0A)
+            : Color.lerp(const Color(0xFF0A0A0A), secondaryDarkAccent, 0.07)!,
+        outline: secondaryDarkAccent?.withValues(alpha: 0.36) ?? const Color(0x30FFFFFF),
         text: const Color(0xFFF2F1F5),
         textMuted: const Color(0xB2F2F1F5),
         accent: darkAccent,
@@ -132,7 +180,7 @@ enum PowerPlayPalette {
       return PowerPlayPaletteColors(
         background: darkBackground,
         surface: darkSurface,
-        outline: const Color(0x33FFFFFF),
+        outline: secondaryDarkAccent?.withValues(alpha: 0.44) ?? const Color(0x33FFFFFF),
         text: const Color(0xFFF2F1F5),
         textMuted: const Color(0xB2F2F1F5),
         accent: darkAccent,
@@ -142,8 +190,10 @@ enum PowerPlayPalette {
 
     return PowerPlayPaletteColors(
       background: lightBackground,
-      surface: const Color(0xFFFFFFFF),
-      outline: const Color(0x26000000),
+      surface: secondaryLightAccent == null
+          ? const Color(0xFFFFFFFF)
+          : Color.lerp(const Color(0xFFFFFFFF), secondaryLightAccent, 0.06)!,
+      outline: secondaryLightAccent?.withValues(alpha: 0.28) ?? const Color(0x26000000),
       text: const Color(0xFF18171D),
       textMuted: const Color(0xA618171D),
       accent: lightAccent,
