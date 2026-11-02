@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'app_logger.dart';
 import 'async_singleton.dart';
 import 'device_channel.dart';
+import 'fire_tv_library_policy.dart';
 
 const _androidFeatureTelevision = 'android.hardware.type.television';
 const _androidFeatureLeanback = 'android.software.leanback';
@@ -21,15 +22,21 @@ class AndroidTvFeatureDetection {
   /// True on Android Automotive OS head units. Never true together with
   /// [isTv]: `FEATURE_AUTOMOTIVE` is authoritative for the car form factor.
   final bool isAutomotive;
+  final bool is1080pOnlyFireStick;
 
   /// Diagnostic TV signals, surfaced in the log export only while TV mode is
   /// active. Non-empty with [isTv] false when automotive vetoed the verdict.
   final List<String> reasons;
 
-  const AndroidTvFeatureDetection({required this.isTv, required this.isAutomotive, required this.reasons});
+  const AndroidTvFeatureDetection({
+    required this.isTv,
+    required this.isAutomotive,
+    required this.reasons,
+    this.is1080pOnlyFireStick = false,
+  });
 }
 
-AndroidTvFeatureDetection detectAndroidTvFromSystemFeatures(Iterable<String> features) {
+AndroidTvFeatureDetection detectAndroidTvFromSystemFeatures(Iterable<String> features, {String model = ''}) {
   final featureSet = features.toSet();
   final reasons = <String>[];
   if (featureSet.contains(_androidFeatureTelevision)) reasons.add('television_feature');
@@ -46,6 +53,10 @@ AndroidTvFeatureDetection detectAndroidTvFromSystemFeatures(Iterable<String> fea
     isTv: !isAutomotive && reasons.isNotEmpty,
     isAutomotive: isAutomotive,
     reasons: reasons,
+    is1080pOnlyFireStick: !isAutomotive && is1080pOnlyFireTvStick(
+      isFireTv: featureSet.contains(_androidFeatureFireTv),
+      model: model,
+    ),
   );
 }
 
@@ -79,6 +90,7 @@ class TvDetectionService {
   bool _forceTv = false;
   bool _isAppleTV = false;
   bool _isAutomotive = false;
+  bool _is1080pOnlyFireStick = false;
   bool _initialized = false;
   List<String> _detectionReasons = const [];
 
@@ -96,11 +108,14 @@ class TvDetectionService {
 
     final deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {
-      final nativeDetection = await _getNativeAndroidTvDetection();
-      final detection =
-          nativeDetection ?? detectAndroidTvFromSystemFeatures((await deviceInfo.androidInfo).systemFeatures);
+      var detection = await _getNativeAndroidTvDetection();
+      if (detection == null) {
+        final info = await deviceInfo.androidInfo;
+        detection = detectAndroidTvFromSystemFeatures(info.systemFeatures, model: info.model);
+      }
       _detected = detection.isTv;
       _isAutomotive = detection.isAutomotive;
+      _is1080pOnlyFireStick = detection.is1080pOnlyFireStick;
       _detectionReasons = detection.reasons;
     } else if (Platform.isIOS) {
       if (_tvosBuild) {
@@ -148,7 +163,15 @@ class TvDetectionService {
       final isTv = result['isTv'] == true;
       final isAutomotive = result['isAutomotive'] == true;
       if (isTv && reasons.isEmpty) reasons.add('native');
-      return AndroidTvFeatureDetection(isTv: isTv && !isAutomotive, isAutomotive: isAutomotive, reasons: reasons);
+      return AndroidTvFeatureDetection(
+        isTv: isTv && !isAutomotive,
+        isAutomotive: isAutomotive,
+        reasons: reasons,
+        is1080pOnlyFireStick: isTv && !isAutomotive && is1080pOnlyFireTvStick(
+          isFireTv: result['hasFireTvFeature'] == true || reasons.contains('fire_tv'),
+          model: result['model'] is String ? result['model'] as String : '',
+        ),
+      );
     } on MissingPluginException {
       return null;
     } on PlatformException {
@@ -181,6 +204,10 @@ class TvDetectionService {
   /// and siblings); these raw accessors exist for the facade and tests.
   static bool isTVSync() => _debugAppleTVOverride ?? _singleton.instance?.isTV ?? false;
 
+  /// Synchronous TV-hardware check: [isTVSync] without the user's force-TV
+  /// override (false before initialization).
+  static bool isTVDeviceSync() => _debugAppleTVOverride ?? _singleton.instance?._detected ?? false;
+
   /// Synchronous Apple TV check (returns false if not initialized or not tvOS).
   static bool isAppleTVSync() => _debugAppleTVOverride ?? (_tvosBuild || _singleton.instance?._isAppleTV == true);
 
@@ -204,6 +231,10 @@ class TvDetectionService {
     _debugAutomotiveOverride = null;
   }
 
+  /// Maximum output of known Fire Stick hardware, independent of the current
+  /// TV mode. Unknown devices never get automatic library hiding.
+  static bool is1080pOnlyFireStickSync() => _singleton.instance?._is1080pOnlyFireStick ?? false;
+
   static List<String> tvDetectionReasonsSync() => _singleton.instance?._effectiveDetectionReasons ?? const [];
 
   /// Convenience setter that forwards to the singleton if available.
@@ -213,6 +244,13 @@ class TvDetectionService {
 class PlatformDetector {
   static bool isTV() {
     return TvDetectionService.isTVSync();
+  }
+
+  /// Whether the device itself is a TV, ignoring the force-TV layout setting.
+  /// For what the system draws, such as the launcher; [isTV] decides the app's
+  /// own layout.
+  static bool isTVDevice() {
+    return TvDetectionService.isTVDeviceSync();
   }
 
   static bool isAppleTV() {
@@ -310,16 +348,24 @@ class PlatformDetector {
   }
 
   static bool supportsAudioPassthrough() {
-    // Apple TV hands AC3/EAC3 access units to the native sample-buffer audio
-    // renderer; unsupported streams and renderer failures fall back to PCM.
+    // Apple platforms (iOS covers iPhone, iPad, and Apple TV) hand AC3/EAC3
+    // access units to mpv's AVFoundation output, which feeds the system Dolby
+    // decoder — the only path that renders Atmos, on HDMI receivers and on
+    // AirPods alike (#1300, #2264, #2477). From iOS and tvOS 26, TrueHD and
+    // DTS-HD go to mpv-build's spatial output, which renders TrueHD Atmos and
+    // DTS:X as Apple spatial audio. Other codecs and renderer failures decode
+    // to PCM.
     //
-    // macOS is deliberately excluded: its only audio output is CoreAudio
-    // (macos/Runner/MpvPlayer/MpvPlayerCore.swift), where forcing audio-spdif
-    // redirects to coreaudio_exclusive. That needs a device advertising IEC61937
-    // bitstream substreams — which Mac setups essentially never have — and with a
-    // restricted ao list mpv has no PCM fallback, so a failed AO init stalls
-    // playback with no audio at all (#1964).
-    return isAppleTV() || Platform.isWindows || Platform.isLinux || (Platform.isAndroid && isTV());
+    // On macOS the bitstream first reaches CoreAudio, which redirects it to
+    // coreaudio_exclusive; that declines outputs without IEC 61937 substreams
+    // and the AVFoundation fallback in the ao list
+    // (shared/apple/MpvPlayer/MpvPlayerCoreBase.swift) takes it. 2.14.0 pinned
+    // CoreAudio alone, where a declined bitstream silenced playback instead.
+    return Platform.isIOS ||
+        Platform.isMacOS ||
+        Platform.isWindows ||
+        Platform.isLinux ||
+        (Platform.isAndroid && isTV());
   }
 
   static bool supportsPictureInPicture() => pictureInPictureAllowed(

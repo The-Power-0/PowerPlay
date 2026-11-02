@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../connection/connection_registry.dart';
 import '../../database/app_database.dart';
+import '../../database/download_collection_operations.dart';
 import '../../database/download_operations.dart';
 import '../../i18n/strings.g.dart';
 import '../../profiles/active_profile_binder.dart';
@@ -16,6 +17,7 @@ import '../../profiles/profile_connection_registry.dart';
 import '../../profiles/profile_registry.dart';
 import '../../providers/account_preferences_controller.dart';
 import '../../providers/companion_remote_provider.dart';
+import '../../services/firetv_build_flags.dart';
 import '../../providers/download_provider.dart';
 import '../../providers/discover_provider.dart';
 import '../../providers/hidden_libraries_provider.dart';
@@ -191,14 +193,16 @@ Future<bool> confirmAndDeleteProfile(
 }
 
 /// Delete a local profile and everything it owns: downloads, sync rules,
-/// queued watch actions, join rows (pruning now-unreferenced Jellyfin
-/// connections), last-used marker, and user-scoped prefs.
+/// downloads' collection membership, queued watch actions, join rows (pruning
+/// now-unreferenced Jellyfin connections), last-used marker, and user-scoped
+/// prefs.
 Future<void> deleteProfile(BuildContext context, Profile profile) async {
   final scope = SessionTeardownScope.of(context);
   final endedOwner = scope.active.activeId == profile.id ? profile.id : null;
   await withEndedProfileSession(scope, endedOwner, () async {
     await scope.downloads.deleteDownloadsForProfile(profile.id);
     await scope.database.deleteSyncRulesForProfile(profile.id);
+    await scope.database.deleteDownloadCollectionsForProfile(profile.id);
     await scope.database.deleteWatchActionsForProfile(profile.id);
     await scope.database.deleteMusicSessionForProfile(profile.id);
     await scope.cleanup.removeAllProfileConnections(profile.id);
@@ -308,6 +312,7 @@ Future<bool> confirmAndSignOutPlexAccount(BuildContext context, {required String
       await scope.cleanup.removePlexAccountConnection(account, plannedRemoval: removal);
       for (final profileId in removal.removedVirtualProfileIds) {
         await scope.database.deleteSyncRulesForProfile(profileId);
+        await scope.database.deleteDownloadCollectionsForProfile(profileId);
         await scope.database.deleteWatchActionsForProfile(profileId);
         await scope.database.deleteMusicSessionForProfile(profileId);
       }
@@ -353,7 +358,7 @@ Future<bool> _plexAccountRemovalOwnsDownloads(
 Future<void> logoutAllProfiles(BuildContext context) async {
   final scope = SessionTeardownScope.of(context);
   final accountPreferences = context.read<AccountPreferencesController>();
-  final companionRemote = context.read<CompanionRemoteProvider>();
+  final companionRemote = kFireTvNoCompanionRemote ? null : context.read<CompanionRemoteProvider>();
   final playbackState = context.read<PlaybackStateProvider>();
 
   final activeOwner = scope.active.activeId;
@@ -361,7 +366,7 @@ Future<void> logoutAllProfiles(BuildContext context) async {
     await scope.shelf.endProfileSession(activeOwner);
   }
 
-  await companionRemote.resetForLogout();
+  if (companionRemote != null) await companionRemote.resetForLogout();
   // Credentials and the signed-out users' server-side preferences go first so
   // nothing below can read them back as the next sign-in's defaults.
   await scope.storage.clearUserData();
@@ -380,11 +385,12 @@ Future<void> logoutAllProfiles(BuildContext context) async {
   await scope.storage.clearActiveProfileId();
   await scope.storage.clearAllProfileLastUsed();
   await scope.storage.clearAllUserScopedPreferences();
-  // Queued watch actions and sync rules are keyed by the profiles that just
-  // ceased to exist; left behind they'd strand forever (or worse, replay
-  // through the next sign-in's clients).
+  // Queued watch actions, sync rules and downloads' collection membership are
+  // keyed by the profiles that just ceased to exist; left behind they'd
+  // strand forever (or worse, replay through the next sign-in's clients).
   await scope.database.clearAllWatchActions();
   await scope.database.clearAllSyncRules();
+  await scope.database.clearAllDownloadCollections();
   // Preserve pinned rows backing offline downloads; all session/API data is
   // volatile and must not cross into the next sign-in.
   await ApiCache.clearRegisteredVolatile();

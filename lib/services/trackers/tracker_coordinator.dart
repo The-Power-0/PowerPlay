@@ -22,6 +22,7 @@ import 'tracker_exceptions.dart';
 import 'tracker_id_resolver.dart';
 import 'tracker_write_queue.dart';
 import 'trakt/trakt_tracker.dart';
+import '../firetv_build_flags.dart';
 
 /// The single seam through which every tracker write leaves the app.
 ///
@@ -50,7 +51,7 @@ class TrackerCoordinator {
 
   /// The registry. Everything below partitions this list by capability rather
   /// than naming services, so adding one means adding it here and nowhere else.
-  late final List<Tracker> _trackers = [
+  late final List<Tracker> _trackers = kFireTvNoExternalServices ? <Tracker>[] : [
     MalTracker.instance,
     AnilistTracker.instance,
     SimklTracker.instance,
@@ -149,6 +150,8 @@ class TrackerCoordinator {
   /// fire-and-forget, and a queue that cannot be read or written this time simply
   /// waits for the next trigger.
   Future<void> flushWriteQueue() async {
+    // Do not read/replay old external tracker writes in the appliance build.
+    if (kFireTvNoExternalServices) return;
     final scope = _currentScope;
     try {
       await _writeQueue.flush(

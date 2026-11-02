@@ -9,6 +9,7 @@ import '../media/media_library.dart';
 import '../mixins/disposable_change_notifier_mixin.dart';
 import '../services/data_aggregation_service.dart';
 import '../services/storage_service.dart';
+import '../services/firetv_build_flags.dart';
 import '../utils/app_logger.dart';
 import '../utils/error_message_utils.dart';
 import '../utils/global_key_utils.dart';
@@ -442,6 +443,9 @@ class LibrariesProvider extends ChangeNotifier with DisposableChangeNotifierMixi
 
   /// Apply saved library order to a list of libraries.
   List<MediaLibrary> _applyLibraryOrder(List<MediaLibrary> libraries, List<String>? savedOrder) {
+    if (kFireTvMoviesTvOnly) {
+      libraries = libraries.where((library) => !library.kind.isMusic).toList(growable: false);
+    }
     if (savedOrder == null || savedOrder.isEmpty) {
       return libraries;
     }

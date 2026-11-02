@@ -6,6 +6,7 @@ import '../../../media/media_item.dart';
 import '../../../i18n/strings.g.dart';
 import '../../../watch_together/widgets/watch_together_overlay.dart';
 import '../../../watch_together/providers/watch_together_provider.dart';
+import '../../../services/firetv_build_flags.dart';
 import '../../app_bar_back_button.dart';
 import '../../system_clock.dart';
 
@@ -62,7 +63,7 @@ class VideoControlsHeader extends StatelessWidget {
               ? _buildSingleLineTitle(itemTitle)
               : _buildMultiLineTitle(itemTitle),
         ),
-        Selector<WatchTogetherProvider, bool>(
+        if (!kFireTvNoWatchTogether) Selector<WatchTogetherProvider, bool>(
           selector: (_, p) => p.isInSession,
           builder: (context, inSession, child) {
             if (!inSession) return const SizedBox.shrink();

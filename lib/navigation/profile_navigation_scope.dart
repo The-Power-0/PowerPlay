@@ -10,9 +10,24 @@ import 'package:flutter/material.dart';
 class ProfileNavigationRegistry {
   GlobalKey<NavigatorState>? _navigatorKey;
   GlobalKey<ScaffoldMessengerState>? _mainScaffoldMessengerKey;
+  Object? _homeHandlerOwner;
+  VoidCallback? _homeHandler;
 
   NavigatorState? get navigator => _navigatorKey?.currentState;
   ScaffoldMessengerState? get mainScaffoldMessenger => _mainScaffoldMessengerKey?.currentState;
+  VoidCallback? get homeHandler => _homeHandler;
+
+  void attachHomeHandler(Object owner, VoidCallback handler) {
+    _homeHandlerOwner = owner;
+    _homeHandler = handler;
+  }
+
+  void detachHomeHandler(Object owner) {
+    if (identical(_homeHandlerOwner, owner)) {
+      _homeHandlerOwner = null;
+      _homeHandler = null;
+    }
+  }
 
   void attachNavigator(GlobalKey<NavigatorState> key) {
     _navigatorKey = key;

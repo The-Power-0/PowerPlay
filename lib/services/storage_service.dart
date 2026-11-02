@@ -19,6 +19,7 @@ class StorageService extends BaseSharedPreferencesService {
   static const String _keyLibraryOrder = 'library_order';
   static const String _keyCurrentUserUUID = 'current_user_uuid';
   static const String _keyHiddenLibraries = 'hidden_libraries';
+  static const String _keyShownLibraryOverrides = 'powerplay_shown_library_overrides';
   static const String _keyServersList = 'servers_list';
   static const String _keyServerOrder = 'server_order';
   static const String _keyActiveProfileId = 'active_app_profile_id';
@@ -34,7 +35,9 @@ class StorageService extends BaseSharedPreferencesService {
   // Key groups for bulk clearing
   static const List<String> _credentialKeys = [_keyPlexToken, _keyClientId, _keyCurrentUserUUID];
 
-  static const List<String> _libraryPreferenceKeys = [_keyLibraryFilters, _keyLibraryOrder, _keyHiddenLibraries];
+  static const List<String> _libraryPreferenceKeys = [
+    _keyLibraryFilters, _keyLibraryOrder, _keyHiddenLibraries, _keyShownLibraryOverrides,
+  ];
 
   StorageService._();
 
@@ -331,6 +334,14 @@ class StorageService extends BaseSharedPreferencesService {
     return readNullableString('$_userPrefix$_prefixLibraryTab$sectionId');
   }
 
+  // Device-local explicit Show choices override automatic hardware defaults.
+  // These are profile-scoped and intentionally excluded from settings export.
+  Set<String> getShownLibraryOverrides({String? profileId}) =>
+      _decodeStringSet(readNullableString('${_prefixFor(profileId)}$_keyShownLibraryOverrides'));
+
+  Future<void> saveShownLibraryOverrides(Set<String> keys, {String? profileId}) =>
+      _setStringList('${_prefixFor(profileId)}$_keyShownLibraryOverrides', keys.toList());
+
   // Hidden Libraries (stored as JSON array of library section IDs)
   Future<void> saveHiddenLibraries(Set<String> libraryKeys) async {
     await _setStringList('$_userPrefix$_keyHiddenLibraries', libraryKeys.toList());
@@ -407,6 +418,7 @@ class StorageService extends BaseSharedPreferencesService {
       _clearLibraryPreferencesForServerPrefix('', serverId),
       _filterServerEntriesFromAllStringListKeys(_keyLibraryOrder, serverId),
       _filterServerEntriesFromAllStringListKeys(_keyHiddenLibraries, serverId),
+      _filterServerEntriesFromAllStringListKeys(_keyShownLibraryOverrides, serverId),
       _clearServerSelectedLibraryKeysEverywhere(serverId),
       _clearServerPerLibraryKeysEverywhere(_prefixLibrarySort, serverId),
       _clearServerPerLibraryKeysEverywhere(_prefixLibraryFilters, serverId),
@@ -419,6 +431,7 @@ class StorageService extends BaseSharedPreferencesService {
     await Future.wait([
       _filterServerEntriesFromStringList('$prefix$_keyLibraryOrder', serverId),
       _filterServerEntriesFromStringList('$prefix$_keyHiddenLibraries', serverId),
+      _filterServerEntriesFromStringList('$prefix$_keyShownLibraryOverrides', serverId),
       _clearSelectedLibraryForServer('$prefix$_keySelectedLibraryKey', serverId),
       _clearKeysWithPrefixForServer('$prefix$_prefixLibrarySort', serverId),
       _clearKeysWithPrefixForServer('$prefix$_prefixLibraryFilters', serverId),

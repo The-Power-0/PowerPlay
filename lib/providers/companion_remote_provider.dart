@@ -14,6 +14,7 @@ import '../profiles/plex_home_service.dart';
 import '../profiles/profile.dart';
 import '../profiles/profile_connection_registry.dart';
 import '../services/companion_remote/companion_remote_peer_service.dart';
+import '../services/firetv_build_flags.dart';
 import '../services/companion_remote/lan_discovery_service.dart';
 import '../services/companion_remote/remote_auth_context.dart';
 import '../services/companion_remote/remote_auth_service.dart';
@@ -592,6 +593,7 @@ class CompanionRemoteProvider with ChangeNotifier, DisposableChangeNotifierMixin
       _serializeLifecycle(() => _startHostServerLocked(checkCurrent: checkCurrent));
 
   Future<void> _startHostServerLocked({void Function()? checkCurrent}) async {
+    if (kFireTvNoCompanionRemote) return;
     checkCurrent?.call();
     if (isDisposed || _peerService?.isServerRunning == true) return;
     if (!isCryptoReady) {
@@ -693,6 +695,7 @@ class CompanionRemoteProvider with ChangeNotifier, DisposableChangeNotifierMixin
   }
 
   Stream<List<DiscoveredHost>>? discoverHosts() {
+    if (kFireTvNoCompanionRemote) return null;
     if (!isCryptoReady) {
       appLogger.w('CompanionRemote: Cannot discover — crypto not initialized');
       return null;
@@ -709,6 +712,7 @@ class CompanionRemoteProvider with ChangeNotifier, DisposableChangeNotifierMixin
 
   /// Connect to a discovered host as a remote client.
   Future<void> connectToDiscoveredHost(DiscoveredHost host) async {
+    if (kFireTvNoCompanionRemote) return;
     if (!isCryptoReady) {
       throw RemotePeerError(type: RemotePeerErrorType.authFailed, message: t.companionRemote.pairing.cryptoInitFailed);
     }
@@ -758,6 +762,7 @@ class CompanionRemoteProvider with ChangeNotifier, DisposableChangeNotifierMixin
 
   /// Connect to a host by manual IP:port entry.
   Future<void> connectToManualHost(String hostAddress) async {
+    if (kFireTvNoCompanionRemote) return;
     if (!isCryptoReady) {
       throw RemotePeerError(type: RemotePeerErrorType.authFailed, message: t.companionRemote.pairing.cryptoInitFailed);
     }

@@ -21,6 +21,7 @@ extension _PlexVideoControlsPlaybackInputMethods on _PlexVideoControlsState {
   }
 
   bool _syncOwnsRate() {
+    if (kFireTvNoWatchTogether) return false;
     try {
       return context.read<WatchTogetherProvider>().syncOwnsRate;
     } catch (_) {
@@ -310,8 +311,16 @@ extension _PlexVideoControlsPlaybackInputMethods on _PlexVideoControlsState {
     );
   }
 
+  /// Move, up and cancel are delivered to the hit-test path captured at
+  /// pointer down, so they keep arriving after these controls unmount under a
+  /// held finger: the player screen swaps them out for its failure view or a
+  /// player re-init, or closes, mid-gesture. The context is gone
+  /// by then and the gesture trackers died with this State, so there is
+  /// nothing left to drive. A new pointer down is hit-tested against the live
+  /// tree and never reaches a disposed State, so the down handler needs no
+  /// such guard.
   void _handleTouchPointerMove(PointerMoveEvent event) {
-    if (event.kind != PointerDeviceKind.touch) return;
+    if (!mounted || event.kind != PointerDeviceKind.touch) return;
     _twoFingerTapTracker.pointerMove(event.pointer, event.position);
     if (_twoFingerTapTracker.isChordActive) {
       _suppressTouchTaps();
@@ -331,7 +340,8 @@ extension _PlexVideoControlsPlaybackInputMethods on _PlexVideoControlsState {
   }
 
   void _handleTouchPointerUp(PointerUpEvent event) {
-    if (event.kind != PointerDeviceKind.touch) return;
+    // Can arrive after unmount; see [_handleTouchPointerMove].
+    if (!mounted || event.kind != PointerDeviceKind.touch) return;
     final isTwoFingerTap = _twoFingerTapTracker.pointerUp(event.pointer, event.position);
     final hit = _edgeAdjustmentSurfaceHit(event.position);
     _handleEdgeAdjustmentEvent(_edgeAdjustmentTracker.pointerUp(event.pointer, hit?.position ?? event.localPosition));
@@ -353,7 +363,8 @@ extension _PlexVideoControlsPlaybackInputMethods on _PlexVideoControlsState {
   }
 
   void _handleTouchPointerCancel(PointerCancelEvent event) {
-    if (event.kind != PointerDeviceKind.touch) return;
+    // Can arrive after unmount; see [_handleTouchPointerMove].
+    if (!mounted || event.kind != PointerDeviceKind.touch) return;
     _twoFingerTapTracker.pointerCancel(event.pointer);
     _handleEdgeAdjustmentEvent(_edgeAdjustmentTracker.pointerCancel(event.pointer));
     if (_twoFingerTapTracker.isChordActive) _suppressTouchTaps();

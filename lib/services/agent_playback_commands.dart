@@ -16,6 +16,7 @@ import '../utils/global_key_utils.dart';
 import '../utils/live_tv_player_navigation.dart';
 import '../utils/video_player_navigation.dart';
 import '../watch_together/providers/watch_together_provider.dart';
+import '../services/firetv_build_flags.dart';
 import 'agent_control_protocol.dart';
 import 'driver_distraction.dart';
 import 'music/music_playback_service.dart';
@@ -188,7 +189,9 @@ class AgentPlaybackCommands {
       if (!current()) throw const AgentControlException('sessionChanged', 'The server authentication session changed.');
     }
 
-    final watchTogether = context.context.read<WatchTogetherProvider?>();
+    final watchTogether = kFireTvNoWatchTogether
+        ? null
+        : context.context.read<WatchTogetherProvider?>();
     if (watchTogether?.isInSession == true &&
         (!watchTogether!.isHost || offline || _targetKind(arguments) == 'channel')) {
       // Host VOD selection uses the normal navigation lease. Guests and

@@ -36,7 +36,6 @@ extension _VideoPlayerPlaybackPromptMethods on VideoPlayerScreenState {
     // meanwhile and ends `completed` from _retireLaunchObserver when the
     // screen leaves on this item.
     _mediaControls.pushPlaybackState();
-    unawaited(DiscordRPCService.instance.pausePlayback());
     // The item finished, so real-time trackers get a terminal report now rather
     // than whenever the screen happens to tear down: a completion prompt or
     // end-of-video sleep timer can leave it open for minutes, and until then
@@ -233,7 +232,7 @@ extension _VideoPlayerPlaybackPromptMethods on VideoPlayerScreenState {
       failureReason: _episode.lastReloadFailureReason,
       hasNext: _episode.next != null,
       autoPlayEnabled: settings.read(SettingsService.autoPlayNextEpisode),
-      inWatchTogetherSession: _activeWatchTogetherSession() != null,
+      inWatchTogetherSession: _watchTogetherRoom() != null,
       autoRetriesUsed: _episode.playNextTransientRetryCount,
     );
     if (presentation == PlayNextRetryPresentation.none) return;
@@ -372,7 +371,9 @@ extension _VideoPlayerPlaybackPromptMethods on VideoPlayerScreenState {
   void _onStillWatchingTimeout() {
     _unfocusStillWatchingPrompt();
     final currentPlayer = player;
-    if (currentPlayer != null) unawaited(_pauseWithPlaybackIntent(currentPlayer));
+    if (currentPlayer != null) {
+      _dispatchPlaybackIntent(_pauseWithPlaybackIntent(currentPlayer), source: 'Still watching');
+    }
     _setPlayerState(() {
       _showStillWatchingPrompt = false;
     });
@@ -391,7 +392,9 @@ extension _VideoPlayerPlaybackPromptMethods on VideoPlayerScreenState {
     _stillWatchingTimer?.cancel();
     _unfocusStillWatchingPrompt();
     final currentPlayer = player;
-    if (currentPlayer != null) unawaited(_pauseWithPlaybackIntent(currentPlayer));
+    if (currentPlayer != null) {
+      _dispatchPlaybackIntent(_pauseWithPlaybackIntent(currentPlayer), source: 'Still watching');
+    }
     _setPlayerState(() {
       _showStillWatchingPrompt = false;
     });

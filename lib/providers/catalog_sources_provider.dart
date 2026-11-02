@@ -4,6 +4,8 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
 import '../media/media_item.dart';
+import '../media/media_kind.dart';
+import '../media/media_rating.dart';
 import '../media/media_server_client.dart';
 import '../connection/connection_registry.dart';
 import '../mixins/disposable_change_notifier_mixin.dart';
@@ -15,6 +17,7 @@ import '../profiles/profile.dart';
 import '../services/base_shared_preferences_service.dart';
 import '../services/catalog/library_watchlist_candidates.dart';
 import '../services/catalog/catalog_source.dart';
+import '../services/catalog/community_ratings.dart';
 import '../services/catalog/anilist_catalog_source.dart';
 import '../services/catalog/mdblist_catalog_source.dart';
 import '../services/catalog/mal_catalog_source.dart';
@@ -32,6 +35,7 @@ import '../services/trackers/simkl/simkl_client.dart';
 import '../services/trackers/trakt/trakt_client.dart';
 import 'seerr_account_provider.dart';
 import 'trackers_provider.dart';
+import '../services/firetv_build_flags.dart';
 import '../utils/platform_detector.dart';
 import '../utils/app_logger.dart';
 
@@ -130,7 +134,12 @@ class CatalogSourcesProvider extends ChangeNotifier with DisposableChangeNotifie
   final Map<String, List<WatchlistCandidate>> _watchlistCandidateResults = {};
   int _watchlistCandidateGeneration = 0;
 
-  List<CatalogSource> get connectedSources => [
+  // Community scores for the detail screens (see [communityRatingsForLibraryItem]).
+  // Not invalidated on rebind: the scores are public, and only connected
+  // providers are ever asked.
+  final CommunityRatingsLoader _communityRatings = CommunityRatingsLoader();
+
+  List<CatalogSource> get connectedSources => kFireTvNoExternalServices ? const <CatalogSource>[] : [
     ?_trakt.source,
     ?_mal.source,
     ?_anilist.source,
@@ -145,7 +154,7 @@ class CatalogSourcesProvider extends ChangeNotifier with DisposableChangeNotifie
   /// The connected Seerr source, for the request surfaces (detail-screen
   /// Request action and sheet) that need Seerr's client beyond the
   /// [CatalogSource] interface.
-  SeerrCatalogSource? get seerrSource => _seerr.source;
+  SeerrCatalogSource? get seerrSource => kFireTvNoExternalServices ? null : _seerr.source;
 
   /// The source whose rows the Explore tab shows: the user's persisted pick
   /// when it is still connected, otherwise the first connected source.
@@ -217,6 +226,50 @@ class CatalogSourcesProvider extends ChangeNotifier with DisposableChangeNotifie
     _watchlistCandidateGeneration++;
     _watchlistCandidateLoads.clear();
     _watchlistCandidateResults.clear();
+  }
+
+  /// The connected trackers' community scores for a library [item], growing
+  /// as each answers (see [CommunityRatingsLoader.load]). Each tracker's ids
+  /// come from [watchlistCandidatesFor] — every tracker with scores also has
+  /// a watchlist — so the item's external ids are fetched once for both, and
+  /// only when a tracker is connected. Movies and shows only: the trackers
+  /// score whole titles.
+  Stream<List<MediaRatingSource>> communityRatingsForLibraryItem(MediaItem item, {required MediaServerClient? client}) {
+    if (item.kind != MediaKind.movie && item.kind != MediaKind.show) return const Stream.empty();
+    Future<List<WatchlistCandidate>>? candidates;
+    return _communityRatings.load(item.kind, connectedSources, (source) async {
+      final resolved = await (candidates ??= watchlistCandidatesFor(item, client: client));
+      return resolved.firstWhereOrNull((candidate) => candidate.source.id == source.id)?.ids;
+    });
+  }
+
+  /// The connected trackers' community scores for a catalog [item]. A tracker
+  /// with a score of its own is not asked about its own items — their detail
+  /// already carries that score as the headline — and another tracker's copy
+  /// of it (MDBList's Trakt score on a Trakt item) is dropped; MDBList, which
+  /// has none, is asked about its own items too.
+  Stream<List<MediaRatingSource>> communityRatingsForCatalogItem(CatalogItem item) {
+    if (item.kind != MediaKind.movie && item.kind != MediaKind.show) return const Stream.empty();
+    final ownKey = communityRatingKeyFor(item.source);
+    return _communityRatings
+        .load(
+          item.kind,
+          [
+            for (final source in connectedSources)
+              if (ownKey == null || source.id != item.source) source,
+          ],
+          // A source that cannot place the item still gets its native ids
+          // (an AniList item's MAL id), which are all a fetcher reads.
+          (source) async => item.ids.mergedWith(
+            await source.resolveItemIds(item.kind, item.ids.toExternalIds()) ?? const CatalogItemIds(),
+          ),
+        )
+        .map(
+          (ratings) => [
+            for (final rating in ratings)
+              if (rating.source != ownKey) rating,
+          ],
+        );
   }
 
   /// Hydrate the per-profile active-source preference and Plex session.

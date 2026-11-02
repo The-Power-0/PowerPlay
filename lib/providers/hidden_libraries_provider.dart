@@ -1,36 +1,52 @@
 import 'package:flutter/foundation.dart';
 import '../mixins/disposable_change_notifier_mixin.dart';
 import '../services/storage_service.dart';
+import '../utils/fire_tv_library_policy.dart';
+import '../utils/platform_detector.dart';
+import 'libraries_provider.dart';
 
-/// Provider for managing hidden library state across the app.
-/// This ensures that when a library is hidden/unhidden in one screen,
-/// all other screens are automatically updated.
+/// Shared library visibility, combining saved choices with device defaults.
 class HiddenLibrariesProvider extends ChangeNotifier with DisposableChangeNotifierMixin {
   StorageService? _storageService;
   final String? profileId;
+  final LibrariesProvider? _librariesProvider;
+  final bool _hide4kByDefault;
   Set<String> _hiddenLibraryKeys = {};
+  Set<String> _shownLibraryOverrides = {};
+  Set<String> _lastNotifiedKeys = {};
   bool _isInitialized = false;
   late final Future<void> _initFuture;
 
-  HiddenLibrariesProvider({this._storageService, this.profileId}) {
-    // Start initialization eagerly to reduce race conditions
+  HiddenLibrariesProvider({
+    StorageService? storageService,
+    this.profileId,
+    LibrariesProvider? librariesProvider,
+    bool? hide4kByDefault,
+  }) : _storageService = storageService,
+       _librariesProvider = librariesProvider,
+       _hide4kByDefault = hide4kByDefault ?? TvDetectionService.is1080pOnlyFireStickSync() {
+    _librariesProvider?.addListener(_onLibrariesChanged);
     _initFuture = _initialize();
   }
 
-  /// Ensures the provider is initialized. Call this before accessing hidden
-  /// libraries in contexts where you need the actual persisted values.
   Future<void> ensureInitialized() => _initFuture;
-
-  /// Check if the provider has completed initialization
   bool get isInitialized => _isInitialized;
 
-  Set<String> get hiddenLibraryKeys => Set.unmodifiable(_hiddenLibraryKeys);
+  /// Defaults are derived, never written into the user's saved hidden list.
+  /// This also covers late server connections and renamed or new libraries.
+  Set<String> get hiddenLibraryKeys => Set.unmodifiable({
+    ..._hiddenLibraryKeys,
+    if (_hide4kByDefault)
+      for (final library in _librariesProvider?.libraries ?? [])
+        if (!_shownLibraryOverrides.contains(library.globalKey) &&
+            hide4kLibraryByDefault(is1080pOnlyFireStick: true, title: library.title))
+          library.globalKey,
+  });
 
-  /// Initialize the provider by loading hidden libraries from storage
   Future<void> _initialize() async {
     await _loadFromStorage();
     _isInitialized = true;
-    safeNotifyListeners();
+    _notifyVisibilityChanged(force: true);
   }
 
   Future<void> _loadFromStorage() async {
@@ -39,10 +55,19 @@ class HiddenLibrariesProvider extends ChangeNotifier with DisposableChangeNotifi
     _hiddenLibraryKeys = scopedProfileId == null
         ? storage.getHiddenLibraries()
         : storage.getHiddenLibrariesForProfile(scopedProfileId);
+    _shownLibraryOverrides = storage.getShownLibraryOverrides(profileId: scopedProfileId);
   }
 
-  /// Hide a library by its key
-  /// Updates both in-memory state and persistent storage
+  void _onLibrariesChanged() => _notifyVisibilityChanged();
+
+  void _notifyVisibilityChanged({bool force = false}) {
+    if (isDisposed) return;
+    final next = hiddenLibraryKeys;
+    if (!force && setEquals(next, _lastNotifiedKeys)) return;
+    _lastNotifiedKeys = next;
+    safeNotifyListeners();
+  }
+
   Future<void> hideLibrary(String libraryKey, {void Function()? checkCurrent}) =>
       setLibraryHidden(libraryKey, true, checkCurrent: checkCurrent);
 
@@ -53,31 +78,49 @@ class HiddenLibrariesProvider extends ChangeNotifier with DisposableChangeNotifi
     await ensureInitialized();
     if (isDisposed) return;
     checkCurrent?.call();
-    if (_hiddenLibraryKeys.contains(libraryKey) == hidden) return;
     final next = Set<String>.of(_hiddenLibraryKeys);
-    hidden ? next.add(libraryKey) : next.remove(libraryKey);
+    final shown = Set<String>.of(_shownLibraryOverrides);
+    if (hidden) {
+      next.add(libraryKey);
+      shown.remove(libraryKey);
+    } else {
+      next.remove(libraryKey);
+      shown.add(libraryKey);
+    }
+    final hiddenChanged = !setEquals(next, _hiddenLibraryKeys);
+    final shownChanged = !setEquals(shown, _shownLibraryOverrides);
+    if (!hiddenChanged && !shownChanged) return;
     final storage = _storageService!;
     final scopedProfileId = profileId;
-    if (scopedProfileId == null) {
-      await storage.saveHiddenLibraries(next);
-    } else {
-      await storage.saveHiddenLibrariesForProfile(scopedProfileId, next);
+    Future<void> saveHidden(Set<String> keys) => scopedProfileId == null
+        ? storage.saveHiddenLibraries(keys)
+        : storage.saveHiddenLibrariesForProfile(scopedProfileId, keys);
+    if (hiddenChanged) await saveHidden(next);
+    try {
+      if (shownChanged) await storage.saveShownLibraryOverrides(shown, profileId: scopedProfileId);
+    } catch (_) {
+      if (hiddenChanged) await saveHidden(_hiddenLibraryKeys);
+      rethrow;
     }
     if (isDisposed) return;
     checkCurrent?.call();
     _hiddenLibraryKeys = next;
-    safeNotifyListeners();
+    _shownLibraryOverrides = shown;
+    _notifyVisibilityChanged();
   }
 
-  /// Check if a specific library is hidden
   @visibleForTesting
-  bool isLibraryHidden(String libraryKey) => _hiddenLibraryKeys.contains(libraryKey);
+  bool isLibraryHidden(String libraryKey) => hiddenLibraryKeys.contains(libraryKey);
 
-  /// Refresh hidden libraries from storage
-  /// Useful if storage was modified outside the provider
   Future<void> refresh() async {
     await _loadFromStorage();
     _isInitialized = true;
-    safeNotifyListeners();
+    _notifyVisibilityChanged(force: true);
+  }
+
+  @override
+  void dispose() {
+    _librariesProvider?.removeListener(_onLibrariesChanged);
+    super.dispose();
   }
 }

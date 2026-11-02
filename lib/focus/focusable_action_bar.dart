@@ -95,6 +95,9 @@ class FocusableActionBar extends StatefulWidget {
 
 class FocusableActionBarState extends State<FocusableActionBar> {
   late List<OwnedFocusNodeBinding> _focusBindings;
+  // Binding identity is stable across action reorder; indexes are rebuilt
+  // only when the action list changes, not on every D-pad focus callback.
+  late Map<OwnedFocusNodeBinding, int> _focusBindingIndex;
   late List<FocusNode> _focusNodes;
   late List<bool> _focusStates;
   bool _hasAnyFocus = false;
@@ -177,8 +180,8 @@ class FocusableActionBarState extends State<FocusableActionBar> {
   /// Index resolved at call time: a binding survives action-list changes, so
   /// a listener must not capture the slot it was created for.
   void _handleBindingFocusChange(OwnedFocusNodeBinding binding) {
-    final index = _focusBindings.indexOf(binding);
-    if (index != -1) {
+    final index = _focusBindingIndex[binding];
+    if (index != null) {
       final hasFocus = binding.node.hasFocus;
       if (_focusStates[index] != hasFocus) {
         setState(() => _focusStates[index] = hasFocus);
@@ -189,6 +192,7 @@ class FocusableActionBarState extends State<FocusableActionBar> {
 
   void _initNodes() {
     _focusBindings = [for (var i = 0; i < widget.actions.length; i++) _createBinding(widget.actions[i], i)];
+    _focusBindingIndex = {for (var i = 0; i < _focusBindings.length; i++) _focusBindings[i]: i};
     _focusNodes = [for (final binding in _focusBindings) binding.node];
     _focusStates = [for (final node in _focusNodes) node.hasFocus];
     _hasAnyFocus = _focusNodes.any((node) => node.hasFocus);
@@ -239,6 +243,7 @@ class FocusableActionBarState extends State<FocusableActionBar> {
     }
 
     _focusBindings = newBindings;
+    _focusBindingIndex = {for (var i = 0; i < newBindings.length; i++) newBindings[i]: i};
     _focusNodes = [for (final binding in newBindings) binding.node];
     _focusStates = [for (final node in _focusNodes) node.hasFocus];
 
