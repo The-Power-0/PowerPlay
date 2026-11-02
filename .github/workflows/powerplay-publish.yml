@@ -137,7 +137,8 @@ jobs:
           - Automatic defaults are not saved into the portable hidden-library list. Newly connected libraries receive the same defaults; removing \`[4K]\` from a name removes only the automatic hiding.
           - Unknown hardware keeps libraries visible. Explicitly saved Hide choices are preserved.
           - Includes the PowerPlay 1.1.0 settings defaults, startup branding, and About updates.
-          - New in v$RELEASE_VERSION: six curated themes — Signature Purple, Moonlight Blue, Ember, Evergreen, Rosé and Monochrome — selectable from Appearance settings.
+          - New in v$RELEASE_VERSION: prevent no-op D-pad focus scrolling from collapsing or bouncing the library's floating header on Fire TV.
+          - Since v1.2.0: six curated themes — Signature Purple, Moonlight Blue, Ember, Evergreen, Rosé and Monochrome — selectable from Appearance settings.
           - Each color palette works independently with System, Light, Dark, and true-black OLED display modes.
           - Theme choices apply live, persist locally on each Fire TV, and keep existing installations on Monochrome until changed.
           - Retains the PowerPlay 1.1.2 matched splash canvas (#04070E), 1.1.1 hardware-aware library defaults, and 1.1.0 settings/branding.

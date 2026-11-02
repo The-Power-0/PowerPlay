@@ -1,6 +1,6 @@
 {
-  "version": "1.2.0",
-  "build_number": 10200,
+  "version": "1.2.1",
+  "build_number": 10201,
   "baseline_tag": "powerplay-v1.0.0",
   "baseline_source_sha256": "0bbe04133adba64607799513d30267d8e7f0cf98b9e2ecd66583bd16137955c6",
   "baseline_native_sha256": "9b58bab24a54219af312e397566281bcdd84a84cae6f5f49d4e6eefd6e4af756"

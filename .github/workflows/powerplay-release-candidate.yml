@@ -76,6 +76,8 @@ jobs:
           # uses the mature MonoPalette theme engine (not root's legacy code).
           python3 "$GITHUB_WORKSPACE/.github/powerplay/apply_curated_theme_to_release.py" \
             --source "$RUNNER_TEMP/powerplay/plezy-custom-source"
+          python3 "$GITHUB_WORKSPACE/.github/powerplay/apply_121_upstream_fixes.py" \
+            --source "$RUNNER_TEMP/powerplay/plezy-custom-source"
           python3 "$GITHUB_WORKSPACE/.github/powerplay/check_next_version.py" \
             --source "$RUNNER_TEMP/powerplay/plezy-custom-source"
           echo "PowerPlay $RELEASE_VERSION: retained features, matched splash, and six OLED-compatible theme presets applied." >> "$GITHUB_STEP_SUMMARY"
@@ -94,6 +96,7 @@ jobs:
           flutter test test/providers/fire_tv_library_defaults_test.dart test/providers/hidden_libraries_provider_test.dart test/providers/libraries_provider_test.dart test/utils/platform_detector_test.dart test/widgets/library_management_sheet_test.dart test/navigation/profile_session_screen_test.dart test/services/storage_service_test.dart
           flutter test test/services/powerplay_defaults_test.dart test/services/settings_service_test.dart test/services/settings_export_service_test.dart
           flutter test test/theme/powerplay_curated_palette_test.dart test/theme/mono_theme_test.dart test/providers/theme_provider_test.dart test/startup_bootstrap_test.dart
+          flutter test test/focus/focusable_wrapper_test.dart
           flutter test test/services/deep_links/legacy_shuffle_link_test.dart
           flutter test test/services/deep_links/deep_link_test.dart
       - name: Configure existing Fire TV test signing secret
@@ -182,7 +185,7 @@ jobs:
           data['source_sha'] = os.environ['GITHUB_SHA']
           Path('release-manifest.json').write_text(json.dumps(data, indent=2) + '\n')
           PYTHON
-          printf '%s\n' 'PowerPlay Release Candidate'  "Based on pinned published PowerPlay 1.0.0 source" "PowerPlay $RELEASE_VERSION defaults, splash, curated themes with OLED, About, and release policy; device validation pending." 'NOT A PUBLIC RELEASE YET.' > BUILD-STATUS.txt
+          printf '%s\n' 'PowerPlay Release Candidate'  "Based on pinned published PowerPlay 1.0.0 source" "PowerPlay $RELEASE_VERSION: library-header D-pad scroll fix; existing themes, Plex optimizations, and Home Assistant features retained; device validation pending." 'NOT A PUBLIC RELEASE YET.' > BUILD-STATUS.txt
       - name: Upload signed candidate for review (no public release)
         uses: actions/upload-artifact@v4
         with:
