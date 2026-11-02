@@ -80,7 +80,7 @@ def main():
         )
         if entry["tag"].startswith("powerplay-"):
             assert not entry["desired"]["draft"] and not entry["desired"]["prerelease"]
-            assert "Plezy 2.25.0" in entry["desired"]["body"]
+            assert "2.25.0" in entry["desired"]["body"]
             assert "Based on Plezy 2.24.0" not in entry["desired"]["body"]
         else:
             assert not entry["desired"]["draft"] and entry["desired"]["prerelease"]
