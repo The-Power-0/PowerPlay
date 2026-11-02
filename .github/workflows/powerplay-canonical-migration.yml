@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 65
     env:
-      GH_TOKEN: ${{ github.token }
+      GH_TOKEN: ${{ github.token }}
       SOURCE_RELEASE: powerplay-v1.2.4
     steps:
       - name: Check out migration branch
