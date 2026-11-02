@@ -100,6 +100,7 @@ PowerPlay's version numbers began with the standalone rebrand. Earlier releases 
 
 | Release | Milestone |
 | --- | --- |
+| **[1.2.1](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.2.1)** | Prevent unnecessary D-pad focus scroll animations from collapsing or bouncing the floating library header. Retains existing performance work and curated themes. |
 | **[1.2.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.2.0)** | Six curated color themes (Signature Purple, Moonlight Blue, Ember, Evergreen, Rosé, Monochrome), each compatible with Light, Dark, System, and true-black OLED. Live changes persist per Fire TV. |
 | **[1.1.2](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.1.2)** | Splash backgrounds now match the approved logo canvas throughout Fire TV light, dark, OLED and Android 12 launch paths. |
 | **[1.1.1](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.1.1)** | Hardware-aware `[4K]` library defaults: hide on recognized 1080p-only sticks, show on 4K-capable sticks regardless of current output resolution; preserve manual overrides. |
@@ -107,7 +108,13 @@ PowerPlay's version numbers began with the standalone rebrand. Earlier releases 
 | **[1.0.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.0.0)** | First standalone PowerPlay release: purple branding, `com.power.powerplay`, `powerplay://` intents, and the frozen Plex-only Fire TV optimization stack based on Plezy 2.25.0. |
 | **Pre-1.0 · October 2026** | Custom Plezy 2.22–2.25 builds established Home Assistant shuffle links; subsequent performance work consolidated the Fire TV feature set, removed unused integrations and MPV, and produced the tested candidate later rebranded as PowerPlay. |
 
+**Upstream baseline clarification:** PowerPlay 1.0.0 was derived from Plezy **2.25.0**; subsequent PowerPlay releases reuse that pinned source and selectively adopt fixes. A historical reference to Plezy **2.24.0** in release descriptions is outdated and should not be treated as a code downgrade. The APK's embedded About-screen text, if it shows an incorrect version, requires a separate source change and rebuild; documentation updates alone cannot alter an installed APK.
+
 For a future release that is not yet listed here, use [Latest](https://github.com/The-Power-0/PowerPlay/releases/latest). Full per-version changes and downloadable artifacts are recorded on each GitHub release page.
+
+### Release notes and archive policy
+
+Every published PowerPlay release uses consistent sections: **What's new**, **Install and sources**, and **Build provenance and attribution**. The original Plezy 2.25.0 baseline is identified separately from selectively backported upstream fixes. Archived pre-PowerPlay Plezy 2.22.0–2.25.0 builds are historical prereleases listed below stable PowerPlay releases; Plezy 2.25.0 remains available as a rollback asset. Historical APKs and tags are preserved unchanged.
 
 ### Release approach
 
