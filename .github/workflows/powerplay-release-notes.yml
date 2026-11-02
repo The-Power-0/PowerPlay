@@ -1,0 +1,29 @@
+name: Standardize PowerPlay release notes and archive order
+run-name: Standardize release notes and publish historical Plezy prereleases
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/powerplay/release-notes.request.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: powerplay-release-notes
+  cancel-in-progress: false
+
+jobs:
+  housekeeping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Validate release snapshots and update release descriptions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/powerplay/sync_release_notes.py --apply
