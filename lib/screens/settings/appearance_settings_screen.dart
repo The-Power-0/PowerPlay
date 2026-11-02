@@ -7,24 +7,32 @@ import 'package:provider/provider.dart';
 import '../../i18n/strings.g.dart';
 import '../../providers/catalog_sources_provider.dart';
 import '../../providers/theme_provider.dart';
-import '../../theme/powerplay_palette.dart';
 import '../../services/settings_service.dart' hide ThemeMode;
-import '../../services/settings_service.dart' as settings show ThemeMode;
 import '../../focus/focusable_slider.dart';
 import '../../services/device_performance.dart';
 import '../../utils/platform_detector.dart';
 import '../../widgets/app_icon.dart';
+import '../../widgets/overlay_sheet.dart';
 import '../../widgets/setting_tile.dart';
 import '../../widgets/settings_page.dart';
 import '../../widgets/settings_builder.dart';
 import '../../widgets/settings_section.dart';
+import 'app_icon_setting.dart';
 import 'settings_utils.dart';
+import 'theme_settings_screen.dart';
 
 class AppearanceSettingsScreen extends StatelessWidget {
   const AppearanceSettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Hosts the App icon picker and the Supporter sheet it opens. Content
+    // builds below the host so they find it instead of falling back to a
+    // modal route, which keeps its drag handle and gives no D-pad focus on TV.
+    return OverlaySheetHost(canPop: true, child: Builder(builder: _buildContent));
+  }
+
+  Widget _buildContent(BuildContext context) {
     // Nullable watch: hosts without the profile session scope (tests) simply
     // never show the Explore toggle, mirroring the tab's own visibility.
     final hasExplore = context.watch<CatalogSourcesProvider?>()?.hasAnySource ?? false;
@@ -35,7 +43,7 @@ class AppearanceSettingsScreen extends StatelessWidget {
           title: t.settings.display,
           children: [
             _themeSelector(),
-            const _PaletteGallery(),
+            if (AppIconSetting.isShown(context)) const AppIconSetting(),
             if (PlatformDetector.isAutomotive()) _displayScaleSelector(),
             if (Platform.isAndroid) _visualEffectsSelector(context),
           ],
@@ -180,17 +188,17 @@ class AppearanceSettingsScreen extends StatelessWidget {
     );
   }
 
-  // Writes the pref directly; ThemeProvider listens to the pref's listenable
-  // and applies the change live. The Consumer only feeds the dynamic icon.
+  // Opens the theme picker; the subtitle and icon follow the theme on screen,
+  // which is the device's default theme while a stored Supporter theme is
+  // locked.
   Widget _themeSelector() {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, _) {
-        return SettingSelectionTile<settings.ThemeMode>(
-          pref: SettingsService.themeMode,
+        return SettingNavigationTile(
           icon: themeProvider.themeModeIcon,
           title: t.settings.theme,
-          subtitleBuilder: themeModeLabel,
-          options: settings.ThemeMode.values.map((m) => DialogOption(value: m, title: themeModeLabel(m))).toList(),
+          subtitle: themeModeLabel(themeProvider.themeMode),
+          destinationBuilder: (_) => const ThemeSettingsScreen(),
         );
       },
     );
@@ -347,129 +355,4 @@ class AppearanceSettingsScreen extends StatelessWidget {
       ),
     ],
   );
-}
-
-/// Compact, remote-friendly gallery: every swatch is a real focusable button.
-/// The display-mode selection above stays independent (including OLED).
-class _PaletteGallery extends StatelessWidget {
-  const _PaletteGallery();
-
-  @override
-  Widget build(BuildContext context) {
-    final provider = context.watch<ThemeProvider>();
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Color theme', style: settingsOptionTitleStyle(context)),
-          const SizedBox(height: 5),
-          Text(
-            'Select a palette. OLED mode works with every color theme.',
-            style: theme.textTheme.bodySmall,
-          ),
-          const SizedBox(height: 12),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final columns = constraints.maxWidth >= 630 ? 3 : 2;
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: PowerPlayPalette.values.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: columns,
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
-                  mainAxisExtent: 112,
-                ),
-                itemBuilder: (context, index) {
-                  final palette = PowerPlayPalette.values[index];
-                  final selected = palette == provider.palette;
-                  return _PaletteOption(
-                    palette: palette,
-                    selected: selected,
-                    onSelected: () => provider.setPalette(palette),
-                  );
-                },
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PaletteOption extends StatelessWidget {
-  const _PaletteOption({
-    required this.palette,
-    required this.selected,
-    required this.onSelected,
-  });
-
-  final PowerPlayPalette palette;
-  final bool selected;
-  final VoidCallback onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final preview = palette.colors(dark: true);
-    return OutlinedButton(
-      onPressed: onSelected,
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.all(8),
-        side: BorderSide(color: selected ? theme.colorScheme.primary : theme.dividerColor, width: selected ? 2 : 1),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: preview.background,
-                borderRadius: BorderRadius.circular(7),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Row(
-                  children: [
-                    Container(width: 19, decoration: BoxDecoration(color: preview.surface, borderRadius: BorderRadius.circular(4))),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(height: 5, decoration: BoxDecoration(color: preview.accent, borderRadius: BorderRadius.circular(3))),
-                          const SizedBox(height: 6),
-                          Container(height: 4, width: 48, decoration: BoxDecoration(color: preview.textMuted, borderRadius: BorderRadius.circular(3))),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 7),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  palette.label,
-                  style: theme.textTheme.labelSmall?.copyWith(fontWeight: selected ? FontWeight.bold : FontWeight.normal),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (selected) Icon(Icons.check_circle, size: 16, color: theme.colorScheme.primary),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 }

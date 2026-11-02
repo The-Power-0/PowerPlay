@@ -1,6 +1,8 @@
 name: PowerPlay Fire TV Release Candidate
-run-name: PowerPlay candidate — ${{ github.ref_name }}
+run-name: PowerPlay source candidate — ${{ github.ref_name }}
 
+# Compile the reviewed repository source directly. Never unpack a historic
+# PowerPlay source archive or apply version-specific modifications during build.
 on:
   push:
     branches:
@@ -17,104 +19,70 @@ concurrency:
 
 jobs:
   candidate:
-    if: github.event_name != 'push' || github.event.deleted != true
     runs-on: ubuntu-latest
     timeout-minutes: 110
     env:
       FLUTTER_VERSION: '3.47.9'
+      GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Checkout release machinery
+      - name: Checkout exact reviewed application source
         uses: actions/checkout@v5
-      - name: Load release version and published source pins
+        with:
+          persist-credentials: false
+      - name: Load version from tracked source metadata
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PYTHON'
+          python3 - <<'PY'
           import json, os, re
           from pathlib import Path
-          data = json.loads(Path('.github/powerplay/release.json').read_text())
-          assert re.fullmatch(r'\d+\.\d+\.\d+', data['version'])
-          assert type(data['build_number']) is int and data['build_number'] > 10000
-          for key in ('baseline_source_sha256', 'baseline_native_sha256'):
-              assert re.fullmatch(r'[0-9a-f]{64}', data[key])
-          assert data['baseline_tag'] == 'powerplay-v1.0.0'
-          with open(os.environ['GITHUB_ENV'], 'a') as out:
-              for key, value in data.items():
-                  name = 'RELEASE_VERSION' if key == 'version' else key.upper()
-                  out.write(f'{name}={value}\n')
-          PYTHON
-      - name: Restore pinned published PowerPlay 1.0.0 source and native inputs
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/frozen" "$RUNNER_TEMP/powerplay"
-          gh release download "$BASELINE_TAG" --repo "$GITHUB_REPOSITORY" \
-            --pattern 'PowerPlay-v1.0.0-Source.tar.gz' \
-            --pattern 'PowerPlay-v1.0.0-NativeSourceInputs.zip' \
-            --dir "$RUNNER_TEMP/frozen"
-          cd "$RUNNER_TEMP/frozen"
-          echo "$BASELINE_SOURCE_SHA256  PowerPlay-v1.0.0-Source.tar.gz" | sha256sum -c -
-          echo "$BASELINE_NATIVE_SHA256  PowerPlay-v1.0.0-NativeSourceInputs.zip" | sha256sum -c -
-          tar -xzf PowerPlay-v1.0.0-Source.tar.gz -C "$RUNNER_TEMP/powerplay"
-          test -s "$RUNNER_TEMP/powerplay/plezy-custom-source/LICENSE"
-          cp PowerPlay-v1.0.0-NativeSourceInputs.zip "$RUNNER_TEMP/powerplay/native-source-inputs.zip"
-      - name: Set up Java
+          data=json.loads(Path('.github/powerplay/release.json').read_text())
+          assert re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', data['version'])
+          assert isinstance(data['build_number'],int) and data['build_number'] >= 10204
+          assert f"version: {data['version']}+{data['build_number']}" in Path('pubspec.yaml').read_text()
+          assert data.get('source_mode') == 'repository'
+          for path in ('lib/main.dart', 'lib/theme/powerplay_palette.dart',
+                       'android/app/build.gradle.kts', 'assets/powerplay_splash.png'):
+              assert Path(path).is_file(), path
+          assert 'applicationId = "com.power.powerplay"' in Path('android/app/build.gradle.kts').read_text()
+          assert 'PowerPlayPalette' in Path('lib/theme/powerplay_palette.dart').read_text()
+          assert Path('assets/powerplay_splash.png').read_bytes()[25] == 6
+          with open(os.environ['GITHUB_ENV'],'a') as env:
+              env.write(f"RELEASE_VERSION={data['version']}\n")
+              env.write(f"BUILD_NUMBER={data['build_number']}\n")
+          PY
+      - name: Set up Java and Flutter
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
-      - name: Apply PowerPlay defaults and branding changes to the published source
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 "$GITHUB_WORKSPACE/.github/powerplay/test_fix_splash_background.py"
-          python3 "$GITHUB_WORKSPACE/.github/powerplay/apply_next_version.py" \
-            --source "$RUNNER_TEMP/powerplay/plezy-custom-source"
-          # Apply curated theme presets to the PINNED published source, which
-          # uses the mature MonoPalette theme engine (not root's legacy code).
-          python3 "$GITHUB_WORKSPACE/.github/powerplay/apply_curated_theme_to_release.py" \
-            --source "$RUNNER_TEMP/powerplay/plezy-custom-source"
-          python3 "$GITHUB_WORKSPACE/.github/powerplay/apply_121_upstream_fixes.py" \
-            --source "$RUNNER_TEMP/powerplay/plezy-custom-source"
-          python3 "$GITHUB_WORKSPACE/.github/powerplay/apply_124_theme_ui.py" \
-            --source "$RUNNER_TEMP/powerplay/plezy-custom-source"
-          python3 "$GITHUB_WORKSPACE/.github/powerplay/apply_transparent_splash.py" \
-            --source "$RUNNER_TEMP/powerplay/plezy-custom-source"
-          python3 "$GITHUB_WORKSPACE/.github/powerplay/check_next_version.py" \
-            --source "$RUNNER_TEMP/powerplay/plezy-custom-source"
-          echo "PowerPlay $RELEASE_VERSION: retained features, matched splash, and ten OLED-compatible curated themes applied; transparent splash foreground verified." >> "$GITHUB_STEP_SUMMARY"
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
-      - name: Resolve and test
+      - name: Resolve and test exactly the checked-out source
         shell: bash
         run: |
           set -euo pipefail
-          cd "$RUNNER_TEMP/powerplay/plezy-custom-source"
           flutter pub get
           flutter test test/providers/fire_tv_library_defaults_test.dart test/providers/hidden_libraries_provider_test.dart test/providers/libraries_provider_test.dart test/utils/platform_detector_test.dart test/widgets/library_management_sheet_test.dart test/navigation/profile_session_screen_test.dart test/services/storage_service_test.dart
           flutter test test/services/powerplay_defaults_test.dart test/services/settings_service_test.dart test/services/settings_export_service_test.dart
           flutter test test/theme/powerplay_curated_palette_test.dart test/theme/mono_theme_test.dart test/providers/theme_provider_test.dart test/startup_bootstrap_test.dart
           flutter test test/focus/focusable_wrapper_test.dart
-          flutter test test/services/deep_links/legacy_shuffle_link_test.dart
-          flutter test test/services/deep_links/deep_link_test.dart
-      - name: Configure existing Fire TV test signing secret
+          flutter test test/services/deep_links/legacy_shuffle_link_test.dart test/services/deep_links/deep_link_test.dart
+          git diff --exit-code -- pubspec.yaml pubspec.lock
+      - name: Prepare existing Fire TV signing identity
+        shell: bash
         env:
           KEYSTORE_BASE64: ${{ secrets.PLEZY_KEYSTORE_BASE64 }}
-        shell: bash
         run: |
           set -euo pipefail
-          test -n "${KEYSTORE_BASE64:-}" || { echo "Missing PLEZY_KEYSTORE_BASE64 secret"; exit 1; }
+          test -n "${KEYSTORE_BASE64:-}" || { echo 'Missing existing signing secret'; exit 1; }
           mkdir -p "$HOME/.android"
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/powerplay.keystore"
           chmod 600 "$HOME/.android/powerplay.keystore"
           keytool -list -keystore "$HOME/.android/powerplay.keystore" -storepass android -alias androiddebugkey >/dev/null
-          cd "$RUNNER_TEMP/powerplay/plezy-custom-source"
           cat > android/key.properties <<EOF
           storePassword=android
           keyPassword=android
@@ -122,11 +90,11 @@ jobs:
           storeFile=$HOME/.android/powerplay.keystore
           EOF
           chmod 600 android/key.properties
-      - name: Compile optimized PowerPlay ARMv7 release
+      - name: Compile PowerPlay Android ARMv7 release from Git checkout
         shell: bash
         run: |
           set -euo pipefail
-          cd "$RUNNER_TEMP/powerplay/plezy-custom-source"
+          printf 'flutter.sdk=%s\nsdk.dir=%s\n' "$FLUTTER_ROOT" "$ANDROID_HOME" > android/local.properties
           flutter build apk --release --target-platform android-arm --split-per-abi \
             --dart-define=PLEZY_FIRETV_PLEX_ONLY=true \
             --dart-define=PLEZY_FIRETV_FORCE_EXO_VIDEO=true \
@@ -135,65 +103,73 @@ jobs:
             --dart-define=PLEZY_FIRETV_NO_WATCH_TOGETHER=true \
             --dart-define=PLEZY_FIRETV_NO_COMPANION_REMOTE=true \
             --dart-define=PLEZY_HA_MANAGED_UPDATES=true
-          mkdir -p "$GITHUB_WORKSPACE/powerplay-release"
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "$GITHUB_WORKSPACE/powerplay-release/PowerPlay-v$RELEASE_VERSION-rc1.apk"
-      - name: Check actual APK identity, ABI, signing, and MPV absence
+          mkdir -p powerplay-release
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk \
+             "powerplay-release/PowerPlay-v$RELEASE_VERSION-rc1.apk"
+      - name: Verify APK identity, signing, architecture and splash assets
         shell: bash
         run: |
           set -euo pipefail
-          cd "$GITHUB_WORKSPACE/powerplay-release"
+          cd powerplay-release
           SDK_TOOLS="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
-          "$SDK_TOOLS/aapt" dump badging PowerPlay-v$RELEASE_VERSION-rc1.apk > apk-badging.txt
+          "$SDK_TOOLS/aapt" dump badging "PowerPlay-v$RELEASE_VERSION-rc1.apk" > apk-badging.txt
           grep -q "package: name='com.power.powerplay'" apk-badging.txt
           grep -q "versionName='$RELEASE_VERSION'" apk-badging.txt
-          # Flutter adds the armeabi-v7a ABI offset (1000) to the base build number.
           EXPECTED_APK_VERSION_CODE=$((BUILD_NUMBER + 1000))
           grep -q "versionCode='$EXPECTED_APK_VERSION_CODE'" apk-badging.txt
-          "$SDK_TOOLS/apksigner" verify --min-sdk-version 28 --print-certs PowerPlay-v$RELEASE_VERSION-rc1.apk > signing.txt
-          "$SDK_TOOLS/apksigner" verify --min-sdk-version 30 PowerPlay-v$RELEASE_VERSION-rc1.apk
+          "$SDK_TOOLS/apksigner" verify --min-sdk-version 28 --print-certs "PowerPlay-v$RELEASE_VERSION-rc1.apk" > signing.txt
+          "$SDK_TOOLS/apksigner" verify --min-sdk-version 30 "PowerPlay-v$RELEASE_VERSION-rc1.apk"
           python3 - <<'PY'
-          from zipfile import ZipFile
           from pathlib import Path
+          from zipfile import ZipFile
           import os
           with ZipFile(f"PowerPlay-v{os.environ['RELEASE_VERSION']}-rc1.apk") as a:
-              ns=a.namelist()
-              expected=Path(os.environ['RUNNER_TEMP']) / 'powerplay/plezy-custom-source/assets/powerplay.png'
-              assert a.read('assets/flutter_assets/assets/powerplay.png') == expected.read_bytes()
-              splash=Path(os.environ['RUNNER_TEMP']) / 'powerplay/plezy-custom-source/assets/powerplay_splash.png'
-              assert a.read('assets/flutter_assets/assets/powerplay_splash.png') == splash.read_bytes()
-              assert splash.read_bytes()[25] == 6  # PNG RGBA, not opaque RGB
-              abis={p.split("/")[1] for p in ns if p.startswith("lib/") and p.endswith(".so")}
-              assert abis=={"armeabi-v7a"}, abis
-              assert "lib/armeabi-v7a/libflutter.so" in ns
-              assert "lib/armeabi-v7a/libapp.so" in ns
-              assert any(p.endswith("libffmpegJNI.so") for p in ns)
-              assert not any("mpv" in p.lower() and p.endswith(".so") for p in ns)
+              ns = a.namelist()
+              for filename in ('powerplay.png','powerplay_splash.png'):
+                  expected=Path('..') / 'assets' / filename
+                  actual=f'assets/flutter_assets/assets/{filename}'
+                  assert a.read(actual) == expected.read_bytes(), filename
+              abis={p.split('/')[1] for p in ns if p.startswith('lib/') and p.endswith('.so')}
+              assert abis=={'armeabi-v7a'}, abis
+              assert 'lib/armeabi-v7a/libapp.so' in ns
+              assert any(p.endswith('libffmpegJNI.so') for p in ns)
+              assert not any('mpv' in p.lower() and p.endswith('.so') for p in ns)
           PY
-          sha256sum PowerPlay-v$RELEASE_VERSION-rc1.apk > PowerPlay-v$RELEASE_VERSION-rc1.apk.sha256
-      - name: Archive corresponding source and source inputs
+          sha256sum "PowerPlay-v$RELEASE_VERSION-rc1.apk" > "PowerPlay-v$RELEASE_VERSION-rc1.apk.sha256"
+      - name: Archive matching tracked source and verified native inputs
         shell: bash
         run: |
           set -euo pipefail
-          cd "$RUNNER_TEMP/powerplay"
-          tar -czf "$GITHUB_WORKSPACE/powerplay-release/PowerPlay-v$RELEASE_VERSION-rc1-Source.tar.gz" \
-            --exclude='plezy-custom-source/build' \
-            --exclude='plezy-custom-source/.dart_tool' \
-            --exclude='plezy-custom-source/android/.gradle' \
-            --exclude='plezy-custom-source/android/app/build' \
-            --exclude='plezy-custom-source/android/key.properties' \
-            plezy-custom-source
-          cp native-source-inputs.zip "$GITHUB_WORKSPACE/powerplay-release/PowerPlay-v$RELEASE_VERSION-rc1-NativeSourceInputs.zip"
-          cd "$GITHUB_WORKSPACE/powerplay-release"
-          sha256sum PowerPlay-v$RELEASE_VERSION-rc1-Source.tar.gz PowerPlay-v$RELEASE_VERSION-rc1-NativeSourceInputs.zip > sources.sha256
-          python3 - <<'PYTHON'
-          import json, os
+          gh release download powerplay-v1.2.4 --repo "$GITHUB_REPOSITORY" \
+            --pattern 'PowerPlay-v1.2.4-NativeSourceInputs.zip' --dir powerplay-release
+          python3 - <<'PY'
+          import hashlib, json
           from pathlib import Path
-          data = json.loads(Path('../.github/powerplay/release.json').read_text())
-          data['source_sha'] = os.environ['GITHUB_SHA']
-          Path('release-manifest.json').write_text(json.dumps(data, indent=2) + '\n')
-          PYTHON
-          printf '%s\n' 'PowerPlay Release Candidate'  "Based on pinned published PowerPlay 1.0.0 source" "PowerPlay $RELEASE_VERSION: transparent startup-only artwork and four new curated themes, including two dual-tone palettes; existing focus, Plex and Home Assistant features retained; device validation pending." 'NOT A PUBLIC RELEASE YET.' > BUILD-STATUS.txt
-      - name: Upload signed candidate for review (no public release)
+          data=json.loads(Path('.github/powerplay/release.json').read_text())
+          p=Path('powerplay-release/PowerPlay-v1.2.4-NativeSourceInputs.zip')
+          assert hashlib.sha256(p.read_bytes()).hexdigest()==data['baseline_native_sha256'], 'native source checksum'
+          PY
+          mv powerplay-release/PowerPlay-v1.2.4-NativeSourceInputs.zip \
+            "powerplay-release/PowerPlay-v$RELEASE_VERSION-rc1-NativeSourceInputs.zip"
+          # No build-time source patching: this archive comes from the exact
+          # commit checked out for the Android compilation above.
+          git archive --format=tar --prefix=plezy-custom-source/ HEAD | gzip -n -9 \
+            > "powerplay-release/PowerPlay-v$RELEASE_VERSION-rc1-Source.tar.gz"
+          ( cd powerplay-release && sha256sum \
+              "PowerPlay-v$RELEASE_VERSION-rc1-Source.tar.gz" \
+              "PowerPlay-v$RELEASE_VERSION-rc1-NativeSourceInputs.zip" > sources.sha256 )
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          data=json.loads(Path('.github/powerplay/release.json').read_text())
+          data['source_sha']=os.environ['GITHUB_SHA']
+          Path('powerplay-release/release-manifest.json').write_text(json.dumps(data,indent=2)+'\n')
+          PY
+          printf '%s\n' 'PowerPlay Release Candidate' \
+            'Built directly from the GitHub commit; no archived app source or patch replay' \
+            "PowerPlay $RELEASE_VERSION; device validation pending." \
+            'NOT A PUBLIC RELEASE YET.' > powerplay-release/BUILD-STATUS.txt
+      - name: Upload signed candidate (not a stable release)
         uses: actions/upload-artifact@v4
         with:
           name: PowerPlay-v${{ env.RELEASE_VERSION }}-rc1-Candidate
@@ -201,8 +177,8 @@ jobs:
           if-no-files-found: error
           retention-days: 30
           compression-level: 0
-      - name: Delete signing credentials
+      - name: Erase signing credentials
         if: always()
         shell: bash
         run: |
-          rm -f "$HOME/.android/powerplay.keystore" "$RUNNER_TEMP/powerplay/plezy-custom-source/android/key.properties"
+          rm -f "$HOME/.android/powerplay.keystore" android/key.properties

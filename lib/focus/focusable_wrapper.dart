@@ -396,6 +396,10 @@ class _FocusableWrapperState extends State<FocusableWrapper> with SingleTickerPr
 
       if (!position.maxScrollExtent.isFinite) return;
       final targetOffset = (currentOffset + scrollDelta).clamp(position.minScrollExtent, position.maxScrollExtent);
+      // A no-op inner scroll may collapse the NestedScrollView's floating
+      // library header; animate only if the offset actually changes.
+      // Adapted from Plezy 63f8cd84 (#2916).
+      if ((targetOffset - currentOffset).abs() < 0.5) return;
 
       position.animateTo(targetOffset, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
     });

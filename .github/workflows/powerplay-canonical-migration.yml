@@ -1,0 +1,90 @@
+name: Migrate PowerPlay to Canonical Application Source
+run-name: Adopt published v1.2.4 application source into GitHub
+on:
+  push:
+    branches:
+      - migration/powerplay-canonical-source
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: powerplay-source-migration
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SOURCE_RELEASE: powerplay-v1.2.4
+    steps:
+      - name: Check out migration branch
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Download exact published application source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/published" "$RUNNER_TEMP/unpacked"
+          gh release download "$SOURCE_RELEASE" --repo "$GITHUB_REPOSITORY" \
+            --pattern 'PowerPlay-v1.2.4-Source.tar.gz' \
+            --pattern 'SHA256SUMS.txt' --dir "$RUNNER_TEMP/published"
+          cd "$RUNNER_TEMP/published"
+          grep 'PowerPlay-v1.2.4-Source.tar.gz$' SHA256SUMS.txt | sha256sum -c -
+          tar -tzf PowerPlay-v1.2.4-Source.tar.gz | grep -x '^plezy-custom-source/lib/main.dart$' >/dev/null
+          tar -xzf PowerPlay-v1.2.4-Source.tar.gz -C "$RUNNER_TEMP/unpacked" --no-same-owner
+      - name: Replace repository-root legacy app with published app source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 .github/powerplay/migrate_canonical_source.py \
+            --source "$RUNNER_TEMP/unpacked/plezy-custom-source" \
+            --repo "$GITHUB_WORKSPACE"
+          git status --short | tail -35
+          # Generated translation Dart is imported verbatim from the published APK source.
+          git diff --check -- . ':(exclude)lib/i18n/*.g.dart'
+      - name: Setup Flutter for canonical smoke test
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.9'
+          channel: stable
+          cache: true
+      - name: Verify canonical source compiles and retained features pass
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE_LOCK_HASH="$(sha256sum pubspec.yaml pubspec.lock)"
+          flutter pub get
+          flutter test test/theme/powerplay_curated_palette_test.dart \
+            test/theme/mono_theme_test.dart \
+            test/providers/theme_provider_test.dart
+          flutter test test/focus/focusable_wrapper_test.dart
+          flutter test test/services/deep_links/deep_link_test.dart \
+            test/services/deep_links/legacy_shuffle_link_test.dart
+          flutter test test/services/powerplay_defaults_test.dart \
+            test/providers/fire_tv_library_defaults_test.dart \
+            test/providers/hidden_libraries_provider_test.dart
+          test "$SOURCE_LOCK_HASH" = "$(sha256sum pubspec.yaml pubspec.lock)" || {
+            echo 'Flutter changed canonical tracked package metadata' >&2; exit 1;
+          }
+      - name: Commit exactly the tested canonical application tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = "migration/powerplay-canonical-source"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check -- . ':(exclude)lib/i18n/*.g.dart'
+          test -n "$(git diff --cached --name-only)"
+          git commit -m 'refactor(source): make published PowerPlay v1.2.4 app the canonical repo source'
+          git push origin "HEAD:$GITHUB_REF_NAME"
+          echo "### Canonical migration complete" >> "$GITHUB_STEP_SUMMARY"
+          echo "Pushed commit \`$(git rev-parse HEAD)\` after Flutter regression tests." >> "$GITHUB_STEP_SUMMARY"
+          echo "GitHub repo root now contains exact published Fire TV app source. Main unchanged until PR review." >> "$GITHUB_STEP_SUMMARY"

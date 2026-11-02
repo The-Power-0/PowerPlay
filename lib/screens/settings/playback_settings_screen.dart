@@ -11,6 +11,7 @@ import '../../models/player_setting_scope.dart';
 import '../../utils/audio_channel_limit_labels.dart';
 import '../../utils/quality_preset_labels.dart';
 import '../../services/settings_service.dart';
+import '../../services/firetv_build_flags.dart';
 import '../../services/video_decode_capabilities.dart';
 import '../../utils/codec_utils.dart';
 import '../../utils/platform_detector.dart';
@@ -45,7 +46,8 @@ class PlaybackSettingsScreen extends StatelessWidget {
       ],
       builder: (context) {
         final svc = SettingsService.instance;
-        final exoActive = Platform.isAndroid && svc.read(SettingsService.useExoPlayer);
+        final exoActive = Platform.isAndroid &&
+            useExoPlayerForAndroidVideo(svc.read(SettingsService.useExoPlayer));
         // ExoPlayer only has the stereo fold, so a 5.1 limit set on mpv plays
         // (and shows) as Original there.
         final storedChannelLimit = svc.read(SettingsService.audioChannelLimit);
@@ -69,7 +71,8 @@ class PlaybackSettingsScreen extends StatelessWidget {
             SettingsGroup(
               title: t.settings.player,
               children: [
-                if (Platform.isAndroid) _playerBackendSelector(),
+                // The appliance always uses ExoPlayer video: don't offer MPV.
+                if (Platform.isAndroid && !kFireTvForceExoVideo) _playerBackendSelector(),
                 if (PlatformDetector.supportsExternalPlayers()) _externalPlayerTile(),
                 if (!exoActive) _mpvConfigTile(),
                 _hardwareDecodingTile(),
@@ -492,16 +495,39 @@ class PlaybackSettingsScreen extends StatelessWidget {
     subtitle: t.settings.matchDynamicRangeDescription,
   );
 
-  Widget _deinterlaceTile() => SettingSwitchTile(
-    pref: SettingsService.deinterlace,
+  Widget _deinterlaceTile() => SettingSelectionTile<DeinterlaceMode>(
+    pref: SettingsService.deinterlaceMode,
     icon: Symbols.deblur_rounded,
     title: t.settings.deinterlace,
-    subtitle: t.settings.deinterlaceDescription,
+    subtitleBuilder: (mode) => '${_deinterlaceModeLabel(mode)} · ${t.settings.deinterlaceDescription}',
+    options: [
+      DialogOption(
+        value: DeinterlaceMode.off,
+        title: t.settings.deinterlaceOff,
+        subtitle: t.settings.deinterlaceOffDescription,
+      ),
+      DialogOption(
+        value: DeinterlaceMode.video,
+        title: t.settings.deinterlaceVideo,
+        subtitle: t.settings.deinterlaceVideoDescription,
+      ),
+      DialogOption(
+        value: DeinterlaceMode.film,
+        title: t.settings.deinterlaceFilm,
+        subtitle: t.settings.deinterlaceFilmDescription,
+      ),
+    ],
   );
 
-  // Normalization wins over passthrough in the player (loudnorm cannot filter
-  // a bitstream), so the switch reports that override instead of promising
-  // bitstreaming that will not happen.
+  String _deinterlaceModeLabel(DeinterlaceMode mode) => switch (mode) {
+    DeinterlaceMode.off => t.settings.deinterlaceOff,
+    DeinterlaceMode.video => t.settings.deinterlaceVideo,
+    DeinterlaceMode.film => t.settings.deinterlaceFilm,
+  };
+
+  // Normalization wins over passthrough in the player (neither mpv's filter nor
+  // ExoPlayer's platform effect can process a bitstream), so the switch reports
+  // that override instead of promising bitstreaming that will not happen.
   Widget _audioPassthroughTile() => SettingsBuilder(
     prefs: const [SettingsService.audioNormalization],
     builder: (context) {
@@ -512,8 +538,10 @@ class PlaybackSettingsScreen extends StatelessWidget {
         title: t.settings.audioPassthrough,
         subtitle: normalizationOn
             ? t.settings.audioPassthroughOverriddenByNormalization
-            : PlatformDetector.isAppleTV()
-            ? t.settings.audioPassthroughDescriptionAppleTv
+            : Platform.isIOS
+            ? t.settings.audioPassthroughDescriptionAppleSpatial
+            : Platform.isMacOS
+            ? t.settings.audioPassthroughDescriptionApple
             : t.settings.audioPassthroughDescription,
         enabled: !normalizationOn,
       );

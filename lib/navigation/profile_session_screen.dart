@@ -31,12 +31,14 @@ import '../services/agent_control_service.dart';
 import '../services/catalog/catalog_library_matcher.dart';
 import '../services/music/music_playback_service.dart';
 import '../services/music/music_playback_service_impl.dart';
+import '../services/firetv_build_flags.dart';
 import '../services/music/music_session_store.dart';
 import '../services/offline_watch_sync_service.dart';
 import '../services/storage_service.dart';
 import '../services/system_shelf_service.dart';
 import '../utils/app_logger.dart';
 import '../watch_together/providers/watch_together_provider.dart';
+import '../watch_together/watch_together.dart' show WatchNoticeListener;
 import '../widgets/music/mini_player.dart';
 import '../widgets/agent_control_scope.dart';
 import 'profile_navigation_scope.dart';
@@ -44,7 +46,9 @@ import 'settings_shortcut.dart';
 
 CatalogSourcesProvider _createCatalogSourcesProvider(BuildContext context) {
   return CatalogSourcesProvider(
-    plexSessionSupplier: () => resolvePlexDiscoverSession(
+    plexSessionSupplier: () => kFireTvNoExternalServices
+        ? Future.value(null)
+        : resolvePlexDiscoverSession(
       activeProfile: context.read<ActiveProfileProvider>(),
       connections: context.read<ConnectionRegistry>(),
       profileConnections: context.read<ProfileConnectionRegistry>(),
@@ -159,11 +163,13 @@ class _ProfileSessionScreenState extends State<ProfileSessionScreen> {
               ChangeNotifierProvider(
                 create: (context) {
                   final provider = TrackersProvider(httpClientFactory: widget.trackerHttpClientFactory);
-                  unawaited(
-                    provider.onActiveProfileChanged(activeId).catchError((Object e, StackTrace s) {
-                      appLogger.w('Trackers profile hydrate failed', error: e, stackTrace: s);
-                    }),
-                  );
+                  if (!kFireTvNoExternalServices) {
+                    unawaited(
+                      provider.onActiveProfileChanged(activeId).catchError((Object e, StackTrace s) {
+                        appLogger.w('Trackers profile hydrate failed', error: e, stackTrace: s);
+                      }),
+                    );
+                  }
                   return provider;
                 },
               ),
@@ -177,11 +183,13 @@ class _ProfileSessionScreenState extends State<ProfileSessionScreen> {
                       profileConnections: context.read<ProfileConnectionRegistry>(),
                     ),
                   );
-                  unawaited(
-                    provider.onActiveProfileChanged(activeId).catchError((Object e, StackTrace s) {
-                      appLogger.w('Seerr profile hydrate failed', error: e, stackTrace: s);
-                    }),
-                  );
+                  if (!kFireTvNoExternalServices) {
+                    unawaited(
+                      provider.onActiveProfileChanged(activeId).catchError((Object e, StackTrace s) {
+                        appLogger.w('Seerr profile hydrate failed', error: e, stackTrace: s);
+                      }),
+                    );
+                  }
                   return provider;
                 },
               ),
@@ -193,17 +201,21 @@ class _ProfileSessionScreenState extends State<ProfileSessionScreen> {
               >(
                 create: (context) {
                   final provider = _createCatalogSourcesProvider(context);
-                  unawaited(
-                    provider.onActiveProfileChanged(activeId).catchError((Object e, StackTrace s) {
-                      appLogger.w('Catalog sources profile hydrate failed', error: e, stackTrace: s);
-                    }),
-                  );
+                  if (!kFireTvNoExternalServices) {
+                    unawaited(
+                      provider.onActiveProfileChanged(activeId).catchError((Object e, StackTrace s) {
+                        appLogger.w('Catalog sources profile hydrate failed', error: e, stackTrace: s);
+                      }),
+                    );
+                  }
                   return provider;
                 },
                 update: (context, trackers, seerr, activeProfile, previous) {
                   final provider = previous ?? _createCatalogSourcesProvider(context);
-                  provider.update(trackers, seerr);
-                  unawaited(provider.onProfileBindingStateChanged(activeProfile.isBinding));
+                  if (!kFireTvNoExternalServices) {
+                    provider.update(trackers, seerr);
+                    unawaited(provider.onProfileBindingStateChanged(activeProfile.isBinding));
+                  }
                   return provider;
                 },
               ),
@@ -217,11 +229,6 @@ class _ProfileSessionScreenState extends State<ProfileSessionScreen> {
                 lazy: true,
               ),
               ChangeNotifierProvider(
-                create: (context) =>
-                    HiddenLibrariesProvider(storageService: context.read<StorageService>(), profileId: activeId),
-                lazy: true,
-              ),
-              ChangeNotifierProvider(
                 create: (context) {
                   final activeProfile = context.read<ActiveProfileProvider>();
                   return LibrariesProvider(
@@ -230,6 +237,14 @@ class _ProfileSessionScreenState extends State<ProfileSessionScreen> {
                     isProfileBinding: () => activeProfile.isBinding,
                   );
                 },
+              ),
+              ChangeNotifierProvider(
+                create: (context) => HiddenLibrariesProvider(
+                  storageService: context.read<StorageService>(),
+                  profileId: activeId,
+                  librariesProvider: context.read<LibrariesProvider>(),
+                ),
+                lazy: true,
               ),
               ChangeNotifierProvider(
                 create: (context) {
@@ -261,13 +276,27 @@ class _ProfileSessionScreenState extends State<ProfileSessionScreen> {
                   offlineWatchService: context.read<OfflineWatchSyncService>(),
                   // Last-session restore (#2148) is per profile; no profile,
                   // nothing to restore.
-                  sessionStore: activeId == null
+                  // This movies/TV edition does not restore stale Plex music.
+                  // Keep the service interface for video audio-focus ownership.
+                  sessionStore: kFireTvMoviesTvOnly || activeId == null
                       ? null
                       : MusicSessionStore(database: context.read<AppDatabase>(), profileId: activeId),
                 ),
               ),
-              ChangeNotifierProvider(create: (context) => WatchTogetherProvider()),
-              ChangeNotifierProvider(
+              // A room provider is not constructed in this appliance.
+              if (!kFireTvNoWatchTogether) ChangeNotifierProvider(
+                create: (context) {
+                  final multiServer = context.read<MultiServerProvider>();
+                  final activeProfile = context.read<ActiveProfileProvider>();
+                  return WatchTogetherProvider(
+                    clientFor: (serverId) => multiServer.getClientForServer(ServerId(serverId)),
+                    findCopies: multiServer.aggregationService.findTitleCopiesAcrossServers,
+                    displayName: () => activeProfile.active?.displayName ?? 'Plezy',
+                    profileId: () => activeProfile.activeId,
+                  );
+                },
+              ),
+              if (!kFireTvNoCompanionRemote) ChangeNotifierProvider(
                 create: (context) {
                   final provider = CompanionRemoteProvider();
                   // Keep a running host's crypto identity live: a home user
@@ -283,11 +312,13 @@ class _ProfileSessionScreenState extends State<ProfileSessionScreen> {
                 },
               ),
             ],
-            child: CoveredRouteFocusBoundary(
-              child: _ProfileSessionNavigator(
-                isOfflineMode: widget.isOfflineMode,
-                initialPromptHandled: initialPromptHandled,
-                profileShellBuilder: widget.profileShellBuilder,
+            child: WatchNoticeListener(
+              child: CoveredRouteFocusBoundary(
+                child: _ProfileSessionNavigator(
+                  isOfflineMode: widget.isOfflineMode,
+                  initialPromptHandled: initialPromptHandled,
+                  profileShellBuilder: widget.profileShellBuilder,
+                ),
               ),
             ),
           ),
@@ -386,7 +417,7 @@ class _ProfileSessionNavigatorState extends State<_ProfileSessionNavigator> {
                     ],
                     onGenerateRoute: _onGenerateRoute,
                   ),
-                  const Positioned.fill(child: MusicMiniPlayerOverlay()),
+                  if (!kFireTvMoviesTvOnly) const Positioned.fill(child: MusicMiniPlayerOverlay()),
                 ],
               ),
             ),

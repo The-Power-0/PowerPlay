@@ -12,6 +12,7 @@ import '../../widgets/backend_badge.dart';
 import '../../widgets/focused_scroll_scaffold.dart';
 import '../profile/borrow_connection_screen.dart';
 import 'add_jellyfin_screen.dart';
+import '../../services/firetv_build_flags.dart';
 import 'add_plex_account_screen.dart';
 
 /// Picker shown when the user taps "Add connection".
@@ -41,7 +42,7 @@ class AddConnectionScreen extends StatelessWidget {
         subtitle: scoped ? t.addServer.signInWithPlexCardSubtitleScoped : t.addServer.signInWithPlexCardSubtitle,
         builder: (_) => AddPlexAccountScreen(targetProfile: targetProfile),
       ),
-      _BackendOption(
+      if (!kFireTvPlexOnly) _BackendOption(
         backend: MediaBackend.jellyfin,
         title: t.addServer.connectToMediaBrowserCard(product: jellyfinDialect.productName),
         subtitle: scoped
@@ -52,7 +53,7 @@ class AddConnectionScreen extends StatelessWidget {
             : t.addServer.connectToMediaBrowserCardSubtitle,
         builder: (_) => AddJellyfinScreen(targetProfile: targetProfile, dialect: jellyfinDialect),
       ),
-      _BackendOption(
+      if (!kFireTvPlexOnly) _BackendOption(
         backend: MediaBackend.emby,
         title: t.addServer.connectToMediaBrowserCard(product: embyDialect.productName),
         subtitle: scoped

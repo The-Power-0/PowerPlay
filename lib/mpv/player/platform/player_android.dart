@@ -20,6 +20,7 @@ class PlayerAndroid extends PlayerBase {
   bool _downmixEnabled = false;
   int _downmixCenterBoostDb = 0;
   bool _downmixNormalize = true;
+  double? _requestedVolume;
 
   /// Server-reported frame rate for the next item, or null when unknown.
   ///
@@ -27,12 +28,8 @@ class PlayerAndroid extends PlayerBase {
   /// must be known before the native side settles tunneling for that item.
   double? _contentFrameRate;
 
-  /// The native plugin switched from ExoPlayer to its mpv fallback for this
-  /// session. Sticky for the instance lifetime, mirroring the native flag
-  /// (which resets only on initialize/dispose).
-  bool _usingMpvFallback = false;
-
-  bool get usingMpvFallback => _usingMpvFallback;
+  /// Native MPV is absent from the Fire TV edition.
+  bool get usingMpvFallback => false;
 
   /// Subtitles are hidden through the player's visibility toggle. Sticky
   /// across media opens, like mpv's global `sub-visibility`, so an episode
@@ -63,12 +60,8 @@ class PlayerAndroid extends PlayerBase {
   @override
   bool get supportsSecondarySubtitles => false;
 
-  // The fallback runs mpv over MediaCodec — the same display-switch decoder
-  // constraint as PlayerNative on Android. The whole startup-gate chain
-  // (setVideoFrameRate, playback-restart, seek/drop-buffers refresh,
-  // open-paused) already routes per-core natively.
   @override
-  bool get needsDecoderRefreshAfterDisplaySwitch => _usingMpvFallback;
+  bool get needsDecoderRefreshAfterDisplaySwitch => false;
 
   @override
   bool get detectsFpsAfterRender => true;
@@ -79,23 +72,6 @@ class PlayerAndroid extends PlayerBase {
   @override
   bool get audioPassthroughActive => _audioPassthroughEnabled;
 
-  @override
-  void handlePlayerEvent(String name, Map? data) {
-    if (name == 'backend-switched') {
-      // Native player switched from ExoPlayer to MPV due to unsupported format.
-      // Clear stale ExoPlayer tracks so applyTrackSelectionWhenReady waits for
-      // mpv's track-list instead of immediately applying with ExoPlayer IDs.
-      final wasUsingMpvFallback = _usingMpvFallback;
-      _usingMpvFallback = true;
-      if (!wasUsingMpvFallback) {
-        clearTracks();
-      }
-      backendSwitchedController.add(null);
-      return;
-    }
-
-    super.handlePlayerEvent(name, data);
-  }
 
   // Memoizes the in-flight init Future so concurrent callers share one
   // `invoke('initialize')`. ExoPlayer's native handleInitialize is
@@ -147,6 +123,10 @@ class PlayerAndroid extends PlayerBase {
         'centerBoostDb': _downmixCenterBoostDb,
         'normalize': _downmixNormalize,
       });
+      final pendingVolume = _requestedVolume;
+      if (pendingVolume != null) {
+        await invoke('setVolume', {'volume': pendingVolume});
+      }
       if (disposed) throw StateError('Player was disposed during initialization');
 
       initialized = true;
@@ -285,8 +265,13 @@ class PlayerAndroid extends PlayerBase {
 
   @override
   Future<void> setVolume(double volume) async {
-    await invoke('setVolume', {'volume': volume});
-    if (!disposed) setVolumeState(volume);
+    if (disposed) return;
+    _requestedVolume = volume;
+    await _applyWhenInitialized(
+      () => invoke('setVolume', {'volume': volume}),
+      () => _requestedVolume == volume,
+    );
+    if (!disposed && _requestedVolume == volume) setVolumeState(volume);
   }
 
   @override
@@ -367,9 +352,6 @@ class PlayerAndroid extends PlayerBase {
       () => invoke('setAudioNormalization', {'enabled': enabled}),
       () => _audioNormalizationEnabled == enabled,
     );
-    // Keep the mpv af property flowing through setMpvProperty so the plugin's
-    // pendingMpvProperties replay applies loudnorm if exo falls back to mpv.
-    await super.setAudioNormalization(enabled);
   }
 
   @override
@@ -388,10 +370,6 @@ class PlayerAndroid extends PlayerBase {
       () => invoke('setAudioDownmix', {'enabled': enabled, 'centerBoostDb': centerBoostDb, 'normalize': normalize}),
       () => _downmixEnabled == enabled && _downmixCenterBoostDb == centerBoostDb && _downmixNormalize == normalize,
     );
-    // Keep the mpv properties flowing through setMpvProperty so the plugin's
-    // pendingMpvProperties replay applies the same limit if exo falls back to
-    // mpv mid-session.
-    await super.setAudioChannelLimit(effective, centerBoostDb: centerBoostDb, normalize: normalize);
   }
 
   @override
@@ -402,11 +380,6 @@ class PlayerAndroid extends PlayerBase {
       () => invoke('setAudioPassthrough', {'enabled': enabled}),
       () => _audioPassthroughEnabled == enabled,
     );
-    // Deliberately no 'audio-spdif' write: unlike normalization and downmix, the
-    // mpv value is not this list. mpv force-passthroughs every codec named there
-    // with no decode fallback, so the plugin derives it from the audio route when
-    // the fallback core starts. Queuing the raw list here would overwrite it and
-    // strand TrueHD/DTS-HD on sinks that cannot bitstream them (#1703).
   }
 
   @override
@@ -438,6 +411,7 @@ class PlayerAndroid extends PlayerBase {
         return fps?.toString();
       case 'estimated-vf-fps':
       case 'deinterlace-active':
+      case 'ivtc-active':
         final stats = await getStats();
         return stats[name]?.toString();
       case 'width':

@@ -1,6 +1,11 @@
 part of '../../video_player_screen.dart';
 
 extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
+  /// Loads the scrub preview once the open has a frame on screen. A Plex or
+  /// Emby preview is a BIF file of several to tens of MB, and receiving it
+  /// mid-open drove back-to-back old-generation GCs on the UI thread that
+  /// stalled the open's frames on low-end TV boxes; with the video up the UI
+  /// is static, and a scrub can't happen before there is something to scrub.
   void _queueScrubPreviewLoad({
     required MediaItem metadata,
     required MediaSourceInfo? mediaInfo,
@@ -10,18 +15,23 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
 
     final mediaInfoAtStart = mediaInfo;
     final metadataAtStart = metadata;
+    // Keyed on item + what the preview covers rather than session identity:
+    // the preview is per part (per stacked version, per Jellyfin/Emby source),
+    // so a load that outlives a same-part source switch (quality/audio) still
+    // applies.
+    bool stillWanted() =>
+        mounted &&
+        _currentMetadata.globalKey == metadataAtStart.globalKey &&
+        scrubPreviewServes(mediaInfoAtStart, _currentMediaInfo);
     unawaited(
-      mediaClient
-          .createScrubPreviewSource(item: metadataAtStart, mediaSource: mediaInfoAtStart)
+      _untilFirstFrameUi()
+          .then((_) {
+            if (!stillWanted()) return null;
+            return mediaClient.createScrubPreviewSource(item: metadataAtStart, mediaSource: mediaInfoAtStart);
+          })
           .then((service) {
             if (service == null) return;
-            // Keyed on item + what the preview covers rather than session
-            // identity: the preview is per part (per stacked version), so a
-            // load that outlives a same-part source switch (quality/audio)
-            // still applies.
-            if (mounted &&
-                _currentMetadata.globalKey == metadataAtStart.globalKey &&
-                scrubPreviewServes(mediaInfoAtStart, _currentMediaInfo)) {
+            if (stillWanted()) {
               _setPlayerState(() => _scrubPreviewSource = service);
             } else {
               service.dispose();
@@ -31,6 +41,22 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
             appLogger.w('Scrub preview load failed', error: e, stackTrace: st);
           }),
     );
+  }
+
+  /// Completes once the current open's spinner is gone (a frame is on screen,
+  /// or the open failed). Never completes if the screen is disposed first.
+  Future<void> _untilFirstFrameUi() {
+    final uiReady = _firstFrame.uiReady;
+    if (uiReady.value) return Future.value();
+    final completer = Completer<void>();
+    void onChanged() {
+      if (!uiReady.value) return;
+      uiReady.removeListener(onChanged);
+      completer.complete();
+    }
+
+    uiReady.addListener(onChanged);
+    return completer.future;
   }
 
   Future<void> _markFirstFrameReady(Player currentPlayer, SettingsService settingsService) async {
@@ -360,10 +386,7 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
 
     if (progressTracker != null) {
       try {
-        await Future.wait<void>([
-          DiscordRPCService.instance.stopPlayback(),
-          TrackerCoordinator.instance.stopPlayback(),
-        ]);
+        await TrackerCoordinator.instance.stopPlayback();
       } catch (e, st) {
         appLogger.w('Failed to stop scrobblers during initialization rollback', error: e, stackTrace: st);
       }
@@ -416,15 +439,9 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
 
     _publishMediaControlsMetadata(metadata, mediaClient);
 
-    // Scrobblers — Discord RPC plus the tracker coordinator, which fans out to
-    // every connected service. Both accept the neutral [MediaServerClient]; null
-    // short-circuits cleanly.
+    // Plex progress is tracked locally; the third-party tracker coordinator
+    // is disabled by phase 01 in this appliance build.
     if (mediaClient != null) {
-      // Discord renders a timeline the live placeholder does not have; the
-      // tracker coordinator takes the live decision itself.
-      if (!widget.isLive) {
-        unawaited(DiscordRPCService.instance.startPlayback(metadata, mediaClient));
-      }
       unawaited(TrackerCoordinator.instance.startPlayback(metadata, mediaClient, isLive: widget.isLive));
     }
   }
@@ -622,7 +639,6 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
         // Live reports through [_sendLiveTimeline] alone; Discord and the
         // trackers were never started for it.
         if (widget.isLive) return;
-        DiscordRPCService.instance.updatePosition(position);
         TrackerCoordinator.instance.updatePosition(position);
         // Keep the trackers' known duration current — mpv only emits on the
         // duration stream once per load, but this is cheap and avoids an extra
@@ -631,18 +647,25 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
       }),
     );
 
-    if (!widget.isLive) {
-      // Listen to playback rate changes for Discord Rich Presence
-      _mediaControlSubscriptions.add(
-        currentPlayer.streams.rate.listen((rate) {
-          DiscordRPCService.instance.updatePlaybackSpeed(rate);
-        }),
-      );
-    }
-
     _mediaControlSubscriptions.add(
       currentPlayer.streams.seekable.listen((_) {
         unawaited(_mediaControls.syncAvailability());
+      }),
+    );
+  }
+
+  /// Starts a play/pause intent nothing awaits, on behalf of [source]. Like
+  /// [_remoteTransport] and [_handleControlsTransport], the dispatcher owns the
+  /// outcome: the backend can refuse the write - an Android mpv session that
+  /// was condemned (a native call that never answered, a failed video output)
+  /// answers every write with SET_PROPERTY_FAILED until the player is
+  /// replaced, one torn down mid-write with NOT_INITIALIZED - and left
+  /// unawaited that refusal is an uncaught error (#2662, #2657). The failure
+  /// view that reported the dead session stays the viewer's way out.
+  void _dispatchPlaybackIntent(Future<void> intent, {required String source}) {
+    unawaited(
+      intent.catchError((Object e, StackTrace st) {
+        appLogger.w('$source play/pause failed', error: e, stackTrace: st);
       }),
     );
   }
@@ -659,7 +682,7 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
         final currentPlayer = player;
         if (currentPlayer == null) return;
         unawaited(_mediaControls.seekBackForRewind(currentPlayer));
-        unawaited(_playWithPlaybackIntent(currentPlayer));
+        _dispatchPlaybackIntent(_transportIntent(currentPlayer, TransportCommand.play), source: 'Media session');
         _wasPlayingBeforeInactive = false;
         _announceTransportCommand(willPlay: true);
         _mediaControls.pushPlaybackState();
@@ -671,7 +694,7 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
           appLogger.d('Media control: Pause event suppressed (frame rate switch in progress)');
           return;
         }
-        unawaited(_pauseWithPlaybackIntent(currentPlayer));
+        _dispatchPlaybackIntent(_transportIntent(currentPlayer, TransportCommand.pause), source: 'Media session');
         _announceTransportCommand(willPlay: false);
         _mediaControls.pushPlaybackState();
       },
@@ -679,11 +702,11 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
         final currentPlayer = player;
         if (currentPlayer == null) return;
         if (currentPlayer.state.isActive) {
-          unawaited(_pauseWithPlaybackIntent(currentPlayer));
+          _dispatchPlaybackIntent(_transportIntent(currentPlayer, TransportCommand.pause), source: 'Media session');
           _announceTransportCommand(willPlay: false);
         } else {
           unawaited(_mediaControls.seekBackForRewind(currentPlayer));
-          unawaited(_playWithPlaybackIntent(currentPlayer));
+          _dispatchPlaybackIntent(_transportIntent(currentPlayer, TransportCommand.play), source: 'Media session');
           _wasPlayingBeforeInactive = false;
           _announceTransportCommand(willPlay: true);
         }
@@ -735,7 +758,7 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
       );
       final currentPlayer = player;
       if (currentPlayer != null) {
-        unawaited(_pauseWithPlaybackIntent(currentPlayer));
+        _dispatchPlaybackIntent(_pauseWithPlaybackIntent(currentPlayer), source: 'Automotive restriction');
       }
       unawaited(_wakelockController.setEnabled(false));
       return;
@@ -748,7 +771,7 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
       );
       final currentPlayer = player;
       if (currentPlayer != null) {
-        unawaited(_pauseWithPlaybackIntent(currentPlayer));
+        _dispatchPlaybackIntent(_pauseWithPlaybackIntent(currentPlayer), source: 'TV background');
       }
       unawaited(_wakelockController.setEnabled(false));
       return;
@@ -775,10 +798,8 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
 
     // Update Discord Rich Presence + real-time trackers
     if (isPlaying) {
-      DiscordRPCService.instance.resumePlayback();
       TrackerCoordinator.instance.resumePlayback();
     } else {
-      DiscordRPCService.instance.pausePlayback();
       TrackerCoordinator.instance.pausePlayback();
     }
 
@@ -873,7 +894,8 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
     // Clear any stale completion latch caused by a spurious EOF during the drop,
     // so the real end-of-file can trigger Play Next after we recover.
     _rearmCompletionLatch();
-    unawaited(_seekPlayback(pos));
+    // Not the user's seek: it never goes to a Watch Together room.
+    unawaited(_performSeekPlayback(pos));
   }
 
   /// Intercept an EOF signal that fired far from the end of the media.

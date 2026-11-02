@@ -16,7 +16,7 @@ class AboutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appName = t.app.title;
+    const appName = 'PowerPlay';
 
     return FutureBuilder<PackageInfo>(
       future: _packageInfoFuture,
@@ -33,7 +33,7 @@ class AboutScreen extends StatelessWidget {
                     child: Column(
                       children: [
                         const SizedBox(height: 24),
-                        Image.asset('assets/plezy.png', width: 80, height: 80),
+                        Image.asset('assets/powerplay.png', width: 80, height: 80),
                         const SizedBox(height: 16),
                         Text(appName, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: .bold)),
                         const SizedBox(height: 8),
@@ -43,8 +43,22 @@ class AboutScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 24),
                         Text(
-                          t.about.appDescription,
+                          'A Plex client for Fire TV, optimized for movies, TV shows, and Home Assistant control.',
                           style: Theme.of(context).textTheme.bodyLarge,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Based on Plezy by edde746. Licensed under GNU GPLv3.',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: tokens(context).textMuted),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        const Text('github.com/The-Power-0/PowerPlay', textAlign: TextAlign.center),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Not affiliated with Plex, Plezy, or Amazon.',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens(context).textMuted),
                           textAlign: TextAlign.center,
                         ),
                       ],

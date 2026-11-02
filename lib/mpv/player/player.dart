@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 
 import '../../models/audio_channel_limit.dart';
+import '../../services/firetv_build_flags.dart';
 import '../../media/playback_rate.dart';
 import '../models.dart';
 import 'audio_rendering_mode.dart';
@@ -226,11 +227,12 @@ abstract class Player {
 
   /// Enable or disable loudness normalization.
   ///
-  /// mpv backends insert/remove the `loudnorm` audio filter and, because a
-  /// filter cannot process a bitstream, leave passthrough while it is on.
-  /// Android ExoPlayer attaches platform audio effects (DynamicsProcessing
-  /// on API 28+, LoudnessEnhancer otherwise) and forces decoded non-tunneled
-  /// PCM output while enabled so the effects can process the stream.
+  /// mpv backends insert/remove an audio filter (`loudnorm`; a compressor and
+  /// limiter on Android) and, because a filter cannot process a bitstream,
+  /// leave passthrough while it is on. Android ExoPlayer attaches platform
+  /// audio effects instead (DynamicsProcessing on API 28+, LoudnessEnhancer
+  /// otherwise) and forces decoded non-tunneled PCM output while enabled so
+  /// the effects can process the stream.
   Future<void> setAudioNormalization(bool enabled);
 
   /// Cap how many channels decoded audio reaches the output with.
@@ -250,7 +252,7 @@ abstract class Player {
 
   /// Show or hide the video rendering layer.
   ///
-  /// On macOS, this controls the Metal layer visibility.
+  /// On macOS, this controls the video display layer visibility.
   /// On other platforms, this may have no effect.
   ///
   /// When [restoreOnWindowVisible] is true, macOS may restore the layer as soon
@@ -262,7 +264,7 @@ abstract class Player {
 
   /// Update the video frame/surface dimensions.
   ///
-  /// On iOS/macOS, this updates the Metal layer's frame to match the current
+  /// On iOS/macOS, this updates the video display layer's frame to match the current
   /// window size. Call this when the layout changes (e.g., device rotation).
   /// On other platforms, this is a no-op.
   Future<void> updateFrame();
@@ -335,7 +337,7 @@ abstract class Player {
 
   /// Apply custom zoom to the native video layer.
   ///
-  /// ExoPlayer scales its frame layout; iOS/tvOS scale the AVFoundation video
+  /// ExoPlayer scales its frame layout; iOS/tvOS/macOS scale the AVFoundation video
   /// container (mpv's `video-zoom` would force vo_avfoundation's Core Image
   /// path and destroy HDR/Dolby Vision passthrough). Other mpv backends are a
   /// no-op here and zoom via the `video-zoom` property.
@@ -384,7 +386,7 @@ abstract class Player {
   /// Creates a new player instance.
   ///
   /// Returns a platform-specific implementation:
-  /// - macOS/iOS: [PlayerNative] using MPVKit/libmpv with Metal rendering
+  /// - macOS/iOS: [PlayerNative] using MPVKit/libmpv with the AVFoundation video output
   /// - Android: [PlayerNative] using MPV (default) or [PlayerAndroid] using ExoPlayer (opt-in)
   /// - Windows: [PlayerWindows] using libmpv with native window embedding
   /// - Linux: [PlayerLinux] using libmpv on a native Wayland video plane
@@ -402,7 +404,7 @@ abstract class Player {
     if (Platform.isAndroid) {
       // Default to MPV on Android, with ExoPlayer as the opt-in alternative.
       // The caller should pass useExoPlayer based on SettingsService.useExoPlayer.
-      final useExo = useExoPlayer ?? false;
+      final useExo = useExoPlayerForAndroidVideo(useExoPlayer ?? false);
       if (useExo) {
         return PlayerAndroid(); // ExoPlayer (opt-in)
       }
@@ -432,6 +434,9 @@ abstract class Player {
   /// `PlaybackCoordinator`), and the video core only exists while the video
   /// player screen is open.
   factory Player.audio() {
+    if (Platform.isAndroid && kFireTvMoviesTvOnly) {
+      throw UnsupportedError('Music playback is not included in this Fire TV movies-and-TV edition');
+    }
     if (Platform.isAndroid || Platform.isMacOS || Platform.isIOS || Platform.isWindows || Platform.isLinux) {
       return PlayerNative.audio();
     }

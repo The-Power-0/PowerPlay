@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import '../utils/async_singleton.dart';
 import '../utils/device_channel.dart';
 import '../utils/platform_detector.dart';
+import 'firetv_build_flags.dart';
 
 /// User override for the visual-effects tier (stored by SettingsService).
 enum VisualEffectsSetting { auto, full, reduced }
@@ -65,7 +66,7 @@ class DevicePerformance {
 
   /// Caps Skia's GPU resource cache on low-end hardware, where it is otherwise
   /// sized from the surface area (hundreds of MB on a 4K-composited TV) and
-  /// drives LMK kills on 2GB boxes (#1349). MainActivity can't set this cap as
+  /// drives LMK kills on 2GB boxes (#1349). PlezyActivity can't set this cap as
   /// a shell arg because FlutterLoader appends its own threshold after it; a
   /// flutter/skia override sticks. Impeller ignores it.
   static void _capSkiaResourceCache() {
@@ -168,14 +169,15 @@ class DevicePerformance {
       // Tiles decode at full TV DPR even on this tier (#2020), so the byte
       // budget matches the TV baseline. The display budget factor is pinned
       // to 1.0 here, keeping the ceiling fixed.
-      cache.maximumSize = 400;
-      cache.maximumSizeBytes = 64 << 20; // 64MB
+      cache.maximumSize = kFireTvMoviesTvOnly ? 300 : 400;
+      cache.maximumSizeBytes = kFireTvMoviesTvOnly ? 48 << 20 : 64 << 20; // Fire TV video headroom
     } else if (PlatformDetector.isTV()) {
       // TV boxes share limited RAM with 4K video decode buffers. The byte
       // budget follows the display budget: 4K-surface artwork carries up to
       // 2× the pixels per entry (64MB baseline → 128MB at 4K).
-      cache.maximumSize = 500;
-      cache.maximumSizeBytes = ((64 << 20) * displayBudgetFactor()).round();
+      cache.maximumSize = kFireTvMoviesTvOnly ? 400 : 500;
+      final existingBudget = ((64 << 20) * displayBudgetFactor()).round();
+      cache.maximumSizeBytes = kFireTvMoviesTvOnly ? math.min(existingBudget, 96 << 20) : existingBudget;
     } else {
       cache.maximumSize = 800;
       cache.maximumSizeBytes = 100 << 20; // 100MB

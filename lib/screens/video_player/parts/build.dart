@@ -240,16 +240,20 @@ extension _VideoPlayerBuildMethods on VideoPlayerScreenState {
                     _scheduleVideoLayoutUpdate(newSize);
 
                     var authority = (canControlPlayback: true, canNavigateMediaItems: true);
-                    try {
-                      authority = context
-                          .select<WatchTogetherProvider, ({bool canControlPlayback, bool canNavigateMediaItems})>(
-                            (wt) => (
-                              canControlPlayback: !wt.isInSession || wt.canControl(),
-                              canNavigateMediaItems: !wt.isInSession || wt.isHost,
-                            ),
-                          );
+                    if (!kFireTvNoWatchTogether) {
+                      try {
+                        authority = context
+                          .select<WatchTogetherProvider, ({bool canControlPlayback, bool canNavigateMediaItems})>((wt) {
+                            final adapter = _wtAdapter;
+                            final following = adapter != null && wt.follows(adapter);
+                            return (
+                              canControlPlayback: !following || wt.canControl,
+                              canNavigateMediaItems: !following || wt.isHost,
+                            );
+                          });
                     } catch (_) {
                       // Watch Together is optional outside the main app shell.
+                      }
                     }
                     if (_lastMediaControlAuthority != authority) {
                       _lastMediaControlAuthority = authority;
@@ -372,7 +376,7 @@ extension _VideoPlayerBuildMethods on VideoPlayerScreenState {
                 isExiting: _isExiting,
               ),
               // Watch Together overlays (isolated from video surface repaints)
-              const VideoPlayerWatchTogetherOverlays(),
+              if (!kFireTvNoWatchTogether) const VideoPlayerWatchTogetherOverlays(),
               // Black overlay during exit (no spinner - just covers transparency)
               VideoPlayerExitOverlay(isExiting: _isExiting),
             ],

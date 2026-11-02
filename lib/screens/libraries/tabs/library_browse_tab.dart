@@ -22,7 +22,6 @@ import '../../../services/plex_constants.dart';
 import '../../../utils/error_message_utils.dart';
 import '../../../utils/app_logger.dart';
 import '../../../utils/grid_size_calculator.dart';
-import '../../../utils/layout_constants.dart';
 import '../../../utils/media_image_helper.dart';
 import '../../../utils/provider_extensions.dart';
 import '../alpha_jump_bar.dart';
@@ -50,6 +49,8 @@ import '../../../widgets/app_icon.dart';
 import '../../../widgets/focusable_list_tile.dart';
 import '../content_state_builder.dart';
 import '../../../services/storage_service.dart';
+import '../../../services/device_performance.dart';
+import '../../../services/firetv_build_flags.dart';
 import '../../../services/settings_service.dart';
 import '../../../mixins/grid_focus_node_mixin.dart';
 import '../../../mixins/item_updatable.dart';
@@ -1830,7 +1831,7 @@ class _LibraryBrowseTabState extends BaseLibraryTabState<MediaItem, LibraryBrows
       final spacing = MediaGridDelegate.spacingFor(context: context);
       final columnCount = GridSizeCalculator.getColumnCount(screenSize.width, maxExtent, crossAxisSpacing: spacing);
       final itemWidth = (screenSize.width - spacing * (columnCount - 1)) / columnCount;
-      final itemHeight = itemWidth / GridLayoutConstants.posterAspectRatio;
+      final itemHeight = MediaGridDelegate.cellHeightFor(context: context, itemWidth: itemWidth);
       final rowHeight = itemHeight + spacing;
       if (rowHeight <= 0) return _activeFetchSize;
       final visibleRows = (screenSize.height / rowHeight).ceil() + 1;
@@ -1858,8 +1859,15 @@ class _LibraryBrowseTabState extends BaseLibraryTabState<MediaItem, LibraryBrows
     if (itemWidth <= 0 || itemHeight <= 0) return;
 
     final visibleEnd = firstVisible + _scrollMetrics.visibleItemCount(viewportHeight);
-    // Prefetch 2 rows beyond visible area
-    final prefetchEnd = visibleEnd + 2 * _scrollMetrics.columnCount;
+    // On the appliance the visible cards already request their own images.
+    // Give those requests priority by queuing speculative art ONLY offscreen.
+    // Limit Lite devices to one future row and a few in-flight requests.
+    final appliance = kFireTvMoviesTvOnly;
+    final reduced = DevicePerformance.isReduced;
+    final speculativeRows = appliance && reduced ? 1 : 2;
+    final speculativeLimit = appliance ? (reduced ? 3 : 6) : items.length;
+    final prefetchEnd = visibleEnd + speculativeRows * _scrollMetrics.columnCount;
+    var speculativeQueued = 0;
 
     final client = context.tryGetMediaClientForServer(serverIdOrNull(widget.library.serverId));
     if (client == null) return;
@@ -1868,6 +1876,7 @@ class _LibraryBrowseTabState extends BaseLibraryTabState<MediaItem, LibraryBrows
     for (var i = 0; i < items.length; i++) {
       final index = startIndex + i;
       if (index < firstVisible || index > prefetchEnd) continue;
+      if (appliance && (index < visibleEnd || speculativeQueued >= speculativeLimit)) continue;
 
       final item = items[i];
       final thumb = item.posterThumb(mode: episodePosterMode);
@@ -1898,6 +1907,7 @@ class _LibraryBrowseTabState extends BaseLibraryTabState<MediaItem, LibraryBrows
         MediaImageHelper.serverArtworkProvider(imageUrl: imageUrl, memWidth: memWidth, memHeight: memHeight),
         context,
       ).ignore();
+      speculativeQueued++;
     }
   }
 
@@ -2118,8 +2128,20 @@ class _LibraryBrowseTabState extends BaseLibraryTabState<MediaItem, LibraryBrows
     }
 
     final hasAlphaBarReservation = rightPadding > 8.0;
+    // One map per sliver rebuild, not an O(loadedItems.length) search for
+    // every Flutter key-reconciliation call during D-pad scrolling.
+    final loadedIndexSnapshot = <String, int>{
+      for (final entry in loadedItems.entries) entry.value.id: entry.key,
+    };
     return MediaCardSliverLayout(
-      findChildIndexCallback: (key) => _loadedIndexOfId((key as ValueKey<String>).value),
+      findChildIndexCallback: (key) {
+        final id = (key as ValueKey<String>).value;
+        final index = loadedIndexSnapshot[id];
+        if (index != null && loadedItems[index]?.id == id) return index;
+        // A live library refresh can mutate the sparse map between frames;
+        // never return a stale index merely because the map's size matches.
+        return _loadedIndexOfId(id);
+      },
       viewMode: viewMode,
       itemCount: itemCount,
       density: libraryDensity,
@@ -2186,6 +2208,7 @@ class _LibraryBrowseTabState extends BaseLibraryTabState<MediaItem, LibraryBrows
           item,
           epoch: position.layoutEpoch!,
           keyboardMode: InputModeTracker.isKeyboardMode(context, listen: false),
+          isOnScreen: position.isOnScreen,
           build: () => _buildMediaCardItem(
             index,
             isFirstRow: position.isFirstRow,

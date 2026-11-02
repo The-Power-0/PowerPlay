@@ -88,8 +88,8 @@ interface ExoPlayerDelegate : com.edde746.plezy.shared.PlayerDelegate {
 
   /**
    * Called when ExoPlayer encounters a format it cannot play.
-   * The plugin should handle fallback to MPV.
-   * @return true if fallback was handled, false to emit error event to Flutter
+   * Return false to emit a terminal error to Flutter for unsupported formats.
+   * The Fire TV edition deliberately has no alternative MPV playback engine.
    */
   fun onFormatUnsupported(
     mediaGeneration: Int,
@@ -1339,7 +1339,7 @@ class ExoPlayerCore(private val activity: Activity) :
 
     val uri = currentMediaUri
     if (uri != null) {
-      Log.w(TAG, "ExoPlayer error (code ${error.errorCode}) - attempting fallback to MPV")
+      Log.w(TAG, "ExoPlayer error (code ${error.errorCode}) - reporting failure after Media3 recovery")
       requestFormatFallback(
         mediaGeneration = mediaGeneration,
         uri = uri,
@@ -3378,8 +3378,8 @@ class ExoPlayerCore(private val activity: Activity) :
       return
     }
 
-    // In-place recovery is spent. Hand over to the MPV backend, which has its own audio path,
-    // rather than leaving the user on a spinner.
+    // In-place recovery is spent. Report failure through the standard Dart
+    // error path rather than leaving the user on a spinner.
     val uri = currentMediaUri ?: return
     requestFormatFallback(
       mediaGeneration = mediaGeneration,
@@ -3837,7 +3837,11 @@ class ExoPlayerCore(private val activity: Activity) :
   }
 
   fun setVolume(volume: Float) {
-    exoPlayer?.volume = volume.coerceIn(0f, 1f)
+    val normalized = volume.coerceIn(0f, 1f)
+    // Skip redundant native player setter churn from rapid UI rerenders.
+    // Keep the property notification for Dart's observed state contract.
+    val player = exoPlayer
+    if (player != null && player.volume != normalized) player.volume = normalized
     delegate?.onPropertyChange("volume", (volume * 100).toDouble())
   }
 
@@ -4314,19 +4318,6 @@ class ExoPlayerCore(private val activity: Activity) :
     if (tunnelingDisabledForAudioCodec) return "Off (no HW audio decoder)"
     if (tunnelingDisabledForAssSubtitles) return "Off (ASS subtitles active)"
     return "Off"
-  }
-
-  fun triggerFallback() {
-    val uri = currentMediaUri ?: return
-    val player = exoPlayer
-    val pos = player?.currentPosition ?: 0L
-    requestFormatFallback(
-      mediaGeneration = currentMediaGeneration,
-      uri = uri,
-      positionMs = pos,
-      playWhenReady = player?.playWhenReady ?: true,
-      errorMessage = "debug: manual fallback trigger"
-    )
   }
 
   // Cleanup

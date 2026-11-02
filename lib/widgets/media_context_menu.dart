@@ -17,10 +17,12 @@ import '../metadata_edit/metadata_edit_models.dart';
 import '../services/plex_client.dart';
 import '../services/media_list_playback_launcher.dart';
 import '../services/music/music_playback_service.dart';
+import '../services/firetv_build_flags.dart';
 import '../services/offline_watch_sync_service.dart';
 import '../services/playlist_items_loader.dart';
 import '../services/recent_tags_service.dart';
 import '../services/watch_actions.dart';
+import '../services/deep_links/item_links.dart';
 import '../services/catalog/library_watchlist_candidates.dart';
 import '../utils/content_utils.dart';
 import '../utils/delete_impact.dart';
@@ -41,6 +43,7 @@ import '../utils/music_navigation.dart';
 import '../utils/platform_detector.dart';
 import '../utils/snackbar_helper.dart';
 import '../utils/dialogs.dart';
+import '../utils/downloads_folder_actions.dart';
 import '../services/external_player_service.dart';
 import 'collection_picker_dialog.dart';
 import '../screens/plex_match_screen.dart';
@@ -52,6 +55,7 @@ import '../utils/smart_deletion_handler.dart';
 import '../utils/video_player_navigation.dart';
 import '../utils/deletion_notifier.dart';
 import '../widgets/app_menu.dart';
+import '../widgets/deep_link_dialog.dart';
 import '../widgets/tag_edit_dialog.dart';
 import '../widgets/file_info_bottom_sheet.dart';
 import '../widgets/overlay_sheet.dart';
@@ -88,6 +92,9 @@ class _MenuContext {
   final bool watchlistRemoveOffered;
   final bool canDeleteFromServer;
 
+  /// A downloads folder (see [MediaContextMenu.isOffline]).
+  final bool isDownloadsFolder;
+
   const _MenuContext({
     required this.mediaItem,
     required this.playlist,
@@ -101,7 +108,23 @@ class _MenuContext {
     required this.showWatchlistEntry,
     required this.watchlistRemoveOffered,
     required this.canDeleteFromServer,
-  });
+  }) : isDownloadsFolder = false;
+
+  /// A downloads folder's entries act on local downloads, so none of the
+  /// server-side gates apply.
+  const _MenuContext.downloadsFolder(MediaItem this.mediaItem)
+    : playlist = null,
+      mediaClient = null,
+      catalogSources = null,
+      isAdmin = false,
+      canTranscode = false,
+      itemServerOnline = false,
+      canRemoveFromContinueWatching = false,
+      canEditMetadata = false,
+      showWatchlistEntry = false,
+      watchlistRemoveOffered = false,
+      canDeleteFromServer = false,
+      isDownloadsFolder = true;
 
   bool get isPlaylist => playlist != null;
   MediaKind? get mediaKind => mediaItem?.kind;
@@ -114,6 +137,12 @@ class _MenuContext {
   /// dispatching a Plex-only action against an unknown-backend item could
   /// crash or hit the wrong server.
   bool get isPlex => itemBackend == MediaBackend.plex;
+
+  /// Jellyfin and Emby refuse collection edits unless the user is an
+  /// administrator (or holds a collection-management policy that sign-in
+  /// does not capture), so MediaBrowser non-admins only get playlists. Plex
+  /// keeps offering collections to everyone, as before.
+  bool get canManageCollections => isPlex || isAdmin;
 }
 
 /// Whether the picked entry navigated away, in which case the menu must not
@@ -220,6 +249,11 @@ class MediaContextMenu extends StatefulWidget {
   final bool isInContinueWatching;
   final String? collectionId; // The collection ID if displaying within a collection
 
+  /// Downloaded content shown without its server, as on the downloads
+  /// screen. A collection there is a downloads folder: its menu marks and
+  /// deletes the downloaded titles inside, never the server's collection.
+  final bool isOffline;
+
   /// Extra entries appended after the standard actions.
   final List<MediaMenuExtraEntry> extraEntries;
 
@@ -233,6 +267,7 @@ class MediaContextMenu extends StatefulWidget {
     required this.child,
     this.isInContinueWatching = false,
     this.collectionId,
+    this.isOffline = false,
     this.extraEntries = const [],
   });
 
@@ -376,7 +411,9 @@ class MediaContextMenuState extends State<MediaContextMenu> {
       return;
     }
 
-    final menuActions = menu.isCollection || menu.isPlaylist
+    final menuActions = menu.isDownloadsFolder
+        ? _buildDownloadsFolderMenuActions(menu.mediaItem!)
+        : menu.isCollection || menu.isPlaylist
         ? _buildListMenuActions(context, menu)
         : _buildItemMenuActions(context, menu);
     for (var i = 0; i < widget.extraEntries.length; i++) {
@@ -441,6 +478,9 @@ class MediaContextMenuState extends State<MediaContextMenu> {
     final playlist = _playlist;
     final mediaKind = mediaItem?.kind;
     final itemBackend = mediaItem?.backend ?? playlist?.backend;
+    if (widget.isOffline && mediaItem != null && mediaKind == MediaKind.collection) {
+      return _MenuContext.downloadsFolder(mediaItem);
+    }
 
     // Check if user has admin privileges. Backend-neutral: Plex uses the
     // server-owned flag (folded with the active Plex Home profile's admin
@@ -536,6 +576,22 @@ class MediaContextMenuState extends State<MediaContextMenu> {
     );
   }
 
+  /// Entries for a downloads folder (see [MediaContextMenu.isOffline]).
+  List<_MenuAction> _buildDownloadsFolderMenuActions(MediaItem folder) {
+    return [
+      if (!folder.isWatched)
+        _MenuAction(value: 'watch', icon: Symbols.check_circle_outline_rounded, label: t.mediaMenu.markAsWatched),
+      if (folder.isWatched || folder.isPartiallyWatched)
+        _MenuAction(value: 'unwatch', icon: Symbols.remove_circle_outline_rounded, label: t.mediaMenu.markAsUnwatched),
+      _MenuAction(
+        value: 'delete_folder_downloads',
+        icon: Symbols.delete_rounded,
+        label: t.downloads.deleteCollectionDownloads,
+        destructive: true,
+      ),
+    ];
+  }
+
   /// Entries for a playlist or collection.
   List<_MenuAction> _buildListMenuActions(BuildContext context, _MenuContext menu) {
     // Download + sync-rule management. Video and audio playlists and any
@@ -577,7 +633,7 @@ class MediaContextMenuState extends State<MediaContextMenu> {
     final itemSeriesKey = mediaKind == MediaKind.episode ? mediaItem.grandparentId : mediaItem.parentId;
 
     return [
-      if (mediaKind.isMusic) ..._musicMenuActions(context, menu, mediaItem),
+      if (mediaKind.isMusic && !kFireTvMoviesTvOnly) ..._musicMenuActions(context, menu, mediaItem),
       if (hasActiveProgress)
         _MenuAction(value: 'play_from_beginning', icon: Symbols.replay_rounded, label: t.mediaMenu.playFromBeginning),
       // Trailer playback. The detail row may hide its trailer button on small
@@ -614,9 +670,8 @@ class MediaContextMenuState extends State<MediaContextMenu> {
         if (!isUnmatched) _MenuAction(value: 'unmatch', icon: Symbols.link_off_rounded, label: t.matchScreen.unmatch),
       ],
       // Remove from Collection (only when viewing items within a collection).
-      // Plex-only — uses `removeFromCollection` API; MediaBrowser collection
-      // membership APIs aren't wired here yet.
-      if (menu.isPlex && widget.collectionId != null)
+      // Every backend implements `removeFromCollection`.
+      if (widget.collectionId != null && menu.canManageCollections)
         _MenuAction(
           value: 'remove_from_collection',
           icon: Symbols.delete_outline_rounded,
@@ -629,6 +684,8 @@ class MediaContextMenuState extends State<MediaContextMenu> {
         _MenuAction(value: 'series', icon: Symbols.tv_rounded, label: t.mediaMenu.goToSeries),
       if (mediaKind == MediaKind.show || mediaKind == MediaKind.season)
         _MenuAction(value: 'shuffle_play', icon: Symbols.shuffle_rounded, label: t.mediaMenu.shufflePlay),
+      if (canLinkItem(mediaItem))
+        _MenuAction(value: 'show_link', icon: Symbols.link_rounded, label: t.deepLinks.showLink),
       ..._mediaSourceMenuActions(menu, mediaItem),
       ..._libraryMenuActions(context, menu, mediaItem),
     ];
@@ -730,11 +787,10 @@ class MediaContextMenuState extends State<MediaContextMenu> {
           icon: menu.watchlistRemoveOffered ? Symbols.bookmark_remove_rounded : Symbols.bookmark_add_rounded,
           label: menu.watchlistRemoveOffered ? t.explore.removeFromWatchlist : t.explore.addToWatchlist,
         ),
-      // Add to... (for episodes, movies, shows, and seasons). Plex-only —
-      // uses `buildMetadataUri` + `addToPlaylist` / `addToCollection`. The
-      // MediaBrowser item-add APIs are different and not wired here yet.
-      if (menu.isPlex && mediaItem.isVideoContent)
-        _MenuAction(value: 'add_to', icon: Symbols.add_rounded, label: t.common.addTo),
+      // Add to... (for episodes, movies, shows, and seasons). Every backend
+      // implements the playlist and collection create/add calls; which
+      // destinations are offered follows [_MenuContext.canManageCollections].
+      if (mediaItem.isVideoContent) _MenuAction(value: 'add_to', icon: Symbols.add_rounded, label: t.common.addTo),
       // Delete media item (for episodes, movies, shows, and seasons). Routed
       // through `MediaServerClient.deleteMediaItem`, which every backend
       // implements (DELETE /library/metadata/{id} for Plex and
@@ -773,7 +829,9 @@ class MediaContextMenuState extends State<MediaContextMenu> {
       }
       return;
     }
-    if (menu.isCollection || menu.isPlaylist) {
+    if (menu.isDownloadsFolder) {
+      await _dispatchDownloadsFolderSelection(context, selected, menu.mediaItem!);
+    } else if (menu.isCollection || menu.isPlaylist) {
       await _dispatchListSelection(context, selected, menu);
     } else {
       await _dispatchItemSelection(
@@ -807,6 +865,15 @@ class MediaContextMenuState extends State<MediaContextMenu> {
       case 'delete':
         await _handleDelete(context, menu.isCollection, menu.isPlaylist);
         break;
+    }
+  }
+
+  Future<void> _dispatchDownloadsFolderSelection(BuildContext context, String? selected, MediaItem folder) async {
+    switch (selected) {
+      case 'watch' || 'unwatch':
+        await setDownloadsFolderWatched(context, folder, watched: selected == 'watch');
+      case 'delete_folder_downloads':
+        await deleteDownloadsFolder(context, folder);
     }
   }
 
@@ -867,6 +934,9 @@ class MediaContextMenuState extends State<MediaContextMenu> {
       case 'shuffle_play':
         await _handleShufflePlayWithQueue(context);
         break;
+      case 'show_link':
+        if (mounted) await showItemLinkDialog(this.context, mediaItem);
+        break;
       case 'play_version':
         outcome.didNavigate = await promptAndPlayVersion(context, _mediaItem!);
         break;
@@ -900,7 +970,7 @@ class MediaContextMenuState extends State<MediaContextMenu> {
         );
         break;
       case 'add_to':
-        await _showAddToSubmenu(context);
+        await _showAddToSubmenu(context, offerCollections: menu.canManageCollections);
         break;
       case 'delete_media':
         await _handleDeleteMediaItem(context, mediaItem.kind);
@@ -1362,8 +1432,13 @@ class MediaContextMenuState extends State<MediaContextMenu> {
     await launcher.launchShuffledShow(metadata: mediaItem, showLoadingIndicator: true);
   }
 
-  /// Show submenu for Add to... (Playlist or Collection)
-  Future<void> _showAddToSubmenu(BuildContext context) async {
+  /// Show submenu for Add to... (Playlist or Collection). Without collection
+  /// rights the only destination is a playlist, so its picker opens directly.
+  Future<void> _showAddToSubmenu(BuildContext context, {required bool offerCollections}) async {
+    if (!offerCollections) {
+      await _showAddToPlaylistDialog(context);
+      return;
+    }
     final selected = await showOptionPickerDialog<String>(
       context,
       title: t.common.addTo,

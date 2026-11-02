@@ -118,7 +118,7 @@ Every published PowerPlay release uses consistent sections: **What's new**, **In
 
 ### Release approach
 
-Small individual features typically increment the patch version (`1.1.0 → 1.1.1`), while a feature batch can increment the minor version. Stable publications are explicitly marked **Latest**. Release candidates are built and checked before a separate, manually approved publishing step. PowerPlay's build process currently restores a checksum-pinned 1.0.0 baseline and applies reviewed version-specific patches; the historical source tree at repository root should **not** be mistaken for the exact source of the published APK. See [the release candidate workflow](.github/workflows/powerplay-release-candidate.yml), [publication workflow](.github/workflows/powerplay-publish.yml) and [release metadata](.github/powerplay/release.json).
+Small individual features typically increment the patch version (`1.1.0 → 1.1.1`), while a feature batch can increment the minor version. Stable publications are explicitly marked **Latest**. Release candidates are built and checked before a separate, manually approved publishing step. Starting with the canonical-source migration, the tracked PowerPlay application at repository root is **the source compiled into each APK**. The release workflow checks out the reviewed commit directly, runs automated checks, and attaches a matching source archive with the APK. Releases through v1.2.4 retain their own archived, version-specific build sources for reproducibility. See [the release candidate workflow](.github/workflows/powerplay-release-candidate.yml), [publication workflow](.github/workflows/powerplay-publish.yml) and [release metadata](.github/powerplay/release.json).
 
 ## Artwork
 
