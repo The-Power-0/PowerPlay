@@ -47,7 +47,8 @@ jobs:
             --source "$RUNNER_TEMP/unpacked/plezy-custom-source" \
             --repo "$GITHUB_WORKSPACE"
           git status --short | tail -35
-          git diff --check
+          # Generated translation Dart is imported verbatim from the published APK source.
+          git diff --check -- . ':(exclude)lib/i18n/*.g.dart'
       - name: Setup Flutter for canonical smoke test
         uses: subosito/flutter-action@v2
         with:
@@ -77,7 +78,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
-          git diff --cached --check
+          git diff --cached --check -- . ':(exclude)lib/i18n/*.g.dart'
           test -n "$(git diff --cached --name-only)"
           git commit -m 'refactor(source): make published PowerPlay v1.2.4 app the canonical repo source'
           git push origin "HEAD:$GITHUB_REF_NAME"
