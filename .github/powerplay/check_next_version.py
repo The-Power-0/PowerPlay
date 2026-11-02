@@ -24,7 +24,13 @@ def main():
         assert text in settings, text
     main = (root / 'lib/main.dart').read_text()
     assert 'plezy_adaptive_foreground.svg' not in main
-    assert main.count("Image.asset('assets/powerplay.png'") == 2
+    assert main.count("Image.asset('assets/powerplay_splash.png'") == 2
+    assert main.count("Image.asset('assets/powerplay.png'") == 0
+    for image in ('assets/powerplay_splash.png',
+                  'android/app/src/main/res/drawable-nodpi/powerplay_splash_foreground.png'):
+        raw = (root / image).read_bytes()
+        assert raw[:8] == b'\x89PNG\r\n\x1a\n', image
+        assert raw[25] == 6, image  # PNG image color type RGBA, not opaque RGB
     assert (root / 'assets/powerplay.png').read_bytes() == (root / 'assets/plezy.png').read_bytes()
     about = (root / 'lib/screens/settings/about_screen.dart').read_text()
     for text in ["const appName = 'PowerPlay'", 'assets/powerplay.png',
@@ -35,7 +41,8 @@ def main():
     adaptive = (res / 'mipmap-anydpi-v26/ic_launcher.xml').read_text()
     assert '@drawable/powerplay_foreground' in adaptive
     assert '@drawable/ic_launcher_foreground' not in adaptive
-    assert '@drawable/powerplay_foreground' in (res / 'drawable/splash_icon.xml').read_text()
+    assert '@drawable/powerplay_splash_foreground' in (res / 'drawable/splash_icon.xml').read_text()
+    assert '@drawable/powerplay_splash_foreground' in (res / 'drawable/powerplay_launch_background.xml').read_text()
     for path in ['values/styles.xml', 'values-night/styles.xml']:
         tree = ET.parse(res / path)
         for style in tree.findall('style'):
@@ -60,9 +67,14 @@ def main():
             assert bgs == ['@color/splash_background'], (qualifier, name)
     ET.parse(res / 'drawable/powerplay_launch_background.xml')
     palette = (root / 'lib/theme/powerplay_palette.dart').read_text()
-    for theme in ('signaturePurple', 'moonlightBlue', 'ember', 'evergreen', 'rose', 'monochrome'):
+    for theme in ('signaturePurple', 'moonlightBlue', 'ember', 'evergreen', 'rose',
+                  'monochrome', 'aurora', 'synthwave', 'midnightGold', 'oceanDepths'):
         assert theme in palette, theme
     assert 'if (oled)' in palette and '0xFF000000' in palette
+    assert 'secondaryDarkAccent' in palette and 'secondaryLightAccent' in palette
+    theme_test = (root / 'test/theme/powerplay_curated_palette_test.dart').read_text()
+    assert 'PowerPlayPalette.values.length, 10' in theme_test
+    assert 'dual-tone palettes' in theme_test
     adapter = (root / 'lib/theme/powerplay_palette_release_adapter.dart').read_text()
     assert 'extension PowerPlayPaletteReleaseAdapter' in adapter
     assert "'color_palette'" in settings
@@ -71,6 +83,7 @@ def main():
     assert 'curated.toMonoPalette(' in main
     picker = (root / 'lib/screens/settings/theme_settings_screen.dart').read_text()
     assert 'PowerPlay color themes' in picker and 'Display mode' in picker
+    assert 'preset.secondaryDarkAccent' in picker
     assert (root / 'test/theme/powerplay_curated_palette_test.dart').is_file()
     assert (root / 'test/services/powerplay_defaults_test.dart').is_file()
     print('PASS: actual build source has PowerPlay identity, defaults, splash, themes, OLED support, About, and regression tests')

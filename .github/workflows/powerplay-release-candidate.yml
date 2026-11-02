@@ -78,9 +78,13 @@ jobs:
             --source "$RUNNER_TEMP/powerplay/plezy-custom-source"
           python3 "$GITHUB_WORKSPACE/.github/powerplay/apply_121_upstream_fixes.py" \
             --source "$RUNNER_TEMP/powerplay/plezy-custom-source"
+          python3 "$GITHUB_WORKSPACE/.github/powerplay/apply_124_theme_ui.py" \
+            --source "$RUNNER_TEMP/powerplay/plezy-custom-source"
+          python3 "$GITHUB_WORKSPACE/.github/powerplay/apply_transparent_splash.py" \
+            --source "$RUNNER_TEMP/powerplay/plezy-custom-source"
           python3 "$GITHUB_WORKSPACE/.github/powerplay/check_next_version.py" \
             --source "$RUNNER_TEMP/powerplay/plezy-custom-source"
-          echo "PowerPlay $RELEASE_VERSION: retained features, matched splash, and six OLED-compatible theme presets applied." >> "$GITHUB_STEP_SUMMARY"
+          echo "PowerPlay $RELEASE_VERSION: retained features, matched splash, and ten OLED-compatible curated themes applied; transparent splash foreground verified." >> "$GITHUB_STEP_SUMMARY"
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -155,6 +159,9 @@ jobs:
               ns=a.namelist()
               expected=Path(os.environ['RUNNER_TEMP']) / 'powerplay/plezy-custom-source/assets/powerplay.png'
               assert a.read('assets/flutter_assets/assets/powerplay.png') == expected.read_bytes()
+              splash=Path(os.environ['RUNNER_TEMP']) / 'powerplay/plezy-custom-source/assets/powerplay_splash.png'
+              assert a.read('assets/flutter_assets/assets/powerplay_splash.png') == splash.read_bytes()
+              assert splash.read_bytes()[25] == 6  # PNG RGBA, not opaque RGB
               abis={p.split("/")[1] for p in ns if p.startswith("lib/") and p.endswith(".so")}
               assert abis=={"armeabi-v7a"}, abis
               assert "lib/armeabi-v7a/libflutter.so" in ns
@@ -185,7 +192,7 @@ jobs:
           data['source_sha'] = os.environ['GITHUB_SHA']
           Path('release-manifest.json').write_text(json.dumps(data, indent=2) + '\n')
           PYTHON
-          printf '%s\n' 'PowerPlay Release Candidate'  "Based on pinned published PowerPlay 1.0.0 source" "PowerPlay $RELEASE_VERSION: library-header D-pad scroll fix; existing themes, Plex optimizations, and Home Assistant features retained; device validation pending." 'NOT A PUBLIC RELEASE YET.' > BUILD-STATUS.txt
+          printf '%s\n' 'PowerPlay Release Candidate'  "Based on pinned published PowerPlay 1.0.0 source" "PowerPlay $RELEASE_VERSION: transparent startup-only artwork and four new curated themes, including two dual-tone palettes; existing focus, Plex and Home Assistant features retained; device validation pending." 'NOT A PUBLIC RELEASE YET.' > BUILD-STATUS.txt
       - name: Upload signed candidate for review (no public release)
         uses: actions/upload-artifact@v4
         with:
