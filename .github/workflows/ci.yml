@@ -1,8 +1,9 @@
 name: CI - Sanity Checks
 
 on:
-  # Legacy repository-root Plezy CI remains manual. PowerPlay builds and tests
-  # its exact frozen application source through powerplay-release-candidate.yml.
+  # Whole-repository sanity checks remain opt-in. Stable PowerPlay candidates
+  # now build the canonical, reviewed repository-root application source directly
+  # using powerplay-release-candidate.yml (without archived-source patching).
   workflow_dispatch:
     inputs:
       build_linux_packages:
