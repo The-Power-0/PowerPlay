@@ -1,0 +1,367 @@
+{
+  "revision": 1,
+  "repository": "The-Power-0/PowerPlay",
+  "latest_tag": "powerplay-v1.2.1",
+  "releases": [
+    {
+      "id": 430237420,
+      "tag": "powerplay-v1.0.0",
+      "target_commitish": "c43d33a957df6d1cf295bfae5e3c711d3d56b3d9",
+      "assets": [
+        [
+          696708668,
+          "PowerPlay-v1.0.0-NativeSourceInputs.zip",
+          75115134
+        ],
+        [
+          696708661,
+          "PowerPlay-v1.0.0-Source.tar.gz",
+          108990790
+        ],
+        [
+          696708669,
+          "PowerPlay-v1.0.0.apk",
+          80933653
+        ],
+        [
+          696708664,
+          "SHA256SUMS.txt",
+          290
+        ]
+      ],
+      "expected": {
+        "name": "PowerPlay v1.0.0 — Fire TV",
+        "body": "# PowerPlay v1.0.0 — Fire TV\n\nUnofficial, GPLv3-licensed derivative of Plezy 2.25.0, optimized for Plex movies and TV on Fire OS 7/8.\n\n- Independent Android application ID: `com.power.powerplay`\n- Independent `powerplay://` shuffle and playback deep links, supporting side-by-side Plezy installation\n- Approved purple PowerPlay icon, launcher variants, splash, and TV banner\n- ARMv7 Android release APK, ExoPlayer/Media3-only video, no MPV runtime\n- Includes the frozen Plex-only Fire TV optimizations from the tested candidate\n\n**Files:** install `PowerPlay-v1.0.0.apk`. Complete modified application source is attached as `PowerPlay-v1.0.0-Source.tar.gz`; pinned native source inputs are in `PowerPlay-v1.0.0-NativeSourceInputs.zip`; hashes are in `SHA256SUMS.txt`. GitHub's automatic source archives are not the corresponding application build source.\n\nBuilt from PowerPlay candidate [Actions run 41249470717](https://github.com/The-Power-0/plezy/actions/runs/41249470717) with workflow commit `c43d33a957df6d1cf295bfae5e3c711d3d56b3d9`. Original project: https://github.com/edde746/plezy. This project is not endorsed by Plezy, Plex, or Amazon.\n\nSource attribution and license notices are included. Further transitive native-dependency source/license verification and similar-name research have been deferred and should not be considered complete.\n\nCI checks passed; physical Fire OS 7/8 installation, playback and deep-link behavior of this rebranded APK have not yet been verified. This is a first public version, not a claim of complete device or licensing validation.\n",
+        "draft": false,
+        "prerelease": false
+      },
+      "desired": {
+        "name": "PowerPlay v1.0.0 — Fire TV",
+        "body": "# PowerPlay v1.0.0 — Fire TV\n\n**Plex-focused Fire TV app · Fire OS 7/8 · ARMv7**\n\n## What's new in v1.0.0\n\n- First standalone PowerPlay build derived from optimized Plezy 2.25.0.\n- Independent package `com.power.powerplay` and `powerplay://` deep links, allowing installation alongside Plezy.\n- Purple app artwork, splash, launcher icons, and Fire TV banner.\n- Plex-only movies/TV build using ExoPlayer/Media3 instead of MPV, with the tested Fire TV performance improvements.\n\n## Install and sources\n\nDownload **`PowerPlay-v1.0.0.apk`** under Assets. The corresponding compiled source is **`PowerPlay-v1.0.0-Source.tar.gz`**; native-source inputs are in **`PowerPlay-v1.0.0-NativeSourceInputs.zip`** and checksums are in **`SHA256SUMS.txt`**. GitHub's automatically generated source archives are **not** the exact APK build source.\n\n## Build provenance and attribution\n\n**Upstream baseline:** Plezy **2.25.0** by [edde746](https://github.com/edde746/plezy), adapted for PowerPlay 1.0.0. Later PowerPlay versions reuse that frozen, checksum-pinned source and selectively apply new PowerPlay changes and reviewed upstream fixes; this label does **not** imply every subsequent Plezy release was fully merged.\n\n**Application ID:** `com.power.powerplay` · **Deep links:** `powerplay://` · **Playback:** ExoPlayer/Media3 (no MPV runtime).\n\n**Build:** [candidate workflow run 41249470717](https://github.com/The-Power-0/PowerPlay/actions/runs/41249470717) · commit `c43d33a957df6d1cf295bfae5e3c711d3d56b3d9`. Candidate promotion did not recompile the APK.\n\n**License:** Independent, unofficial GPL-3.0 derivative of Plezy. Not endorsed by Plex, Plezy, or Amazon. Original source and license notices are retained. Full transitive native-dependency licensing/source verification remains incomplete.\n",
+        "draft": false,
+        "prerelease": false
+      }
+    },
+    {
+      "id": 430288900,
+      "tag": "powerplay-v1.1.0",
+      "target_commitish": "f894471b0b61f3f5bb4a40d94548ac9bbf032b50",
+      "assets": [
+        [
+          696949547,
+          "PowerPlay-v1.1.0-NativeSourceInputs.zip",
+          75115134
+        ],
+        [
+          696949545,
+          "PowerPlay-v1.1.0-Source.tar.gz",
+          109078572
+        ],
+        [
+          696949548,
+          "PowerPlay-v1.1.0.apk",
+          81018481
+        ],
+        [
+          696949544,
+          "SHA256SUMS.txt",
+          290
+        ]
+      ],
+      "expected": {
+        "name": "PowerPlay v1.1.0 — Fire TV",
+        "body": "# PowerPlay v1.1.0 — Fire TV\n\nUnofficial GPLv3-licensed Plezy derivative, optimized for Plex movies and TV on Fire OS 7/8.\n\n- Continue Watching and Episode Action default to **Open Details**.\n- Match Content Frame Rate defaults to **On**.\n- Skip Intro defaults to **Automatic**, with an auto-skip delay of **3 seconds**.\n- PowerPlay branding on both the Android launch screen and Flutter startup screen, including adaptive icons.\n- Updated About screen with PowerPlay identity, version, project URL, and Plezy/GPL attribution.\n- Existing saved settings are preserved. New defaults apply to unset settings; the existing Reset All Settings policy is preserved.\n- Stable PowerPlay releases are explicitly marked **Latest**. Individual feature releases increment the patch version; full batches increment the minor version and reset the patch to zero.\n\nApplication ID: `com.power.powerplay`. Deep links: `powerplay://`. Playback: ExoPlayer/Media3; ARMv7 Fire TV APK with the tested Fire TV optimizations retained.\n\nInstall `PowerPlay-v1.1.0.apk`. Complete corresponding application source is attached as `PowerPlay-v1.1.0-Source.tar.gz`; pinned native-source inputs are in `PowerPlay-v1.1.0-NativeSourceInputs.zip`; hashes are in `SHA256SUMS.txt`. GitHub's automatic source downloads are not the corresponding APK build source.\n\nPromoted without recompilation from [candidate run 41258622915](https://github.com/The-Power-0/PowerPlay/actions/runs/41258622915), workflow commit `f894471b0b61f3f5bb4a40d94548ac9bbf032b50`. Original project: https://github.com/edde746/plezy. Not endorsed by Plex, Plezy, or Amazon. Original license notices are retained; the previously deferred full transitive native-dependency license/source review remains unresolved.\n",
+        "draft": false,
+        "prerelease": false
+      },
+      "desired": {
+        "name": "PowerPlay v1.1.0 — Fire TV",
+        "body": "# PowerPlay v1.1.0 — Fire TV\n\n**Plex-focused Fire TV app · Fire OS 7/8 · ARMv7**\n\n## What's new in v1.1.0\n\n- Default Continue Watching and Episode actions to **Open Details**.\n- Enable content-frame-rate matching by default; automatic intro skipping after 3 seconds.\n- Extend PowerPlay branding through startup screens and About; preserve existing user settings.\n\n## Install and sources\n\nDownload **`PowerPlay-v1.1.0.apk`** under Assets. The corresponding compiled source is **`PowerPlay-v1.1.0-Source.tar.gz`**; native-source inputs are in **`PowerPlay-v1.1.0-NativeSourceInputs.zip`** and checksums are in **`SHA256SUMS.txt`**. GitHub's automatically generated source archives are **not** the exact APK build source.\n\n## Build provenance and attribution\n\n**Upstream baseline:** Plezy **2.25.0** by [edde746](https://github.com/edde746/plezy), adapted for PowerPlay 1.0.0. Later PowerPlay versions reuse that frozen, checksum-pinned source and selectively apply new PowerPlay changes and reviewed upstream fixes; this label does **not** imply every subsequent Plezy release was fully merged.\n\n**Application ID:** `com.power.powerplay` · **Deep links:** `powerplay://` · **Playback:** ExoPlayer/Media3 (no MPV runtime).\n\n**Build:** [candidate workflow run 41258622915](https://github.com/The-Power-0/PowerPlay/actions/runs/41258622915) · commit `f894471b0b61f3f5bb4a40d94548ac9bbf032b50`. Candidate promotion did not recompile the APK.\n\n**License:** Independent, unofficial GPL-3.0 derivative of Plezy. Not endorsed by Plex, Plezy, or Amazon. Original source and license notices are retained. Full transitive native-dependency licensing/source verification remains incomplete.\n",
+        "draft": false,
+        "prerelease": false
+      }
+    },
+    {
+      "id": 430301067,
+      "tag": "powerplay-v1.1.1",
+      "target_commitish": "580dba25b2bb695f53027502fd579a95d1a63a55",
+      "assets": [
+        [
+          697018157,
+          "PowerPlay-v1.1.1-NativeSourceInputs.zip",
+          75115134
+        ],
+        [
+          697018155,
+          "PowerPlay-v1.1.1-Source.tar.gz",
+          109079430
+        ],
+        [
+          697018156,
+          "PowerPlay-v1.1.1.apk",
+          81034865
+        ],
+        [
+          697018159,
+          "SHA256SUMS.txt",
+          290
+        ]
+      ],
+      "expected": {
+        "name": "PowerPlay v1.1.1 — Fire TV",
+        "body": "# PowerPlay v1.1.1 — Fire TV\n\nUnofficial GPLv3-licensed Plezy derivative, optimized for Plex movies and TV on Fire OS 7/8.\n\n- On known 1080p-only Fire Sticks (including Stick Lite), libraries whose name contains `[4K]` are hidden by default.\n- 4K-capable Fire Sticks keep those libraries visible by default, including when their current UI or HDMI mode is 1080p.\n- Existing library controls let you show an automatically hidden library. That choice persists separately for each profile on that device.\n- Automatic defaults are not saved into the portable hidden-library list. Newly connected libraries receive the same defaults; removing `[4K]` from a name removes only the automatic hiding.\n- Unknown hardware keeps libraries visible. Explicitly saved Hide choices are preserved.\n- Includes the PowerPlay 1.1.0 settings defaults, startup branding, and About updates.\n- Single-feature release: patch increment to 1.1.1. All stable publications are explicitly marked Latest.\n\nApplication ID: `com.power.powerplay`. Deep links: `powerplay://`. Playback: ExoPlayer/Media3; ARMv7 Fire TV APK with the tested Fire TV optimizations retained.\n\nInstall `PowerPlay-v1.1.1.apk`. Complete corresponding application source is attached as `PowerPlay-v1.1.1-Source.tar.gz`; pinned native-source inputs are in `PowerPlay-v1.1.1-NativeSourceInputs.zip`; hashes are in `SHA256SUMS.txt`. GitHub's automatic source downloads are not the corresponding APK build source.\n\nPromoted without recompilation from [candidate run 41261420678](https://github.com/The-Power-0/PowerPlay/actions/runs/41261420678), workflow commit `580dba25b2bb695f53027502fd579a95d1a63a55`. Original project: https://github.com/edde746/plezy. Not endorsed by Plex, Plezy, or Amazon. Original license notices are retained; the previously deferred full transitive native-dependency license/source review remains unresolved.\n",
+        "draft": false,
+        "prerelease": false
+      },
+      "desired": {
+        "name": "PowerPlay v1.1.1 — Fire TV",
+        "body": "# PowerPlay v1.1.1 — Fire TV\n\n**Plex-focused Fire TV app · Fire OS 7/8 · ARMv7**\n\n## What's new in v1.1.1\n\n- Hide libraries containing `[4K]` by default on recognized 1080p-only Fire Sticks.\n- Keep `[4K]` libraries visible on 4K-capable Fire Sticks, even while HDMI/UI output is 1080p.\n- Preserve per-profile manual visibility choices; unknown hardware defaults to visible.\n\n## Install and sources\n\nDownload **`PowerPlay-v1.1.1.apk`** under Assets. The corresponding compiled source is **`PowerPlay-v1.1.1-Source.tar.gz`**; native-source inputs are in **`PowerPlay-v1.1.1-NativeSourceInputs.zip`** and checksums are in **`SHA256SUMS.txt`**. GitHub's automatically generated source archives are **not** the exact APK build source.\n\n## Build provenance and attribution\n\n**Upstream baseline:** Plezy **2.25.0** by [edde746](https://github.com/edde746/plezy), adapted for PowerPlay 1.0.0. Later PowerPlay versions reuse that frozen, checksum-pinned source and selectively apply new PowerPlay changes and reviewed upstream fixes; this label does **not** imply every subsequent Plezy release was fully merged.\n\n**Application ID:** `com.power.powerplay` · **Deep links:** `powerplay://` · **Playback:** ExoPlayer/Media3 (no MPV runtime).\n\n**Build:** [candidate workflow run 41261420678](https://github.com/The-Power-0/PowerPlay/actions/runs/41261420678) · commit `580dba25b2bb695f53027502fd579a95d1a63a55`. Candidate promotion did not recompile the APK.\n\n**License:** Independent, unofficial GPL-3.0 derivative of Plezy. Not endorsed by Plex, Plezy, or Amazon. Original source and license notices are retained. Full transitive native-dependency licensing/source verification remains incomplete.\n",
+        "draft": false,
+        "prerelease": false
+      }
+    },
+    {
+      "id": 430340781,
+      "tag": "powerplay-v1.1.2",
+      "target_commitish": "6050ef42ed5b4f6520294141fa7df7f70d547a08",
+      "assets": [
+        [
+          697218280,
+          "PowerPlay-v1.1.2-NativeSourceInputs.zip",
+          75115134
+        ],
+        [
+          697218283,
+          "PowerPlay-v1.1.2-Source.tar.gz",
+          109079999
+        ],
+        [
+          697218282,
+          "PowerPlay-v1.1.2.apk",
+          81034933
+        ],
+        [
+          697218284,
+          "SHA256SUMS.txt",
+          290
+        ]
+      ],
+      "expected": {
+        "name": "PowerPlay v1.1.2 — Fire TV",
+        "body": "# PowerPlay v1.1.2 — Fire TV\n\nUnofficial GPLv3-licensed Plezy derivative, optimized for Plex movies and TV on Fire OS 7/8.\n\n- On known 1080p-only Fire Sticks (including Stick Lite), libraries whose name contains `[4K]` are hidden by default.\n- 4K-capable Fire Sticks keep those libraries visible by default, including when their current UI or HDMI mode is 1080p.\n- Existing library controls let you show an automatically hidden library. That choice persists separately for each profile on that device.\n- Automatic defaults are not saved into the portable hidden-library list. Newly connected libraries receive the same defaults; removing `[4K]` from a name removes only the automatic hiding.\n- Unknown hardware keeps libraries visible. Explicitly saved Hide choices are preserved.\n- Includes the PowerPlay 1.1.0 settings defaults, startup branding, and About updates.\n- New in v1.1.2: the full splash canvas matches the approved PowerPlay icon background (#04070E), including light, dark, OLED and Android 12 system splash themes.\n- Retains 1.1.1 hardware-aware library defaults and 1.1.0 settings/branding.\n- Stable publication is marked Latest.\n\nApplication ID: `com.power.powerplay`. Deep links: `powerplay://`. Playback: ExoPlayer/Media3; ARMv7 Fire TV APK with the tested Fire TV optimizations retained.\n\nInstall `PowerPlay-v1.1.2.apk`. Complete corresponding application source is attached as `PowerPlay-v1.1.2-Source.tar.gz`; pinned native-source inputs are in `PowerPlay-v1.1.2-NativeSourceInputs.zip`; hashes are in `SHA256SUMS.txt`. GitHub's automatic source downloads are not the corresponding APK build source.\n\nPromoted without recompilation from [candidate run 41268619402](https://github.com/The-Power-0/PowerPlay/actions/runs/41268619402), workflow commit `6050ef42ed5b4f6520294141fa7df7f70d547a08`. Original project: https://github.com/edde746/plezy. Not endorsed by Plex, Plezy, or Amazon. Original license notices are retained; the previously deferred full transitive native-dependency license/source review remains unresolved.\n",
+        "draft": false,
+        "prerelease": false
+      },
+      "desired": {
+        "name": "PowerPlay v1.1.2 — Fire TV",
+        "body": "# PowerPlay v1.1.2 — Fire TV\n\n**Plex-focused Fire TV app · Fire OS 7/8 · ARMv7**\n\n## What's new in v1.1.2\n\n- Match startup splash canvas to the PowerPlay icon background (`#04070E`) across Android launch modes.\n- Keep settings defaults and hardware-based library visibility from earlier releases.\n\n## Install and sources\n\nDownload **`PowerPlay-v1.1.2.apk`** under Assets. The corresponding compiled source is **`PowerPlay-v1.1.2-Source.tar.gz`**; native-source inputs are in **`PowerPlay-v1.1.2-NativeSourceInputs.zip`** and checksums are in **`SHA256SUMS.txt`**. GitHub's automatically generated source archives are **not** the exact APK build source.\n\n## Build provenance and attribution\n\n**Upstream baseline:** Plezy **2.25.0** by [edde746](https://github.com/edde746/plezy), adapted for PowerPlay 1.0.0. Later PowerPlay versions reuse that frozen, checksum-pinned source and selectively apply new PowerPlay changes and reviewed upstream fixes; this label does **not** imply every subsequent Plezy release was fully merged.\n\n**Application ID:** `com.power.powerplay` · **Deep links:** `powerplay://` · **Playback:** ExoPlayer/Media3 (no MPV runtime).\n\n**Build:** [candidate workflow run 41268619402](https://github.com/The-Power-0/PowerPlay/actions/runs/41268619402) · commit `6050ef42ed5b4f6520294141fa7df7f70d547a08`. Candidate promotion did not recompile the APK.\n\n**License:** Independent, unofficial GPL-3.0 derivative of Plezy. Not endorsed by Plex, Plezy, or Amazon. Original source and license notices are retained. Full transitive native-dependency licensing/source verification remains incomplete.\n",
+        "draft": false,
+        "prerelease": false
+      }
+    },
+    {
+      "id": 430359743,
+      "tag": "powerplay-v1.2.0",
+      "target_commitish": "514aa9987cd44231ebb440e816b6b5802e24577b",
+      "assets": [
+        [
+          697308104,
+          "PowerPlay-v1.2.0-NativeSourceInputs.zip",
+          75115134
+        ],
+        [
+          697308106,
+          "PowerPlay-v1.2.0-Source.tar.gz",
+          109083655
+        ],
+        [
+          697308107,
+          "PowerPlay-v1.2.0.apk",
+          81034933
+        ],
+        [
+          697308109,
+          "SHA256SUMS.txt",
+          290
+        ]
+      ],
+      "expected": {
+        "name": "PowerPlay v1.2.0 — Fire TV",
+        "body": "# PowerPlay v1.2.0 — Fire TV\n\nUnofficial GPLv3-licensed Plezy derivative, optimized for Plex movies and TV on Fire OS 7/8.\n\n- On known 1080p-only Fire Sticks (including Stick Lite), libraries whose name contains `[4K]` are hidden by default.\n- 4K-capable Fire Sticks keep those libraries visible by default, including when their current UI or HDMI mode is 1080p.\n- Existing library controls let you show an automatically hidden library. That choice persists separately for each profile on that device.\n- Automatic defaults are not saved into the portable hidden-library list. Newly connected libraries receive the same defaults; removing `[4K]` from a name removes only the automatic hiding.\n- Unknown hardware keeps libraries visible. Explicitly saved Hide choices are preserved.\n- Includes the PowerPlay 1.1.0 settings defaults, startup branding, and About updates.\n- New in v1.2.0: six curated themes — Signature Purple, Moonlight Blue, Ember, Evergreen, Rosé and Monochrome — selectable from Appearance settings.\n- Each color palette works independently with System, Light, Dark, and true-black OLED display modes.\n- Theme choices apply live, persist locally on each Fire TV, and keep existing installations on Monochrome until changed.\n- Retains the PowerPlay 1.1.2 matched splash canvas (#04070E), 1.1.1 hardware-aware library defaults, and 1.1.0 settings/branding.\n- Stable publication is marked Latest.\n\nApplication ID: `com.power.powerplay`. Deep links: `powerplay://`. Playback: ExoPlayer/Media3; ARMv7 Fire TV APK with the tested Fire TV optimizations retained.\n\nInstall `PowerPlay-v1.2.0.apk`. Complete corresponding application source is attached as `PowerPlay-v1.2.0-Source.tar.gz`; pinned native-source inputs are in `PowerPlay-v1.2.0-NativeSourceInputs.zip`; hashes are in `SHA256SUMS.txt`. GitHub's automatic source downloads are not the corresponding APK build source.\n\nPromoted without recompilation from [candidate run 41270864467](https://github.com/The-Power-0/PowerPlay/actions/runs/41270864467), workflow commit `514aa9987cd44231ebb440e816b6b5802e24577b`. Original project: https://github.com/edde746/plezy. Not endorsed by Plex, Plezy, or Amazon. Original license notices are retained; the previously deferred full transitive native-dependency license/source review remains unresolved.\n",
+        "draft": false,
+        "prerelease": false
+      },
+      "desired": {
+        "name": "PowerPlay v1.2.0 — Fire TV",
+        "body": "# PowerPlay v1.2.0 — Fire TV\n\n**Plex-focused Fire TV app · Fire OS 7/8 · ARMv7**\n\n## What's new in v1.2.0\n\n- Add six color themes: Signature Purple, Moonlight Blue, Ember, Evergreen, Rosé, and Monochrome.\n- Allow independent System, Light, Dark, and OLED display modes; apply and save choices per device.\n- Preserve older theme appearance for existing installs until explicitly changed.\n\n## Install and sources\n\nDownload **`PowerPlay-v1.2.0.apk`** under Assets. The corresponding compiled source is **`PowerPlay-v1.2.0-Source.tar.gz`**; native-source inputs are in **`PowerPlay-v1.2.0-NativeSourceInputs.zip`** and checksums are in **`SHA256SUMS.txt`**. GitHub's automatically generated source archives are **not** the exact APK build source.\n\n## Build provenance and attribution\n\n**Upstream baseline:** Plezy **2.25.0** by [edde746](https://github.com/edde746/plezy), adapted for PowerPlay 1.0.0. Later PowerPlay versions reuse that frozen, checksum-pinned source and selectively apply new PowerPlay changes and reviewed upstream fixes; this label does **not** imply every subsequent Plezy release was fully merged.\n\n**Application ID:** `com.power.powerplay` · **Deep links:** `powerplay://` · **Playback:** ExoPlayer/Media3 (no MPV runtime).\n\n**Build:** [candidate workflow run 41270864467](https://github.com/The-Power-0/PowerPlay/actions/runs/41270864467) · commit `514aa9987cd44231ebb440e816b6b5802e24577b`. Candidate promotion did not recompile the APK.\n\n**License:** Independent, unofficial GPL-3.0 derivative of Plezy. Not endorsed by Plex, Plezy, or Amazon. Original source and license notices are retained. Full transitive native-dependency licensing/source verification remains incomplete.\n",
+        "draft": false,
+        "prerelease": false
+      }
+    },
+    {
+      "id": 431107477,
+      "tag": "powerplay-v1.2.1",
+      "target_commitish": "8efc3069d6c8ad108798ffdb28307bbfaa3aff20",
+      "assets": [
+        [
+          700657967,
+          "PowerPlay-v1.2.1-NativeSourceInputs.zip",
+          75115134
+        ],
+        [
+          700657966,
+          "PowerPlay-v1.2.1-Source.tar.gz",
+          109084354
+        ],
+        [
+          700657969,
+          "PowerPlay-v1.2.1.apk",
+          81034933
+        ],
+        [
+          700657965,
+          "SHA256SUMS.txt",
+          290
+        ]
+      ],
+      "expected": {
+        "name": "PowerPlay v1.2.1 — Fire TV",
+        "body": "# PowerPlay v1.2.1 — Fire TV\n\nUnofficial GPLv3-licensed Plezy derivative, optimized for Plex movies and TV on Fire OS 7/8.\n\n- On known 1080p-only Fire Sticks (including Stick Lite), libraries whose name contains `[4K]` are hidden by default.\n- 4K-capable Fire Sticks keep those libraries visible by default, including when their current UI or HDMI mode is 1080p.\n- Existing library controls let you show an automatically hidden library. That choice persists separately for each profile on that device.\n- Automatic defaults are not saved into the portable hidden-library list. Newly connected libraries receive the same defaults; removing `[4K]` from a name removes only the automatic hiding.\n- Unknown hardware keeps libraries visible. Explicitly saved Hide choices are preserved.\n- Includes the PowerPlay 1.1.0 settings defaults, startup branding, and About updates.\n- New in v1.2.1: prevent no-op D-pad focus scrolling from collapsing or bouncing the library's floating header on Fire TV.\n- Since v1.2.0: six curated themes — Signature Purple, Moonlight Blue, Ember, Evergreen, Rosé and Monochrome — selectable from Appearance settings.\n- Each color palette works independently with System, Light, Dark, and true-black OLED display modes.\n- Theme choices apply live, persist locally on each Fire TV, and keep existing installations on Monochrome until changed.\n- Retains the PowerPlay 1.1.2 matched splash canvas (#04070E), 1.1.1 hardware-aware library defaults, and 1.1.0 settings/branding.\n- Stable publication is marked Latest.\n\nApplication ID: `com.power.powerplay`. Deep links: `powerplay://`. Playback: ExoPlayer/Media3; ARMv7 Fire TV APK with the tested Fire TV optimizations retained.\n\nInstall `PowerPlay-v1.2.1.apk`. Complete corresponding application source is attached as `PowerPlay-v1.2.1-Source.tar.gz`; pinned native-source inputs are in `PowerPlay-v1.2.1-NativeSourceInputs.zip`; hashes are in `SHA256SUMS.txt`. GitHub's automatic source downloads are not the corresponding APK build source.\n\nPromoted without recompilation from [candidate run 41367428505](https://github.com/The-Power-0/PowerPlay/actions/runs/41367428505), workflow commit `8efc3069d6c8ad108798ffdb28307bbfaa3aff20`. Original project: https://github.com/edde746/plezy. Not endorsed by Plex, Plezy, or Amazon. Original license notices are retained; the previously deferred full transitive native-dependency license/source review remains unresolved.\n",
+        "draft": false,
+        "prerelease": false
+      },
+      "desired": {
+        "name": "PowerPlay v1.2.1 — Fire TV",
+        "body": "# PowerPlay v1.2.1 — Fire TV\n\n**Plex-focused Fire TV app · Fire OS 7/8 · ARMv7**\n\n## What's new in v1.2.1\n\n- Fix a D-pad focus-scrolling edge case that could make the floating library header collapse or bounce.\n- Retain curated themes, hardware-aware library defaults, settings and PowerPlay branding.\n- Backport the targeted upstream focus fix while retaining preexisting performance improvements.\n\n## Install and sources\n\nDownload **`PowerPlay-v1.2.1.apk`** under Assets. The corresponding compiled source is **`PowerPlay-v1.2.1-Source.tar.gz`**; native-source inputs are in **`PowerPlay-v1.2.1-NativeSourceInputs.zip`** and checksums are in **`SHA256SUMS.txt`**. GitHub's automatically generated source archives are **not** the exact APK build source.\n\n## Build provenance and attribution\n\n**Upstream baseline:** Plezy **2.25.0** by [edde746](https://github.com/edde746/plezy), adapted for PowerPlay 1.0.0. Later PowerPlay versions reuse that frozen, checksum-pinned source and selectively apply new PowerPlay changes and reviewed upstream fixes; this label does **not** imply every subsequent Plezy release was fully merged.\n\n**Application ID:** `com.power.powerplay` · **Deep links:** `powerplay://` · **Playback:** ExoPlayer/Media3 (no MPV runtime).\n\n**Build:** [candidate workflow run 41367428505](https://github.com/The-Power-0/PowerPlay/actions/runs/41367428505) · commit `8efc3069d6c8ad108798ffdb28307bbfaa3aff20`. Candidate promotion did not recompile the APK.\n\n**License:** Independent, unofficial GPL-3.0 derivative of Plezy. Not endorsed by Plex, Plezy, or Amazon. Original source and license notices are retained. Full transitive native-dependency licensing/source verification remains incomplete.\n",
+        "draft": false,
+        "prerelease": false
+      }
+    },
+    {
+      "id": 405415814,
+      "tag": "2.22.0-ha-shuffle.1",
+      "target_commitish": "ha-shuffle-v2",
+      "assets": [
+        [
+          617700281,
+          "Plezy.apk",
+          165093663
+        ],
+        [
+          617700289,
+          "Plezy.apk.sha256",
+          76
+        ]
+      ],
+      "expected": {
+        "name": "Archived — Plezy 2.22.0 + HA Shuffle",
+        "body": "Archived legacy Plezy release, preserved as an unpublished draft with its assets and tag intact.\n\nCurrent PowerPlay: https://github.com/The-Power-0/PowerPlay/releases/latest\n\n---\n\nCustom Plezy build based on upstream release **2.22.0**.\n\nIncludes:\n- `plezy://shuffle?server=<serverId>&show=<showRatingKey>`\n- Plezy's native continuous shuffled-show playback\n- Fire TV `armeabi-v7a` APK\n- Signed with the same key used by existing custom Fire TV installations\n\nUpstream release:\nhttps://github.com/edde746/plezy/releases/tag/2.22.0\n",
+        "draft": true,
+        "prerelease": true
+      },
+      "desired": {
+        "name": "Archived — Plezy 2.22.0 + HA Shuffle",
+        "body": "# Archived Plezy 2.22.0 — Home Assistant shuffle\n\n**Historical prerelease · not maintained · not PowerPlay**\n\nThis is the original custom Plezy 2.22.0 Fire TV build, made before PowerPlay existed. For current app updates, use [the latest PowerPlay release](https://github.com/The-Power-0/PowerPlay/releases/latest).\n\n## Historical features\n\n- Native continuous show shuffle via `plezy://shuffle?server=SERVER_ID&show=SHOW_RATING_KEY`.\n- Signed Fire TV ARMv7 APK (`Plezy.apk`).\n- Original upstream: [Plezy 2.22.0](https://github.com/edde746/plezy/releases/tag/2.22.0).\n\n## Archives and provenance\n\nThis historical build is preserved for reference; do not confuse its upstream version 2.22.0 with PowerPlay's **Plezy 2.25.0** code baseline. Existing release assets and commit tags are retained unchanged.\n\nOriginal Plezy licensing and attribution apply.",
+        "draft": false,
+        "prerelease": true
+      }
+    },
+    {
+      "id": 410021085,
+      "tag": "2.23.0-ha-shuffle.1",
+      "target_commitish": "ha-shuffle-v2",
+      "assets": [
+        [
+          632215357,
+          "Plezy.apk",
+          165321807
+        ],
+        [
+          632215358,
+          "Plezy.apk.sha256",
+          76
+        ]
+      ],
+      "expected": {
+        "name": "Archived — Plezy 2.23.0 + HA Shuffle",
+        "body": "Archived legacy Plezy release, preserved as an unpublished draft with its assets and tag intact.\n\nCurrent PowerPlay: https://github.com/The-Power-0/PowerPlay/releases/latest\n\n---\n\nCustom Plezy build based on upstream release **2.23.0**.\n\nIncludes:\n- `plezy://shuffle?server=<serverId>&show=<showRatingKey>`\n- Plezy's native continuous shuffled-show playback\n- Fire TV `armeabi-v7a` APK\n- Signed with the same key used by existing custom Fire TV installations\n\nUpstream release:\nhttps://github.com/edde746/plezy/releases/tag/2.23.0\n",
+        "draft": true,
+        "prerelease": true
+      },
+      "desired": {
+        "name": "Archived — Plezy 2.23.0 + HA Shuffle",
+        "body": "# Archived Plezy 2.23.0 — Home Assistant shuffle\n\n**Historical prerelease · not maintained · not PowerPlay**\n\nThis is the original custom Plezy 2.23.0 Fire TV build, made before PowerPlay existed. For current app updates, use [the latest PowerPlay release](https://github.com/The-Power-0/PowerPlay/releases/latest).\n\n## Historical features\n\n- Native continuous show shuffle via `plezy://shuffle?server=SERVER_ID&show=SHOW_RATING_KEY`.\n- Signed Fire TV ARMv7 APK (`Plezy.apk`).\n- Original upstream: [Plezy 2.23.0](https://github.com/edde746/plezy/releases/tag/2.23.0).\n\n## Archives and provenance\n\nThis historical build is preserved for reference; do not confuse its upstream version 2.23.0 with PowerPlay's **Plezy 2.25.0** code baseline. Existing release assets and commit tags are retained unchanged.\n\nOriginal Plezy licensing and attribution apply.",
+        "draft": false,
+        "prerelease": true
+      }
+    },
+    {
+      "id": 420231511,
+      "tag": "2.24.0-ha-shuffle.1",
+      "target_commitish": "ha-shuffle-v2",
+      "assets": [
+        [
+          664382002,
+          "Plezy.apk",
+          171586744
+        ],
+        [
+          664382003,
+          "Plezy.apk.sha256",
+          76
+        ]
+      ],
+      "expected": {
+        "name": "Archived — Plezy 2.24.0 + HA Shuffle",
+        "body": "Archived legacy Plezy release, preserved as an unpublished draft with its assets and tag intact.\n\nCurrent PowerPlay: https://github.com/The-Power-0/PowerPlay/releases/latest\n\n---\n\nCustom Plezy build based on upstream release **2.24.0**.\n\nIncludes:\n- `plezy://shuffle?server=<serverId>&show=<showRatingKey>`\n- Plezy's native continuous shuffled-show playback\n- Fire TV `armeabi-v7a` APK\n- Signed with the same key used by existing custom Fire TV installations\n\nUpstream release:\nhttps://github.com/edde746/plezy/releases/tag/2.24.0\n\nPatched build source commit:\n`d1abf66dc28b38150ed22d97770fe473bfc30264`\n\nBuild and test workflow:\nhttps://github.com/The-Power-0/plezy/actions/runs/39707721223\n",
+        "draft": true,
+        "prerelease": true
+      },
+      "desired": {
+        "name": "Archived — Plezy 2.24.0 + HA Shuffle",
+        "body": "# Archived Plezy 2.24.0 — Home Assistant shuffle\n\n**Historical prerelease · not maintained · not PowerPlay**\n\nThis is the original custom Plezy 2.24.0 Fire TV build, made before PowerPlay existed. For current app updates, use [the latest PowerPlay release](https://github.com/The-Power-0/PowerPlay/releases/latest).\n\n## Historical features\n\n- Native continuous show shuffle via `plezy://shuffle?server=SERVER_ID&show=SHOW_RATING_KEY`.\n- Signed Fire TV ARMv7 APK (`Plezy.apk`).\n- Original upstream: [Plezy 2.24.0](https://github.com/edde746/plezy/releases/tag/2.24.0).\n\n## Archives and provenance\n\nThis historical build is preserved for reference; do not confuse its upstream version 2.24.0 with PowerPlay's **Plezy 2.25.0** code baseline. Existing release assets and commit tags are retained unchanged.\n\n**Original patched source commit:** `d1abf66dc28b38150ed22d97770fe473bfc30264`\n\n**Original build workflow:** https://github.com/The-Power-0/plezy/actions/runs/39707721223\n\nOriginal Plezy licensing and attribution apply.",
+        "draft": false,
+        "prerelease": true
+      }
+    },
+    {
+      "id": 426120487,
+      "tag": "2.25.0-ha-shuffle.1",
+      "target_commitish": "ha-shuffle-v2",
+      "assets": [
+        [
+          683265443,
+          "Plezy-Source.tar.gz",
+          108065626
+        ],
+        [
+          683265446,
+          "Plezy-Source.tar.gz.sha256",
+          86
+        ],
+        [
+          683265445,
+          "Plezy.apk",
+          172883219
+        ],
+        [
+          683265442,
+          "Plezy.apk.sha256",
+          76
+        ]
+      ],
+      "expected": {
+        "name": "Archived — Plezy 2.25.0 + HA Shuffle (rollback only)",
+        "body": "Archived legacy Plezy release. Retained publicly only to preserve the pinned Home Assistant rollback download URL.\n\nCurrent PowerPlay: https://github.com/The-Power-0/PowerPlay/releases/latest\n\n---\n\nCustom Plezy build based on upstream release **2.25.0**.\n\nIncludes:\n- `plezy://shuffle?server=<serverId>&show=<showRatingKey>`\n- Plezy's native continuous shuffled-show playback\n- Fire TV `armeabi-v7a` APK\n- Signed with the same key used by existing custom Fire TV installations\n\nUpstream release:\nhttps://github.com/edde746/plezy/releases/tag/2.25.0\n\nPatched build source commit:\n`b0d0a823d1b64d6c2416f3eaee370fff64d68e69`\n\nGPL-3.0 corresponding source: Plezy-Source.tar.gz (attached).\nGitHub autogenerated archives are NOT the APK build source.\nThis is an unofficial derivative of edde746/plezy.\n\nBuild and test workflow:\nhttps://github.com/The-Power-0/plezy/actions/runs/40605063713\n",
+        "draft": false,
+        "prerelease": true
+      },
+      "desired": {
+        "name": "Archived — Plezy 2.25.0 + HA Shuffle (rollback only)",
+        "body": "# Archived Plezy 2.25.0 — Home Assistant shuffle\n\n**Historical prerelease · not maintained · not PowerPlay**\n\nThis is the original custom Plezy 2.25.0 Fire TV build, made before PowerPlay existed. For current app updates, use [the latest PowerPlay release](https://github.com/The-Power-0/PowerPlay/releases/latest).\n\n## Historical features\n\n- Native continuous show shuffle via `plezy://shuffle?server=SERVER_ID&show=SHOW_RATING_KEY`.\n- Signed Fire TV ARMv7 APK (`Plezy.apk`).\n- Original upstream: [Plezy 2.25.0](https://github.com/edde746/plezy/releases/tag/2.25.0).\n- **Rollback copy:** this prerelease remains public to preserve an existing Home Assistant fallback asset URL.\n\n## Archives and provenance\n\nThis historical build is preserved for reference and rollback; do not confuse its upstream version 2.25.0 with PowerPlay's **Plezy 2.25.0** code baseline. Existing release assets and commit tags are retained unchanged.\n\n**Original patched source commit:** `b0d0a823d1b64d6c2416f3eaee370fff64d68e69`\n\n**Original build workflow:** https://github.com/The-Power-0/plezy/actions/runs/40605063713\n\nOriginal Plezy licensing and attribution apply.",
+        "draft": false,
+        "prerelease": true
+      }
+    }
+  ]
+}
