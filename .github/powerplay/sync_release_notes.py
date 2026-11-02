@@ -60,7 +60,7 @@ def main():
 
     entries = data["releases"]
     assert len(entries) == 10 and len({e["id"] for e in entries}) == 10
-    assert len({e["tag"] for e in entries}) == 11
+    assert len({e["tag"] for e in entries}) == 10
     expected_tags = {
         "powerplay-v1.0.0", "powerplay-v1.1.0", "powerplay-v1.1.1",
         "powerplay-v1.1.2", "powerplay-v1.2.0", "powerplay-v1.2.1",
