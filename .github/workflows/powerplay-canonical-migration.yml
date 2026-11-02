@@ -59,6 +59,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          SOURCE_LOCK_HASH="$(sha256sum pubspec.yaml pubspec.lock)"
           flutter pub get
           flutter test test/theme/powerplay_curated_palette_test.dart \
             test/theme/mono_theme_test.dart \
@@ -69,7 +70,9 @@ jobs:
           flutter test test/services/powerplay_defaults_test.dart \
             test/providers/fire_tv_library_defaults_test.dart \
             test/providers/hidden_libraries_provider_test.dart
-          git diff --exit-code -- pubspec.yaml pubspec.lock
+          test "$SOURCE_LOCK_HASH" = "$(sha256sum pubspec.yaml pubspec.lock)" || {
+            echo 'Flutter changed canonical tracked package metadata' >&2; exit 1;
+          }
       - name: Commit exactly the tested canonical application tree
         shell: bash
         run: |
