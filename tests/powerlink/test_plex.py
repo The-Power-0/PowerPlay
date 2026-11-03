@@ -41,7 +41,7 @@ class PlexCatalogTests(unittest.TestCase):
                  "librarySectionTitle": "TV Shows", "Media": [{"height": 1080}]},
                 {"type": "episode", "guid": "plex://episode/g1", "ratingKey": "84",
                  "librarySectionTitle": "TV Shows", "Media": [{}]},
-            ]}
+            ]}}
         copies = parse_copies(response, "plex_a", "plex://episode/g1")
         self.assertEqual([v.rating_key for v in copies], ["81", "82"])
         self.assertEqual([v.max_height for v in copies], [1080, 2160])
