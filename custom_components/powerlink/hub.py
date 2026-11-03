@@ -46,6 +46,9 @@ class PowerLinkHub:
         self._store = Store(hass, 1, "powerlink_pairings")
         self._pairings: dict[str, str] = {}
         self._snapshots: dict[str, tuple[float, QueueSnapshot]] = {}
+        # A handoff requests a fresh, nonce-bound source snapshot rather than
+        # trusting a potentially stale background position report.
+        self._snapshot_waiters: dict[str, tuple[str, asyncio.Future[QueueSnapshot]]] = {}
         self._transfers: dict[str, PreparedTransfer] = {}
         self._locks: dict[str, asyncio.Lock] = {}
         self.catalog = PlexCatalog(
@@ -103,6 +106,10 @@ class PowerLinkHub:
         if snapshot.source_device != device_id:
             raise ServiceValidationError("Snapshot source must match the authenticated device")
         self._snapshots[device_id] = (time.monotonic(), snapshot)
+        waiter = self._snapshot_waiters.get(device_id)
+        if waiter is not None and payload.get("capture_nonce") == waiter[0]:
+            if not waiter[1].done():
+                waiter[1].set_result(snapshot)
         return snapshot
 
     def _clean_expired(self) -> None:
@@ -124,6 +131,37 @@ class PowerLinkHub:
                 "Source has no fresh full queue snapshot; ask PowerPlay to send its current position and queue"
             )
         return match[1]
+
+    async def async_capture_snapshot(self, source: str) -> QueueSnapshot:
+        """Ask the playing source for an exact position/queue on demand.
+
+        No periodic polling, no stale snapshot fallback and no interruption to
+        the source's playback. A nonce ensures a delayed old report cannot
+        accidentally satisfy a new transfer request.
+        """
+        self.device(source)
+        device = self.device(source)
+        if device.get("launch_method") == "select_source":
+            raise ServiceValidationError(
+                "Exact queue capture requires ADB deep links or a launch script"
+            )
+        if source in self._snapshot_waiters:
+            raise ServiceValidationError("A queue capture is already in progress for this device")
+        nonce = secrets.token_urlsafe(18)
+        waiter: asyncio.Future[QueueSnapshot] = asyncio.get_running_loop().create_future()
+        self._snapshot_waiters[source] = (nonce, waiter)
+        try:
+            await self.async_launch(source, f"powerplay://powerlink/capture?nonce={nonce}")
+            try:
+                return await asyncio.wait_for(waiter, timeout=12)
+            except asyncio.TimeoutError as exc:
+                raise HomeAssistantError(
+                    "Source PowerPlay did not return a fresh queue snapshot; "
+                    "check pairing, app version and network reachability"
+                ) from exc
+        finally:
+            if self._snapshot_waiters.get(source, (None,))[0] == nonce:
+                self._snapshot_waiters.pop(source, None)
 
     def _lock_for(self, device_id: str) -> asyncio.Lock:
         return self._locks.setdefault(device_id, asyncio.Lock())
@@ -220,7 +258,7 @@ class PowerLinkHub:
         device = self.device(destination)
         if not self.catalog.configured:
             raise ServiceValidationError("Configure one or more Plex servers in PowerLink")
-        snapshot = self.snapshot_for(source)
+        snapshot = await self.async_capture_snapshot(source)
         policy = DevicePolicy(max_height=int(device.get("max_height", 1080)))
         current = snapshot.items[snapshot.index]
         copies = await self.catalog.lookup(current.guid)
