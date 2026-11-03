@@ -10,7 +10,7 @@ from homeassistant.exceptions import HomeAssistantError
 
 from .const import (
     DOMAIN, SERVICE_DISCOVER, SERVICE_REGISTER, SERVICE_OPEN,
-    SERVICE_PREPARE, SERVICE_HANDOFF,
+    SERVICE_PREPARE, SERVICE_HANDOFF, SERVICE_CAPTURE,
 )
 from .device import DeviceSettings
 from .discovery import discover_candidates
@@ -64,6 +64,16 @@ def async_setup_services(hass) -> None:
             raise _translate_error(err) from err
         return result if call.return_response else None
 
+    async def capture_handoff(call):
+        controller = _controller(hass)
+        try:
+            result = await controller.capture_handoff(
+                call.data["source"], call.data["destination"], call.context
+            )
+        except HandoffError as err:
+            raise _translate_error(err) from err
+        return result if call.return_response else None
+
     # Registration can configure arbitrary service sequences, so require admin.
     async_register_admin_service(
         hass, DOMAIN, SERVICE_REGISTER, register,
@@ -97,5 +107,16 @@ def async_setup_services(hass) -> None:
     )
     hass.services.async_register(
         DOMAIN, SERVICE_HANDOFF, handoff, schema=schema,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+
+    # Requests a fresh in-player snapshot with a one-time capability.
+    # The source continues playing through capture and destination launch.
+    hass.services.async_register(
+        DOMAIN, SERVICE_CAPTURE, capture_handoff,
+        schema=vol.Schema({
+            vol.Required("source"): cv.entity_id,
+            vol.Required("destination"): cv.entity_id,
+        }),
         supports_response=SupportsResponse.OPTIONAL,
     )

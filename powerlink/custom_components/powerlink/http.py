@@ -6,6 +6,8 @@ expose an HA API key or Plex access token through this endpoint.
 """
 from __future__ import annotations
 
+import json
+
 from aiohttp import web
 from homeassistant.components.http import HomeAssistantView
 
@@ -51,3 +53,39 @@ class PowerLinkAcknowledgmentView(HomeAssistantView):
             raise web.HTTPNotFound() from None
         return web.json_response({"acknowledged": True},
                                  headers={"Cache-Control": "no-store"})
+
+
+
+class PowerLinkCaptureView(HomeAssistantView):
+    """Accept one source snapshot using only a bound, short-lived capability."""
+
+    url = "/api/powerlink/v1/capture/{token}"
+    name = "api:powerlink:capture"
+    requires_auth = False
+
+    async def post(self, request: web.Request, token: str) -> web.Response:
+        controller = request.app["hass"].data.get(DOMAIN)
+        if controller is None:
+            raise web.HTTPNotFound()
+        try:
+            # Full local queues can be up to 2 MB; server-backed Plex queues
+            # normally upload only a few hundred bytes.
+            limit = 2_000_000
+            if request.content_length is not None and request.content_length > limit:
+                raise web.HTTPRequestEntityTooLarge(
+                    max_size=limit, actual_size=request.content_length
+                )
+            payload = await request.content.read(limit + 1)
+            if len(payload) > limit:
+                raise web.HTTPRequestEntityTooLarge(
+                    max_size=limit, actual_size=len(payload)
+                )
+            decoded = json.loads(payload)
+            await controller.accept_capture(token, decoded)
+        except HandoffError as err:
+            raise web.HTTPNotFound() from err
+        except (ValueError, TypeError) as err:
+            raise web.HTTPBadRequest(text="Invalid PowerLink queue snapshot") from err
+        return web.json_response(
+            {"accepted": True}, headers={"Cache-Control": "no-store"}
+        )

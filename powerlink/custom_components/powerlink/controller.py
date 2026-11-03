@@ -26,6 +26,13 @@ class ActiveTransfer:
     acknowledged: bool = False
 
 
+@dataclass
+class PendingCapture:
+    source: str
+    future: asyncio.Future
+    created_at: float
+
+
 class PowerLinkController:
     def __init__(self, hass, data: Mapping[str, Any]) -> None:
         self.hass = hass
@@ -33,6 +40,9 @@ class PowerLinkController:
         self.devices: dict[str, DeviceSettings] = {}
         self._store = Store(hass, STORAGE_VERSION, STORAGE_KEY)
         self._transfers: dict[str, ActiveTransfer] = {}
+        # One-shot requests only; no socket listener, background timer or
+        # remote polling is installed on any Fire Stick.
+        self._captures: dict[str, PendingCapture] = {}
         self._lock = asyncio.Lock()
         plex_url, plex_token = data.get("plex_base_url"), data.get("plex_token")
         self.plex = PlexCopyCatalog(
@@ -158,3 +168,52 @@ class PowerLinkController:
         # The receiver must explicitly acknowledge playback via the relay
         # before any source-stopping action may be taken by HA automations.
         return prepared
+
+
+    async def capture_handoff(self, source: str, destination: str, context) -> dict[str, Any]:
+        """Ask PowerPlay for its *current* queue, then prepare and hand off.
+
+        A nonce authorizes only this one upload, is source-bound, and expires
+        after a short timeout. The old device is never stopped here.
+        """
+        source_device = self.device(source)
+        target_device = self.device(destination)
+        if source == destination:
+            raise HandoffError("A transfer requires two different devices")
+        if not source_device.supports_protocol_v1 or not target_device.supports_protocol_v1:
+            raise HandoffError("Both source and destination require verified PowerPlay 1.3.0+ clients")
+        base = source_device.endpoint_base_url or self.options.get("base_url")
+        if not base:
+            raise HandoffError("Configure a reachable HA endpoint for the source device")
+        nonce = secrets.token_urlsafe(32)
+        loop = asyncio.get_running_loop()
+        pending = PendingCapture(source, loop.create_future(), time.monotonic())
+        self._captures[nonce] = pending
+        uri = "powerplay://powerlink-capture?" + urlencode({
+            "v": "1", "base": base, "token": nonce, "source": source
+        })
+        try:
+            # Source must already have an active player. Do not run a wake
+            # sequence that might toggle power while it is playing.
+            await launch_powerplay(self.hass, source_device, context, uri=uri)
+            try:
+                snapshot = await asyncio.wait_for(pending.future, timeout=15)
+            except TimeoutError as err:
+                raise HandoffError("Source PowerPlay did not return its current queue within 15 seconds") from err
+            return await self.handoff(snapshot, destination, context)
+        finally:
+            self._captures.pop(nonce, None)
+
+    async def accept_capture(self, nonce: str, snapshot: Mapping[str, Any]) -> None:
+        """Complete one HA-initiated authenticated-by-capability capture."""
+        pending = self._captures.get(nonce)
+        if pending is None or time.monotonic() - pending.created_at > 20:
+            raise HandoffError("Capture token expired or already used")
+        if not isinstance(snapshot, Mapping) or snapshot.get("source_device") != pending.source:
+            raise HandoffError("Snapshot source does not match pending capture")
+        if snapshot.get("schema") != 1:
+            raise HandoffError("Unsupported queue capture schema")
+        if pending.future.done():
+            raise HandoffError("Capture already completed")
+        self._captures.pop(nonce, None)
+        pending.future.set_result(dict(snapshot))

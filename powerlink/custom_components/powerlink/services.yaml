@@ -71,3 +71,18 @@ handoff:
       required: true
       selector:
         object:
+
+capture_handoff:
+  name: Capture and transfer current queue
+  description: Ask a playing PowerPlay 1.3+ source for its exact current queue and playhead, prepare a compatible destination, then launch it without stopping the source.
+  fields:
+    source:
+      required: true
+      selector:
+        entity:
+          domain: media_player
+    destination:
+      required: true
+      selector:
+        entity:
+          domain: media_player
