@@ -121,8 +121,9 @@ extension _VideoPlayerEpisodeNavigationMethods on VideoPlayerScreenState {
         metadata: metadata,
         usePushReplacement: true,
         isOffline: _offlineLibraryMode && watchTogetherCopy == null,
-        selectedMediaIndex: version?.index,
-        selectedMediaSourceId: version?.sourceId,
+        selectedMediaIndex: version?.index ?? (metadata.raw?['powerlink_media_index'] as int?),
+        selectedMediaSourceId: version?.sourceId ?? (metadata.raw?['powerlink_media_id'] as String?),
+        strictMediaSelection: metadata.raw?['powerlink_media_index'] != null,
         watchTogetherCopy: watchTogetherCopy,
       );
     } finally {
@@ -185,11 +186,20 @@ extension _VideoPlayerEpisodeNavigationMethods on VideoPlayerScreenState {
               nativeTrack: currentPlayer.state.track.secondarySubtitle,
               sessionPreference: _sessionSecondarySubtitlePreference,
             );
+      // PowerLink's immutable queue records the *destination's* selected
+      // Plex Media version for each slot. A movie/show may have a different
+      // file ordering from the previous episode; carrying that episode's
+      // version index or signature could accidentally play 4K on a Stick Lite.
+      final powerLinkIndex = episodeMetadata.raw?['powerlink_media_index'];
+      final powerLinkSourceId = episodeMetadata.raw?['powerlink_media_id'];
+      final usesPowerLinkVersion = powerLinkIndex is int;
       return await _reloadMediaInPlace(
         metadata: episodeMetadata,
-        selectedMediaIndex: _effectiveSelectedMediaIndex,
-        selectedMediaSourceId: null,
-        preferredVersionSignature: currentVersionSignature,
+        selectedMediaIndex: usesPowerLinkVersion ? powerLinkIndex : _effectiveSelectedMediaIndex,
+        selectedMediaSourceId: powerLinkSourceId is String && powerLinkSourceId.isNotEmpty
+            ? powerLinkSourceId
+            : null,
+        preferredVersionSignature: usesPowerLinkVersion ? null : currentVersionSignature,
         qualityPreset: _selectedQualityPreset,
         // Stream ids are per-part: the previous episode's audio id is
         // meaningless on the new item, so let preferences pick the track.
