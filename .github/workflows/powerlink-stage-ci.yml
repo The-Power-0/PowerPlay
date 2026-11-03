@@ -1,0 +1,27 @@
+name: PowerLink staging checks
+on:
+  push:
+    branches:
+      - 'feature/powerlink-*'
+    paths:
+      - 'powerlink/**'
+      - '.github/workflows/powerlink-stage-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Validate staged HACS Python and manifests
+        run: |
+          python -m compileall -q powerlink/custom_components/powerlink
+          python -m json.tool powerlink/custom_components/powerlink/manifest.json >/dev/null
+          python -m json.tool powerlink/custom_components/powerlink/strings.json >/dev/null
+          python -m json.tool powerlink/hacs.json >/dev/null
+      - name: Test queue handoff and arbitrary device profiles
+        run: python -m unittest discover -s powerlink/tests -v

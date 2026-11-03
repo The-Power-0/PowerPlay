@@ -1,0 +1,23 @@
+name: Validate PowerLink integration
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Compile integration Python and check bundled JSON
+        run: |
+          python -m compileall -q custom_components/powerlink
+          python -m json.tool custom_components/powerlink/manifest.json >/dev/null
+          python -m json.tool custom_components/powerlink/strings.json >/dev/null
+          python -m json.tool hacs.json >/dev/null
+      - name: Run isolated queue policy, resolution and device tests
+        run: python -m unittest discover -s tests -v
