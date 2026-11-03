@@ -121,12 +121,15 @@ class MediaCopy:
     max_height: int
     season: int | None = None
     episode: int | None = None
+    media_id: str | None = None
+    media_index: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "guid": self.guid, "kind": self.kind, "rating_key": self.rating_key,
             "server_id": self.server_id, "library_title": self.library_title,
             "max_height": self.max_height,
+            "media_id": self.media_id, "media_index": self.media_index,
         }
 
 

@@ -47,6 +47,21 @@ class PlexCatalogTests(unittest.TestCase):
         self.assertEqual([v.max_height for v in copies], [1080, 2160])
         self.assertEqual([(v.season, v.episode) for v in copies], [(2, 5), (2, 5)])
 
+    def test_different_media_versions_under_one_rating_key(self):
+        response = {"MediaContainer": {"Metadata": [{
+            "type": "movie", "guid": "plex://movie/g1",
+            "ratingKey": "120", "librarySectionTitle": "Movies",
+            "Media": [
+                {"id": "420", "height": 2160},
+                {"id": "421", "height": 1080},
+            ],
+        }]}}
+        copies = parse_copies(response, "plex_a", "plex://movie/g1")
+        self.assertEqual(len(copies), 2)
+        self.assertEqual([c.media_id for c in copies], ["420", "421"])
+        self.assertEqual([c.media_index for c in copies], [0, 1])
+        self.assertEqual([c.max_height for c in copies], [2160, 1080])
+
     def test_nonmatching_plex_guid_fails_closed(self):
         self.assertEqual(parse_copies(
             {"MediaContainer": {"Metadata": [{"guid": "plex://movie/g2",

@@ -42,22 +42,31 @@ def parse_copies(data: dict[str, Any], server_id: str, guid: str) -> list[MediaC
         versions = entry.get("Media", [])
         if not isinstance(versions, list):
             continue
-        best_height = max((parse_height(m) for m in versions if isinstance(m, dict)), default=0)
-        if best_height == 0:
-            continue  # Unknown capability: do not assume it fits the device.
         def number(key: str) -> int | None:
             try:
                 return int(entry[key]) if entry.get(key) is not None else None
             except (ValueError, TypeError):
                 return None
-        result.append(MediaCopy(
-            guid=guid, kind=kind, rating_key=str(entry["ratingKey"]),
-            server_id=server_id,
-            library_title=str(entry.get("librarySectionTitle") or ""),
-            max_height=best_height,
-            season=number("parentIndex"),
-            episode=number("index"),
-        ))
+        # Different Plex Media versions can coexist under ONE ratingKey.
+        # Evaluate each separately: a 4K+1080 entry must still work on
+        # an HD-only Fire Stick without server transcoding or fuzzy remaps.
+        for media_index, version in enumerate(versions):
+            if not isinstance(version, dict):
+                continue
+            height = parse_height(version)
+            if height <= 0:
+                continue  # Unknown resolution: fail closed, not auto-select 4K.
+            media_id = version.get("id")
+            result.append(MediaCopy(
+                guid=guid, kind=kind, rating_key=str(entry["ratingKey"]),
+                server_id=server_id,
+                library_title=str(entry.get("librarySectionTitle") or ""),
+                max_height=height,
+                season=number("parentIndex"),
+                episode=number("index"),
+                media_id=str(media_id) if media_id is not None else None,
+                media_index=media_index,
+            ))
     return result
 
 
