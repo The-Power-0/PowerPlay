@@ -1,7 +1,7 @@
 """One PowerLink controller per Home Assistant installation."""
 from __future__ import annotations
 
-import probatio as vol
+import voluptuous as vol
 from homeassistant import config_entries
 
 from .const import DOMAIN
