@@ -172,8 +172,16 @@ def choose_copy(entry: Mapping[str, Any], copies: list[Mapping[str, Any]],
             c = _copy(candidate)
         except HandoffError:
             continue
-        if entry.get("guid") and c["guid"] and c["guid"] != entry["guid"]:
-            continue
+        # A copy without its GUID can only be accepted if it is the exact
+        # original server/rating key. Never treat an unverified alternate
+        # rendition of a different title as equivalent.
+        if entry.get("guid") and c["guid"] != entry["guid"]:
+            original = (
+                c["server_id"] == entry.get("server_id")
+                and c["rating_key"] == entry.get("rating_key")
+            )
+            if not original:
+                continue
         if c["height"] is None:
             if "[4k]" in c["library_title"].lower():
                 c["height"] = 2160
@@ -187,7 +195,12 @@ def choose_copy(entry: Mapping[str, Any], copies: list[Mapping[str, Any]],
     # 4K-capable TVs get the highest available file when opted in; Full HD
     # targets get the best file that fits. Never use a lower-res copy just
     # because its Plex section was enumerated first.
-    return max(eligible, key=lambda c: (c["height"], c["bitrate_kbps"]))
+    if policy.prefer_highest_quality:
+        return max(eligible, key=lambda c: (c["height"], c["bitrate_kbps"]))
+    # Balanced/compatibility mode prefers a Full HD rendition on a 4K-capable
+    # device, falling back to the best available in either direction.
+    preferred = [c for c in eligible if c["height"] <= min(policy.max_height, 1080)]
+    return max(preferred or eligible, key=lambda c: (c["height"], c["bitrate_kbps"]))
 
 
 CopyLookup = Callable[[Mapping[str, Any]], Awaitable[list[Mapping[str, Any]]]]
@@ -214,11 +227,19 @@ class WindowPlanner:
             return cached
         entry = self.snapshot.items[index]
         candidates = list(entry["copies"])
-        if self.lookup is not None:
+        choice = choose_copy(entry, candidates, self.policy)
+        needs_lookup = choice is None or (
+            self.policy.prefer_highest_quality and self.policy.max_height >= 2160
+            and choice["height"] < self.policy.max_height
+        )
+        # On a Full HD stick, an already verified HD copy is sufficient:
+        # avoid even one Plex API lookup. On a 4K TV, ask the server only if
+        # the queue snapshot did not already include a 4K alternative.
+        if needs_lookup and self.lookup is not None:
             async with self._semaphore:
                 found = await self.lookup(entry)
             candidates.extend(found)
-        choice = choose_copy(entry, candidates, self.policy)
+            choice = choose_copy(entry, candidates, self.policy)
         value = {
             "index": index,
             "status": "resolved" if choice else "unavailable",

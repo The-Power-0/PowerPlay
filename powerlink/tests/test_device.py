@@ -56,6 +56,19 @@ class DeviceSettingsTests(unittest.TestCase):
         with self.assertRaises(handoff.HandoffError):
             device.validate_base_url("https://user:pass@ha.example.com")
 
+    def test_cross_entity_wake_conditions(self):
+        steps = device.validate_steps([{
+            "kind": "service",
+            "domain": "switch", "service": "turn_on",
+            "data": {"entity_id": "switch.tv_power"},
+            "when": {
+                "entity_id": "media_player.bedroom_fire_tv_stick_lite",
+                "states": ["off", "standby"],
+            },
+        }])
+        self.assertEqual(steps[0]["data"]["entity_id"], "switch.tv_power")
+        self.assertEqual(steps[0]["when"]["states"], ["off", "standby"])
+
     def test_bounds_wake_steps(self):
         with self.assertRaises(handoff.HandoffError):
             device.validate_steps([{"kind": "delay", "seconds": 120}])

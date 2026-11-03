@@ -108,6 +108,25 @@ class MediaPolicyTests(unittest.TestCase):
         e["copies"][0]["library_title"] = "TV Shows [4K]"
         self.assertIsNone(handoff.choose_copy(e, e["copies"], DevicePolicy(1080)))
 
+    def test_missing_guid_on_unverified_alternate_is_rejected(self):
+        e = entry("A", "1", height=2160)
+        e["copies"].append({
+            "server_id": "plex-1", "rating_key": "unverified", "height": 1080,
+            "bitrate_kbps": 2000, "library_title": "TV Shows",
+        })
+        self.assertIsNone(handoff.choose_copy(e, e["copies"], DevicePolicy(1080)))
+
+    def test_balanced_policy_can_prefer_full_hd_on_4k_device(self):
+        e = entry("A", "1080", height=1080)
+        e["copies"].append({
+            "server_id": "plex-1", "rating_key": "4k", "height": 2160,
+            "bitrate_kbps": 24000, "guid": e["guid"], "library_title": "TV Shows [4K]",
+        })
+        self.assertEqual(
+            handoff.choose_copy(e, e["copies"], DevicePolicy(2160, False))["rating_key"],
+            "1080",
+        )
+
     def test_mismatched_guid_not_selected(self):
         e = entry("A", "1", height=2160)
         e["copies"].append({
@@ -140,6 +159,16 @@ class WindowTests(unittest.IsolatedAsyncioTestCase):
         await planner.window(30, 8)
         self.assertEqual(len(calls), 8)
         self.assertEqual(result["total"], 100)
+
+    async def test_verified_1080_needs_no_remote_plex_lookup(self):
+        calls = []
+        async def lookup(item):
+            calls.append(item)
+            return []
+        planner = WindowPlanner(snapshot([entry("A", "hd", height=1080)]),
+                                DevicePolicy(1080), lookup)
+        await planner.ensure_current_playable()
+        self.assertEqual(calls, [])
 
     async def test_missing_copy_fails_before_any_wake(self):
         planner = WindowPlanner(snapshot([entry("A", "4k", height=2160)]), DevicePolicy(1080))

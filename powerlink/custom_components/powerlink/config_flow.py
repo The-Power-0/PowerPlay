@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.helpers import selector
 
 from .const import DOMAIN
 from .device import validate_base_url
@@ -36,6 +37,8 @@ class PowerLinkConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Optional("name", default="PowerLink"): str,
                 vol.Optional("base_url", default=""): str,
                 vol.Optional("plex_base_url", default=""): str,
-                vol.Optional("plex_token", default=""): str,
+                vol.Optional("plex_token"): selector.TextSelector(
+                    selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
+                ),
             }),
         )

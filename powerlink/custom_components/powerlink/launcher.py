@@ -55,6 +55,17 @@ async def execute_wake(hass: HomeAssistant, device: DeviceSettings,
                 state = hass.states.get(entity_id)
                 if state is not None and state.state in step["when_not_states"]:
                     continue
+                when = step.get("when") or {}
+                if when:
+                    conditional_state = hass.states.get(when["entity_id"])
+                    if conditional_state is None:
+                        # Fail closed rather than switch power during a stale
+                        # or unknown state (especially smart plugs/CEC).
+                        continue
+                    if when["states"] and conditional_state.state not in when["states"]:
+                        continue
+                    if conditional_state.state in when["not_states"]:
+                        continue
                 if not hass.services.has_service(step["domain"], step["service"]):
                     raise LaunchError(f"Required HA action missing: {step['domain']}.{step['service']}")
                 data = dict(step["data"])

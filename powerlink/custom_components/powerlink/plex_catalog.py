@@ -105,7 +105,7 @@ class PlexCopyCatalog:
                     if len(body) > 1_500_000:
                         return []
                     data = json.loads(body)
-        except (OSError, TimeoutError, ValueError, Exception) as err:
+        except Exception:
             # Best effort: a failed optional Plex lookup must not prevent
             # using a previously verified copy embedded in the snapshot.
             # We deliberately don't log response bodies, authentication or
@@ -141,7 +141,10 @@ class PlexCopyCatalog:
                 found.append({
                     "server_id": str(source_id),
                     "rating_key": str(rating),
-                    "guid": str(row.get("guid") or entry.get("guid") or ""),
+                    # The search row has already been verified by immutable GUID
+                    # (or strong show+episode identity). Carry the verified
+                    # source identity forward for copy selection.
+                    "guid": str(entry.get("guid") or row.get("guid") or ""),
                     "library_title": str(row.get("librarySectionTitle") or ""),
                     "height": resolution,
                     "bitrate_kbps": max(0, kbps),

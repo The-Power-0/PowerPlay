@@ -67,12 +67,28 @@ def validate_steps(raw: Any) -> tuple[dict[str, Any], ...]:
             condition = step.get("when_not_states", [])
             if not isinstance(condition, list) or not all(isinstance(v, str) for v in condition):
                 raise HandoffError("when_not_states must be a list of states")
+            when = step.get("when", {})
+            if not isinstance(when, dict):
+                raise HandoffError("when must be a condition object")
+            when_entity = when.get("entity_id")
+            if when and (not isinstance(when_entity, str) or "." not in when_entity):
+                raise HandoffError("when requires a valid entity_id")
+            for key in ("states", "not_states"):
+                if key in when and (not isinstance(when[key], list)
+                                    or len(when[key]) > 20
+                                    or not all(isinstance(v, str) for v in when[key])):
+                    raise HandoffError(f"when.{key} must be a list of state strings")
             entity = step.get("entity_id")
             if entity is not None and (not isinstance(entity, str) or "." not in entity):
                 raise HandoffError("service step entity_id invalid")
             result.append({
                 "kind": kind, "domain": domain, "service": service, "entity_id": entity,
                 "data": dict(data), "when_not_states": list(condition),
+                "when": {
+                    "entity_id": when_entity,
+                    "states": list(when.get("states", [])),
+                    "not_states": list(when.get("not_states", [])),
+                } if when else {},
                 "continue_on_error": step.get("continue_on_error") is True,
             })
         else:
@@ -104,7 +120,10 @@ class DeviceSettings:
         if not isinstance(name, str) or not 1 <= len(name.strip()) <= 80:
             raise HandoffError("device name is missing or too long")
         height = raw.get("max_height", 1080)
-        policy = DevicePolicy(height, raw.get("prefer_highest_quality", True))
+        highest = raw.get("prefer_highest_quality", True)
+        if not isinstance(highest, bool):
+            raise HandoffError("prefer_highest_quality must be a boolean")
+        policy = DevicePolicy(height, highest)
         method = raw.get("launch_method", "adb")
         if method not in ("adb", "script"):
             raise HandoffError("launch_method must be adb or script")
