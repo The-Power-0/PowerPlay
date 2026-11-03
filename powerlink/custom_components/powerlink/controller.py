@@ -103,8 +103,13 @@ class PowerLinkController:
         self._transfers[token] = session
         # Deep-link carries only the token and API base, never a Plex token,
         # queue manifest or Home Assistant long-lived API bearer.
+        # Use the stable Plex Home UUID as the destination profile selector.
+        # PowerPlay's existing deep-link machinery switches profiles and
+        # asks for a PIN on protected accounts *before* touching playback.
+        profile = snapshot.profile_id
         uri = "powerplay://powerlink?" + urlencode({
             "v": "1", "base": base, "token": token,
+            **({"profile": profile} if profile else {}),
         })
         return {
             "destination": target,
