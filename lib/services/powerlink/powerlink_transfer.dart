@@ -55,6 +55,9 @@ class PowerLinkRequest {
   );
 
   Uri ackUri() => base.replace(path: '/api/powerlink/v1/session/$token/ack');
+
+  /// Short-lived, source-bound upload capability issued by Home Assistant.
+  Uri captureUri() => base.replace(path: '/api/powerlink/v1/capture/$token');
 }
 
 /// A slot is an absolute queue position, not a Plex rating key. Repeated
@@ -225,6 +228,17 @@ class PowerLinkTransferClient {
     }
     final bytes = await _request('GET', request.windowUri(start, count));
     return PowerLinkQueueWindow.parse(jsonDecode(utf8.decode(bytes)));
+  }
+
+  Future<void> publishCapture(Map<String, dynamic> snapshot) async {
+    if (snapshot['schema'] != 1 || snapshot['source_device'] is! String) {
+      throw const FormatException('Invalid PowerLink source snapshot');
+    }
+    final body = jsonEncode(snapshot);
+    if (utf8.encode(body).length > 2 * 1000 * 1000) {
+      throw const FormatException('PowerLink snapshot exceeds its size limit');
+    }
+    await _request('POST', request.captureUri(), body: body);
   }
 
   Future<void> acknowledge(String status) async {

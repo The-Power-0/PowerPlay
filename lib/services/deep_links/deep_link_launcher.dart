@@ -22,6 +22,7 @@ import '../catalog/plex_catalog_source.dart';
 import '../data_aggregation_service.dart';
 import '../media_list_playback_launcher.dart';
 import '../powerlink/powerlink_receiver.dart';
+import '../powerlink/powerlink_capture.dart';
 import 'deep_link.dart';
 
 /// How long a link waits for the server it needs to come online, e.g. while
@@ -40,6 +41,8 @@ Future<void> launchDeepLink(BuildContext context, DeepLink link, {required bool 
       await _launchLiveLink(context, link, isOffline: isOffline);
     case PowerLinkResumeLink():
       await PowerLinkReceiver.launch(context, link);
+    case PowerLinkCaptureLink():
+      await PowerLinkCapture.send(context, link);
   }
 }
 
