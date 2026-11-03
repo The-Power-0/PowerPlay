@@ -152,7 +152,7 @@ class QueueSnapshot:
 class DevicePolicy:
     """Per-device playback policy independent of room names or network."""
     max_height: int = 1080
-    prefer_highest_quality: bool = False
+    prefer_highest_quality: bool = True
 
     def __post_init__(self) -> None:
         if self.max_height not in ALLOWED_HEIGHTS:
