@@ -1,0 +1,50 @@
+name: PowerLink HA Integration Tests
+on:
+  push:
+    branches:
+      - 'feature/powerlink-*'
+    paths:
+      - 'custom_components/powerlink/**'
+      - 'tests/powerlink/**'
+      - '.github/workflows/powerlink-ha-ci.yml'
+  pull_request:
+    paths:
+      - 'custom_components/powerlink/**'
+      - 'tests/powerlink/**'
+      - '.github/workflows/powerlink-ha-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Install minimal dependencies
+        run: python -m pip install "aiohttp>=3.10,<4" "PyYAML>=6,<7"
+      - name: Check Python sources compile
+        run: python -m compileall -q custom_components/powerlink tests/powerlink
+      - name: Verify HACS manifest and service definitions
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import yaml
+          root=Path("custom_components/powerlink")
+          metadata=json.loads((root/"manifest.json").read_text())
+          assert metadata["domain"]=="powerlink"
+          assert metadata["config_flow"] is True
+          assert "version" in metadata and "documentation" in metadata
+          assert json.loads((root/"strings.json").read_text())["title"]=="PowerLink"
+          actions=yaml.safe_load((root/"services.yaml").read_text())
+          assert set(actions)=={"discover_devices","pair_device","launch","handoff"}
+          assert json.loads(Path("hacs.json").read_text())["name"]
+          PY
+      - name: Validate exact queue and 4K/1080p resolution rules
+        run: python -m unittest discover -s tests/powerlink -p 'test_*.py' -v
