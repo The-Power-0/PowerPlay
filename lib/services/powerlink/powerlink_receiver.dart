@@ -94,7 +94,7 @@ class PowerLinkReceiver {
       await queue.setPlaybackFromPlayQueue(initial.toPlaybackWindow(), 'powerlink');
       if (!context.mounted || _generation != generation) return;
 
-      final observer = PlaybackLaunchObserver(_isCurrent: () => _generation == generation);
+      final observer = PlaybackLaunchObserver(isCurrent: () => _generation == generation);
       // Navigation's future completes when the player closes, not after
       // playback starts. Never wait for route close before acknowledging.
       unawaited(navigateToVideoPlayer(

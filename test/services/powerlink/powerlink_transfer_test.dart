@@ -20,8 +20,8 @@ Map<String, dynamic> slot(int index, {
       'server_id': 'plex-main',
       'rating_key': ratingKey,
       'height': height,
-      if (mediaIndex != null) 'media_index': mediaIndex,
-      if (mediaId != null) 'media_id': mediaId,
+      'media_index': mediaIndex,
+      'media_id': mediaId,
       'guid': 'plex://episode/example',
     }
   else
