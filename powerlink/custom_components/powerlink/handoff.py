@@ -265,3 +265,116 @@ class WindowPlanner:
         if row["status"] != "resolved":
             raise HandoffError("Current item has no verified copy supported by the destination")
         return row
+
+
+def from_plex_queue_response(source: Mapping[str, Any],
+                             container: Mapping[str, Any]) -> QueueSnapshot:
+    """Freeze the entire Plex queue in its existing order on Home Assistant.
+
+    playQueueItemID distinguishes duplicates of the same ratingKey.
+    An incomplete or changed queue must fail rather than be recreated/shuffled.
+    """
+    if not isinstance(source, Mapping) or not isinstance(container, Mapping):
+        raise HandoffError("Invalid Plex queue reference/response")
+    ref = source.get("queue_source")
+    if not isinstance(ref, Mapping) or ref.get("type") != "plex_play_queue":
+        raise HandoffError("Expected Plex queue_source.type=plex_play_queue")
+    queue_id = _integer(ref.get("play_queue_id"), "play_queue_id", low=1)
+    selected = _integer(ref.get("selected_item_id"), "selected_item_id", low=1)
+    server_id = _short(ref.get("server_id"), "queue source server_id", required=True)
+    if source.get("schema") != 1:
+        raise HandoffError("Unsupported queue reference schema")
+    expected_version = ref.get("version")
+    if expected_version is not None:
+        expected_version = _integer(expected_version, "queue version", low=1)
+        if container.get("playQueueVersion") != expected_version:
+            raise HandoffError("Plex play queue changed after capture")
+    if container.get("playQueueID") != queue_id:
+        raise HandoffError("Plex returned the wrong play queue")
+    total = _integer(container.get("playQueueTotalCount"), "queue total",
+                     low=1, high=MAX_QUEUE_ITEMS)
+    rows = container.get("Metadata")
+    if not isinstance(rows, list) or len(rows) != total:
+        raise HandoffError("Plex returned an incomplete queue window")
+    shuffled = source.get("shuffled")
+    if not isinstance(shuffled, bool) or container.get("playQueueShuffled") != shuffled:
+        raise HandoffError("Plex queue shuffle flag changed")
+    items = []
+    current_index = -1
+    seen_ids = set()
+    for index, row in enumerate(rows):
+        if not isinstance(row, Mapping):
+            raise HandoffError("Malformed Plex queue entry")
+        item_id = _integer(row.get("playQueueItemID"), "playQueueItemID", low=1)
+        if item_id in seen_ids:
+            raise HandoffError("Duplicate playQueueItemID inside queue response")
+        seen_ids.add(item_id)
+        if item_id == selected:
+            current_index = index
+        if row.get("type") not in ("movie", "episode"):
+            raise HandoffError("Only movie/episode queues can be handed off")
+        rating_key = _short(str(row.get("ratingKey") or ""), "ratingKey", required=True)
+        guid = str(row.get("guid") or "")
+        kind = row["type"]
+        versions = row.get("Media") or []
+        if not isinstance(versions, list):
+            raise HandoffError("Malformed Plex Media array")
+        copies = []
+        for version in versions[:10]:
+            if not isinstance(version, Mapping):
+                continue
+            height = version.get("height")
+            if isinstance(height, str) and height.isdecimal():
+                height = int(height)
+            if not isinstance(height, int):
+                height = _plex_video_height(version.get("videoResolution"))
+            bitrate = version.get("bitrate") or 0
+            try:
+                bitrate = max(0, int(bitrate))
+            except (ValueError, TypeError):
+                bitrate = 0
+            copies.append({
+                "server_id": server_id, "rating_key": rating_key,
+                "guid": guid, "height": height, "bitrate_kbps": bitrate,
+                "library_title": str(row.get("librarySectionTitle") or ""),
+            })
+        season = row.get("parentIndex") if kind == "episode" else None
+        episode = row.get("index") if kind == "episode" else None
+        year = row.get("year") if kind == "movie" else None
+        def number_or_none(value):
+            if isinstance(value, str) and value.isdecimal():
+                return int(value)
+            return value
+        items.append({
+            "kind": kind, "title": str(row.get("title") or ""),
+            "guid": guid, "server_id": server_id, "rating_key": rating_key,
+            "show_guid": str(row.get("grandparentGuid") or ""),
+            "show_title": str(row.get("grandparentTitle") or ""),
+            "season": number_or_none(season), "episode": number_or_none(episode),
+            "year": number_or_none(year), "copies": copies,
+        })
+    if current_index < 0:
+        raise HandoffError("Selected Plex queue item was not returned")
+    if (container.get("playQueueSelectedItemOffset") is not None
+            and container["playQueueSelectedItemOffset"] != current_index):
+        raise HandoffError("Selected Plex queue offset disagrees with queue order")
+    return QueueSnapshot.parse({
+        "schema": 1, "items": items, "current_index": current_index,
+        "position_ms": source.get("position_ms"), "shuffled": shuffled,
+        "context_key": source.get("context_key"),
+        "source_device": source.get("source_device"),
+        "profile_id": source.get("profile_id"),
+    })
+
+
+def _plex_video_height(value: Any) -> int | None:
+    if not isinstance(value, str):
+        return None
+    text = value.lower().rstrip("p")
+    if text in ("4k", "uhd"):
+        return 2160
+    if text == "sd":
+        return 480
+    if text.isdecimal() and 100 <= int(text) <= 8640:
+        return int(text)
+    return None

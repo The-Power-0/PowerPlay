@@ -73,7 +73,12 @@ class PowerLinkController:
 
     async def prepare(self, raw: Mapping[str, Any], target: str) -> dict[str, Any]:
         device = self.device(target)
-        snapshot = QueueSnapshot.parse(raw)
+        if isinstance(raw.get("queue_source"), Mapping):
+            if self.plex is None:
+                raise HandoffError("Configure Plex URL/token for server-side queue capture")
+            snapshot = await self.plex.snapshot_from_plex_queue(raw)
+        else:
+            snapshot = QueueSnapshot.parse(raw)
         planner = WindowPlanner(
             snapshot, device.policy,
             self.plex.find_copies if self.plex is not None else None,

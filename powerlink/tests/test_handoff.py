@@ -186,5 +186,71 @@ class WindowTests(unittest.IsolatedAsyncioTestCase):
                          ["resolved", "unavailable", "resolved"])
 
 
+
+
+class PlexServerQueueCaptureTests(unittest.TestCase):
+    def _source(self):
+        return {
+            "schema": 1, "source_device": "media_player.game_room_fire_tv_stick_lite",
+            "profile_id": "plex-home", "context_key": "comedy-shuffle",
+            "position_ms": 423000, "shuffled": True,
+            "queue_source": {
+                "type": "plex_play_queue", "server_id": "plex-1",
+                "play_queue_id": 701, "selected_item_id": 3002, "version": 5,
+            }
+        }
+
+    def _response(self):
+        def row(queue_id, rating_key, resolution):
+            return {
+                "playQueueItemID": queue_id, "ratingKey": rating_key,
+                "type": "episode", "title": "Same episode",
+                "guid": "plex://episode/123",
+                "grandparentGuid": "plex://show/1",
+                "grandparentTitle": "Comedy", "parentIndex": 1, "index": 2,
+                "librarySectionTitle": "TV Shows",
+                "Media": [{"videoResolution": resolution, "bitrate": 4000}],
+            }
+        return {
+            "playQueueID": 701, "playQueueVersion": 5,
+            "playQueueSelectedItemOffset": 1,
+            "playQueueShuffled": True, "playQueueTotalCount": 3,
+            "Metadata": [row(3001, "111", "1080"), row(3002, "222", "4k"),
+                         row(3003, "111", "1080")],
+        }
+
+    def test_server_captures_duplicate_ratings_without_reordering(self):
+        s = handoff.from_plex_queue_response(self._source(), self._response())
+        self.assertEqual([item["rating_key"] for item in s.items],
+                         ["111", "222", "111"])
+        self.assertEqual(s.current_index, 1)
+        self.assertEqual(s.position_ms, 423000)
+        self.assertTrue(s.shuffled)
+        self.assertEqual(s.items[1]["copies"][0]["height"], 2160)
+
+    def test_truncated_server_queue_fails_closed(self):
+        response = self._response()
+        response["Metadata"].pop()
+        with self.assertRaises(HandoffError):
+            handoff.from_plex_queue_response(self._source(), response)
+
+    def test_changed_queue_version_fails_closed(self):
+        response = self._response()
+        response["playQueueVersion"] = 6
+        with self.assertRaises(HandoffError):
+            handoff.from_plex_queue_response(self._source(), response)
+
+    def test_selected_item_changed_fails_closed(self):
+        response = self._response()
+        response["Metadata"][1]["playQueueItemID"] = 9999
+        with self.assertRaises(HandoffError):
+            handoff.from_plex_queue_response(self._source(), response)
+
+    def test_shuffle_change_fails_closed(self):
+        response = self._response()
+        response["playQueueShuffled"] = False
+        with self.assertRaises(HandoffError):
+            handoff.from_plex_queue_response(self._source(), response)
+
 if __name__ == "__main__":
     unittest.main()

@@ -69,6 +69,32 @@ data:
 
 ## Handoff protocol for the PowerPlay receiver
 
+### Preferred lightweight export: Plex queue reference
+
+For Plex server-managed queues (shuffled **or** sequential), the PowerPlay 1.3.0 sender should **not** fetch thousands of episodes on the Fire Stick. Instead it sends just its existing Plex queue ID, selected \`playQueueItemID\`, queue version, current offset and profile:
+
+~~~json
+{
+  "schema": 1,
+  "source_device": "media_player.game_room_fire_tv_stick_lite",
+  "profile_id": "plex-home-main",
+  "context_key": "shuffle",
+  "position_ms": 253400,
+  "shuffled": true,
+  "queue_source": {
+    "type": "plex_play_queue",
+    "server_id": "plex-main",
+    "play_queue_id": 701,
+    "selected_item_id": 3002,
+    "version": 5
+  }
+}
+~~~
+
+Home Assistant uses the configured Plex token **for the same Plex account/profile** to GET \`/playQueues/701\` with a centered window big enough for the whole queue. It validates the queue version, total item count, selected item ID and ordered \`playQueueItemID\` list (including duplicates) before allowing a handoff. A partial window, a changed queue, or a wrong Plex identity aborts without waking or stopping the source. The resulting frozen manifest is served in small indexed windows for destination playback.
+
+This means the Fire Stick's handoff CPU/network cost is approximately constant rather than proportional to the queue length. The full \`items\` snapshot described below is retained as a fallback for local/non-Plex queues, but the preferred 1.3.0 Plex path is the lightweight queue reference.
+
 A PowerPlay 1.3.0 source will provide a **complete ordered queue snapshot** to Home Assistant. Example:
 
 ~~~json

@@ -13,6 +13,8 @@ from typing import Any, Mapping
 
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
+from .handoff import HandoffError, MAX_QUEUE_ITEMS, from_plex_queue_response
+
 
 def _height(value: Any) -> int | None:
     if isinstance(value, int) and 0 < value <= 8640:
@@ -65,6 +67,45 @@ class PlexCopyCatalog:
         self.server_id = server_id
         self._cache: OrderedDict[tuple, tuple[float, list[dict]]] = OrderedDict()
         self._semaphore = asyncio.Semaphore(3)
+
+    async def snapshot_from_plex_queue(self, source: Mapping[str, Any]):
+        """Use Plex's existing queue from HA; the Stick sends only a queue ref.
+
+        A deliberately large centered window is requested once. If the Plex
+        server limits it or the queue changed, the pure parser fails closed.
+        """
+        ref = source.get("queue_source")
+        if not isinstance(ref, Mapping) or ref.get("type") != "plex_play_queue":
+            raise HandoffError("Expected queue_source.type=plex_play_queue")
+        queue_id, selected = ref.get("play_queue_id"), ref.get("selected_item_id")
+        if isinstance(queue_id, bool) or not isinstance(queue_id, int) or queue_id < 1:
+            raise HandoffError("Invalid source play_queue_id")
+        if isinstance(selected, bool) or not isinstance(selected, int) or selected < 1:
+            raise HandoffError("Invalid source selected_item_id")
+        if self.server_id and ref.get("server_id") != self.server_id:
+            raise HandoffError("Source queue belongs to a different Plex server")
+        session = async_get_clientsession(self.hass)
+        try:
+            async with asyncio.timeout(20):
+                async with session.get(
+                    f"{self.base_url}/playQueues/{queue_id}",
+                    params={
+                        "center": str(selected), "window": str(MAX_QUEUE_ITEMS),
+                        "includeBefore": "1", "includeAfter": "1", "own": "0",
+                    },
+                    headers={"X-Plex-Token": self.token, "Accept": "application/json"},
+                ) as response:
+                    response.raise_for_status()
+                    body = await response.content.read(8_000_001)
+                    if len(body) > 8_000_000:
+                        raise HandoffError("Plex queue response too large")
+                    data = json.loads(body)
+        except HandoffError:
+            raise
+        except Exception as err:
+            raise HandoffError("Cannot retrieve authoritative Plex queue on Home Assistant") from err
+        container = data.get("MediaContainer") if isinstance(data, dict) else None
+        return from_plex_queue_response(source, container)
 
     async def find_copies(self, entry: Mapping[str, Any]) -> list[dict[str, Any]]:
         key = (entry.get("kind"), entry.get("title"), entry.get("guid"),
