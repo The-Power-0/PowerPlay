@@ -48,7 +48,7 @@ class PowerLinkReceiver {
       // The native deep-link profile switch runs first when the link names
       // a profile. Never silently accept an explicitly conflicting identity.
       if (initial.profileId case final profile? when profile.isNotEmpty) {
-        if (link.profile != null && link.profile != profile) {
+        if (link.profile != profile) {
           throw const FormatException('PowerLink destination Plex profile mismatch');
         }
       }
