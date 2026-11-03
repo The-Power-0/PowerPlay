@@ -322,10 +322,10 @@ final class PowerLinkResumeLink extends DeepLink {
   });
 }
 
-/// HA-initiated, one-shot capture from an already playing PowerPlay app.
+/// HA-initiated one-shot queue capture from an already playing PowerPlay app.
 ///
-/// Only a time-limited upload capability and a matching registered HA entity
-/// travel in the link; no Plex token, long-lived HA token or full queue.
+/// Only a short-lived upload capability and registered entity ID travel in
+/// the link. No Plex token, HA bearer or actual queue is embedded.
 final class PowerLinkCaptureLink extends DeepLink {
   const PowerLinkCaptureLink(this.request, this.sourceDevice, {super.profile});
 
@@ -333,58 +333,7 @@ final class PowerLinkCaptureLink extends DeepLink {
 
   final PowerLinkRequest request;
   final String sourceDevice;
-  static final _device = RegExp(r'^media_player\.[a-z0-9_]{2,100}
-/// control back to Plezy (x-callback-url). The player appends its own query
-/// parameters, so the whole [uri] is kept for `ExternalPlayerService`.
-final class ExternalPlayerReturnLink extends DeepLink {
-  const ExternalPlayerReturnLink(this.uri);
-
-  static const host = 'external-player';
-
-  final Uri uri;
-
-  @override
-  Uri toUri() => uri;
-}
-
-/// The profile [ref] names: a profile id, else the one Plex Home user with
-/// that UUID, else the one profile with that display name (ignoring case).
-/// Null when nothing matches or a rule matches several profiles.
-Profile? resolveLinkProfile(List<Profile> profiles, String ref) {
-  for (final profile in profiles) {
-    if (profile.id == ref) return profile;
-  }
-  final wanted = ref.trim().toLowerCase();
-  final rules = <bool Function(Profile)>[
-    (p) => p.plexHomeUserUuid?.toLowerCase() == wanted,
-    (p) => p.displayName.trim().toLowerCase() == wanted,
-  ];
-  for (final rule in rules) {
-    final matches = profiles.where(rule).toList(growable: false);
-    if (matches.length == 1) return matches.single;
-    if (matches.length > 1) {
-      appLogger.w('Deep link: profile "$ref" is ambiguous (${matches.length} matches)');
-      return null;
-    }
-  }
-  return null;
-}
-
-/// The `profile` value a generated link uses for [profile]: the Plex Home
-/// user UUID, which survives signing the account in again, else the
-/// profile id.
-String linkProfileRef(Profile profile) => profile.plexHomeUserUuid ?? profile.id;
-
-final _number = RegExp(r'^\d+$');
-final _imdbId = RegExp(r'^tt\d+$', caseSensitive: false);
-final _plexHash = RegExp(r'^[0-9a-zA-Z]+$');
-
-/// The trimmed value of [name], or null when absent or blank.
-String? _param(Map<String, String> params, String name) {
-  final value = params[name]?.trim();
-  return value == null || value.isEmpty ? null : value;
-}
-);
+  static final _device = RegExp(r'^media_player\.[a-z0-9_]{2,100}$');
 
   static PowerLinkCaptureLink? _parse(
     Uri uri, Map<String, String> params, String? profile,
