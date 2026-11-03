@@ -92,7 +92,7 @@ The Android TV Remote integration does not support Fire TV. Configure **Android 
 
 ## PowerLink v1 wire protocol
 
-A source Fire Stick, when requested, receives `powerplay://powerlink/capture?nonce=<nonce>` and POSTs a complete bounded snapshot to `/api/powerlink/v1/sessions`.
+On handoff, the source Fire Stick receives `powerplay://powerlink/capture?nonce=<nonce>` and POSTs a **compact queue reference** to `/api/powerlink/v1/sessions`: the current Plex play queue ID, the unique selected queue-item ID, and the exact player position. Home Assistant fetches and reconstructs all queue entries **directly from Plex**, including duplicates, without asking the Fire Stick to serialize its library. If server-side reconstruction is unavailable, the endpoint also accepts a complete bounded `items` manifest as a fallback. In either case, a truncated or changing queue is rejected.
 
 Authentication headers:
 ```
@@ -101,7 +101,21 @@ Authorization: Bearer <per-device pairing token>
 Content-Type: application/json
 ```
 
-The payload has `protocol: 1`, `source_device`, `capture_nonce`, `queue_id`, `shuffled`, `index`, `position_ms`, and an **ordered** `items` array. Each item includes `guid`, `kind`, `rating_key`, `server_id`, `title` and optional `season`/`episode` indices. Up to 5000 entries / 512 KiB are accepted. There is no lossy conversion from shuffled to sequential order.
+The preferred lightweight payload is:
+
+```json
+{
+  "protocol": 1,
+  "source_device": "living_room",
+  "capture_nonce": "<received nonce>",
+  "server_id": "plex_a",
+  "play_queue_id": 9631,
+  "selected_play_queue_item_id": 2211762,
+  "position_ms": 1237912
+}
+```
+
+PowerLink queries Plex `GET /playQueues/9631` in overlapping windows, checks the queue version, total size and selected queue-item identity, and builds the complete immutable sequence on Home Assistant. A fallback full manifest has `queue_id`, `shuffled`, `index`, `position_ms`, and ordered `items`, each with `guid`, `kind`, `rating_key`, `server_id`, `title` and optional `season`/`episode`. Server queues are capped at 5000 entries; fallback uploads at 512 KiB. There is no lossy conversion from shuffled to sequential order.
 
 After a match is verified, the destination receives `powerplay://powerlink/resume?id=<opaque-transfer-id>`. It fetches `GET /api/powerlink/v1/transfers/<id>?start=<n>&limit=50` with its **own** device pairing token, preserving every queue index including duplicates and unavailable entries. The transfer ID expires after one hour; snapshots expire within 45 seconds. The destination can POST `.../ready` once it actually begins playback.
 
@@ -111,7 +125,7 @@ Responses include explicit selected Plex media source IDs and source indices; a 
 
 - Device-specific random bearer tokens; only SHA-256 digests retained in Home Assistant storage. Rotate with `powerlink.pair_device`.
 - Use HTTPS (Home Assistant Cloud or a trusted TLS reverse proxy) for **cross-network** session exchange, and restrict ADB access to trusted networks. Never log or put pairing tokens in deep links.
-- No persistent websocket, background timer on Fire TV, library sweeps, repeated JSON serialization, or periodic queue transfer calls.
+- No persistent websocket, background timer on Fire TV, library sweeps, repeated JSON serialization, or periodic queue transfer calls. The preferred snapshot contains only three queue/position numbers and a server ID; Home Assistant performs queue reconstruction directly from Plex.
 - All copy lookups happen on the Home Assistant host, with at most four concurrent lookup operations, twelve-second HTTP deadlines and a five-minute bounded cache.
 - The source's queue and playback remain intact if discovery, wake-up, copy resolution, destination launch, or acknowledgement fails.
 - Handoff requests capture the source position **once at request time** with a nonce. They do not rely on a minutes-old Plex view offset.

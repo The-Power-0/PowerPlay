@@ -1,7 +1,8 @@
 """Authenticated PowerLink application-to-Home-Assistant session exchange.
 
-Fire TV only sends a full snapshot when a transfer is requested. The hub
-resolves Plex variants lazily per window, keeping extra device CPU near zero.
+Fire TV normally sends just a Plex queue ID, selected queue-item ID and
+position when requested. HA reconstructs the authoritative queue and resolves
+Plex variants lazily per window, keeping extra device CPU near zero.
 """
 
 from __future__ import annotations
