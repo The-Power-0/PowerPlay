@@ -1,0 +1,40 @@
+name: PowerLink Fire TV Client Tests
+on:
+  push:
+    branches:
+      - 'feature/powerlink-v1.3.0-app'
+    paths:
+      - 'lib/services/powerlink/**'
+      - 'lib/services/deep_links/**'
+      - 'lib/providers/playback_state_provider.dart'
+      - 'test/services/powerlink/**'
+      - '.github/workflows/powerlink-app-ci.yml'
+  pull_request:
+    paths:
+      - 'lib/services/powerlink/**'
+      - 'lib/services/deep_links/**'
+      - 'lib/providers/playback_state_provider.dart'
+      - 'test/services/powerlink/**'
+      - '.github/workflows/powerlink-app-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dart-powerlink:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.9'
+          channel: stable
+          cache: true
+      - name: Resolve canonical PowerPlay source
+        run: flutter pub get
+      - name: Parse, validate and launch PowerLink deep links
+        run: flutter test test/services/powerlink/powerlink_transfer_test.dart test/services/deep_links/deep_link_test.dart
+      - name: Protect existing playback queue and video-start logic
+        run: flutter test test/providers/playback_state_provider_test.dart
