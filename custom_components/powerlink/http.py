@@ -60,9 +60,17 @@ class PowerLinkSessionView(HomeAssistantView):
             )
         try:
             data = json.loads(body)
-            snapshot = hub.publish_snapshot(device_id, data)
+            # Prefer the tiny Plex queue reference; HA reconstructs the
+            # complete shuffled/sequential queue on the server. Explicit
+            # full-item snapshots remain a supported fallback.
+            if isinstance(data, dict) and "play_queue_id" in data and "items" not in data:
+                snapshot = await hub.async_publish_plex_queue_reference(device_id, data)
+            else:
+                snapshot = hub.publish_snapshot(device_id, data)
         except (ValueError, TypeError, InvalidSnapshot, ServiceValidationError) as exc:
             raise web.HTTPBadRequest(text=str(exc)) from exc
+        except ConnectionError as exc:
+            raise web.HTTPServiceUnavailable(text="Could not retrieve the complete Plex queue") from exc
         request.app["hass"].bus.async_fire(
             "powerlink_snapshot_received", {
                 "device_id": device_id,

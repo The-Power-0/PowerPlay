@@ -11,6 +11,7 @@ from urllib.parse import urlsplit
 from aiohttp import ClientError, ClientSession, ClientTimeout
 
 from .models import MediaCopy
+from .queue_source import PlexQueueRead, read_complete_plex_queue
 
 
 def parse_height(media: dict[str, Any]) -> int:
@@ -135,3 +136,44 @@ class PlexCatalog:
         except (ClientError, TimeoutError, ValueError) as exc:
             raise ConnectionError("Plex lookup unavailable") from exc
         return parse_copies(payload, server["id"], guid)
+
+
+    async def read_play_queue(
+        self, server_id: str, queue_id: int, selected_item_id: int
+    ) -> PlexQueueRead:
+        """Read the exact current Plex queue on HA, not on a low-memory stick."""
+        server = next((s for s in self._servers if s["id"] == server_id), None)
+        if server is None:
+            raise ValueError(f"Plex server not configured in PowerLink: {server_id}")
+        if type(queue_id) is not int or queue_id < 1:
+            raise ValueError("Invalid Plex queue identifier")
+
+        async def fetch_page(center_id: int, window: int) -> dict[str, Any]:
+            async with self._semaphore:
+                try:
+                    async with self._http.get(
+                        server["url"].rstrip("/") + f"/playQueues/{queue_id}",
+                        params={
+                            "center": str(center_id), "window": window,
+                            "includeBefore": 1, "includeAfter": 1,
+                        },
+                        headers={
+                            "X-Plex-Token": server["token"],
+                            "Accept": "application/json",
+                        },
+                        timeout=ClientTimeout(total=10),
+                        allow_redirects=False,
+                    ) as response:
+                        response.raise_for_status()
+                        return await response.json()
+                except (ClientError, TimeoutError, ValueError) as exc:
+                    raise ConnectionError("Cannot read Plex queue") from exc
+
+        try:
+            async with asyncio.timeout(30):
+                return await read_complete_plex_queue(
+                    fetch_page, server_id=server_id,
+                    selected_item_id=selected_item_id,
+                )
+        except TimeoutError as exc:
+            raise ConnectionError("Plex queue capture exceeded 30-second deadline") from exc

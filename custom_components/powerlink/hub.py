@@ -21,7 +21,7 @@ from .const import (
     APP_PACKAGE, CONF_DEVICES, CONF_PLEX_SERVERS, MAX_TRANSFER_WINDOW,
     SESSION_MAX_AGE_SECONDS, TRANSFER_TTL_SECONDS,
 )
-from .models import DevicePolicy, QueueSnapshot, map_window, select_media_copy
+from .models import DevicePolicy, QueueSnapshot, map_window, select_media_copy, InvalidSnapshot
 from .plex import PlexCatalog
 
 
@@ -111,6 +111,37 @@ class PowerLinkHub:
             if not waiter[1].done():
                 waiter[1].set_result(snapshot)
         return snapshot
+
+    async def async_publish_plex_queue_reference(
+        self, device_id: str, payload: dict[str, Any]
+    ) -> QueueSnapshot:
+        """Capture complete authoritative Plex queue from a tiny device report."""
+        self.device(device_id)
+        if payload.get("protocol") != 1 or payload.get("source_device") != device_id:
+            raise InvalidSnapshot("Invalid PowerLink source or protocol")
+        server_id = payload.get("server_id")
+        queue_id = payload.get("play_queue_id")
+        item_id = payload.get("selected_play_queue_item_id")
+        position = payload.get("position_ms")
+        if not isinstance(server_id, str) or not server_id:
+            raise InvalidSnapshot("Server ID is required")
+        if (type(queue_id) is not int or queue_id <= 0 or
+            type(item_id) is not int or item_id <= 0 or
+            type(position) is not int or not 0 <= position <= 86_400_000):
+            raise InvalidSnapshot("Queue reference requires positive IDs and valid position")
+        queue = await self.catalog.read_play_queue(server_id, queue_id, item_id)
+        snapshot = QueueSnapshot(
+            source_device=device_id,
+            items=queue.items,
+            index=queue.selected_index,
+            position_ms=position,
+            shuffled=queue.shuffled,
+            queue_id=f"plex:{server_id}:{queue_id}:v{queue.version}",
+            profile_id=payload.get("profile_id") if isinstance(payload.get("profile_id"), str) else None,
+        )
+        return self.publish_snapshot(
+            device_id, {**snapshot.to_dict(), "capture_nonce": payload.get("capture_nonce")}
+        )
 
     def _clean_expired(self) -> None:
         now = time.monotonic()
