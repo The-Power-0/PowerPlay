@@ -43,13 +43,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     entry.async_on_unload(entry.add_update_listener(_reload))
 
-    if not hass.data[DOMAIN].get("_registered"):
-        # The app POSTs only when a handoff is requested; no websocket/scan
-        # loop runs while viewing content.
+    if not hass.data[DOMAIN].get("_views_registered"):
+        # Home Assistant HTTP views survive config entry reloads. Register
+        # once per HA process, not every time options change.
         hass.http.register_view(PowerLinkSessionView())
         hass.http.register_view(PowerLinkTransferView())
         hass.http.register_view(PowerLinkTransferAckView())
+        hass.data[DOMAIN]["_views_registered"] = True
 
+    if not hass.data[DOMAIN].get("_registered"):
         async def discover(call: ServiceCall):
             response = {"devices": _hub_for(hass).discover()}
             return response if call.return_response else None
