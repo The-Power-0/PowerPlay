@@ -113,7 +113,8 @@ class PowerLinkQueueSlot {
     String? nonempty(Object? value) => value is String && value.isNotEmpty ? value : null;
     final server = nonempty(ref['server_id']);
     final rating = nonempty(ref['rating_key']);
-    if (status == 'resolved' && (server == null || rating == null)) {
+    if (status == 'resolved' && (server == null || rating == null ||
+        (ref['media_index'] == null && nonempty(ref['media_id']) == null))) {
       throw const FormatException('PowerLink media identity missing');
     }
     final sourceIndex = ref['media_index'];
@@ -142,7 +143,13 @@ class PowerLinkQueueSlot {
       guid: guid,
       serverId: serverId,
       playQueueItemId: index + 1,
-      raw: isAvailable ? null : {'powerlink_unavailable': true},
+      raw: isAvailable
+          ? {
+              'powerlink_media_index': mediaIndex,
+              'powerlink_media_id': mediaId,
+              'powerlink_source_height': height,
+            }
+          : {'powerlink_unavailable': true},
     );
   }
 }
