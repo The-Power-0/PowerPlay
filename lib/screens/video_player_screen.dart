@@ -1350,7 +1350,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
       return null;
     }
     final current = _currentMetadata;
-    if (current.serverId == null || !current.isVideo) return null;
+    if (current.serverId == null || !(current.isEpisode || current.isMovie)) return null;
 
     final position = activePlayer.state.position.inMilliseconds.clamp(0, 86400000);
     final result = <String, dynamic>{
@@ -1384,7 +1384,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
     }
     final items = <Map<String, dynamic>>[];
     for (final item in queue.loadedItems) {
-      if (!item.isVideo || item.serverId == null) return null;
+      if (!(item.isEpisode || item.isMovie) || item.serverId == null) return null;
       final guid = item.guid ?? '';
       final copies = <Map<String, dynamic>>[
         for (var i = 0; i < (item.mediaVersions?.length ?? 0); i++)
@@ -1406,9 +1406,9 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
         'server_id': item.serverId,
         'rating_key': item.id,
         'copies': copies,
-        'season': item.kind == MediaKind.episode ? item.parentIndex : null,
-        'episode': item.kind == MediaKind.episode ? item.index : null,
-        'year': item.kind == MediaKind.movie ? item.year : null,
+        'season': item.isEpisode ? item.parentIndex : null,
+        'episode': item.isEpisode ? item.index : null,
+        'year': item.isMovie ? item.year : null,
       });
     }
     final selectedIndex = queue.currentPlayQueueItemID!;
