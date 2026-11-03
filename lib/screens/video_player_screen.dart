@@ -1337,6 +1337,89 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
 
   late final PlayerNavigationCoordinator _playerNavigationCoordinator;
 
+  /// Capture the *current* Plex queue on a user-requested HA handoff only.
+  /// Normally this method never runs: no queue serialization, polling or
+  /// additional CPU use is introduced to everyday player operation.
+  Map<String, dynamic>? _capturePowerLinkQueue() {
+    if (!mounted || _shuttingDown || widget.isLive) return null;
+    final activePlayer = player;
+    if (activePlayer == null || !activePlayer.state.isActive) return null;
+    final queue = context.read<PlaybackStateProvider>();
+    if (!queue.isQueueActive || queue.playQueueId == null ||
+        queue.currentPlayQueueItemID == null) {
+      return null;
+    }
+    final current = _currentMetadata;
+    if (current.serverId == null || !current.isVideo) return null;
+
+    final position = activePlayer.state.position.inMilliseconds.clamp(0, 86400000);
+    final result = <String, dynamic>{
+      'schema': 1,
+      'position_ms': position,
+      'shuffled': queue.isShuffleActive,
+      'context_key': queue.shuffleContextKey ?? '',
+    };
+
+    if (queue.playQueueId! > 0) {
+      // Plex owns the authoritative queue, with distinct item IDs for
+      // duplicates. Do not fetch or rebuild it on the Fire Stick: HA will
+      // request the full unchanged queue from Plex using these IDs.
+      return {
+        ...result,
+        'queue_source': {
+          'type': 'plex_play_queue',
+          'server_id': current.serverId,
+          'play_queue_id': queue.playQueueId,
+          'selected_item_id': queue.currentPlayQueueItemID,
+        },
+      };
+    }
+
+    // Local queue fallback is finite and only used on explicit handoff.
+    // PowerLink-imported queues keep just a 32-item window; exporting that
+    // partial window would irreversibly lose the shuffle order, so reject.
+    if (queue.playQueueId != -1 || queue.loadedItems.isEmpty ||
+        queue.loadedItems.length > 5000) {
+      return null;
+    }
+    final items = <Map<String, dynamic>>[];
+    for (final item in queue.loadedItems) {
+      if (!item.isVideo || item.serverId == null) return null;
+      final guid = item.guid ?? '';
+      final copies = <Map<String, dynamic>>[
+        for (var i = 0; i < (item.mediaVersions?.length ?? 0); i++)
+          {
+            'server_id': item.serverId,
+            'rating_key': item.id,
+            'guid': guid,
+            'height': item.mediaVersions![i].resolutionHeight,
+            'bitrate_kbps': item.mediaVersions![i].bitrate ?? 0,
+            'media_id': item.mediaVersions![i].id,
+            'media_index': i,
+            'library_title': item.libraryTitle ?? '',
+          },
+      ];
+      items.add({
+        'kind': item.kind.id,
+        'title': item.title ?? '',
+        'guid': guid,
+        'server_id': item.serverId,
+        'rating_key': item.id,
+        'copies': copies,
+        'season': item.kind == MediaKind.episode ? item.parentIndex : null,
+        'episode': item.kind == MediaKind.episode ? item.index : null,
+        'year': item.kind == MediaKind.movie ? item.year : null,
+      });
+    }
+    final selectedIndex = queue.currentPlayQueueItemID!;
+    if (selectedIndex < 0 || selectedIndex >= items.length) return null;
+    return {
+      ...result,
+      'current_index': selectedIndex,
+      'items': items,
+    };
+  }
+
   @override
   void initState() {
     super.initState();
@@ -1344,6 +1427,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
       shutdown: _shutdownVideo,
       stopAndExit: _stopVideoAndExit,
       playerState: () => player?.state,
+      powerLinkCapture: _capturePowerLinkQueue,
     );
     SleepTimerService().bindPlayback(
       owner: this,

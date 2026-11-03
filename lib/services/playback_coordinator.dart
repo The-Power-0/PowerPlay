@@ -22,6 +22,12 @@ class PlaybackCoordinator {
   Future<void> Function()? _shutdownVideoSession;
   Future<bool> Function()? _exitVideoSession;
   PlayerState? Function()? _videoPlayerState;
+
+  /// One-shot, in-memory capture seam for PowerLink. The player owns the
+  /// callback; asking for a snapshot does not poll or mutate playback.
+  Map<String, dynamic>? Function()? _powerLinkCapture;
+  Map<String, dynamic>? capturePowerLinkQueue() => _powerLinkCapture?.call();
+
   final Set<Future<void>> _videoRetirements = {};
 
   bool get hasVideoSession => _shutdownVideoSession != null || _videoRetirements.isNotEmpty;
@@ -50,8 +56,10 @@ class PlaybackCoordinator {
     required Future<void> Function() shutdown,
     Future<bool> Function()? stopAndExit,
     PlayerState? Function()? playerState,
+    Map<String, dynamic>? Function()? powerLinkCapture,
   }) {
     _shutdownVideoSession = shutdown;
+    _powerLinkCapture = powerLinkCapture;
     _exitVideoSession = stopAndExit;
     _videoPlayerState = playerState;
   }
@@ -63,6 +71,7 @@ class PlaybackCoordinator {
       _shutdownVideoSession = null;
       _exitVideoSession = null;
       _videoPlayerState = null;
+      _powerLinkCapture = null;
     }
     if (retirement == null || !_videoRetirements.add(retirement)) return;
     unawaited(
