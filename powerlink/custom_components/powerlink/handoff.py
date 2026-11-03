@@ -46,6 +46,10 @@ def _copy(value: Mapping[str, Any]) -> dict[str, Any]:
         height = _integer(height, "height", high=8640)
     bitrate = value.get("bitrate_kbps", 0)
     bitrate = _integer(bitrate, "bitrate_kbps", high=1_000_000)
+    media_index = value.get("media_index")
+    if media_index is not None:
+        media_index = _integer(media_index, "media_index", high=50)
+    media_id = _short(value.get("media_id"), "media_id", limit=128)
     return {
         "server_id": server,
         "rating_key": rating,
@@ -54,6 +58,8 @@ def _copy(value: Mapping[str, Any]) -> dict[str, Any]:
         "library_title": _short(value.get("library_title"), "library_title"),
         "guid": _short(value.get("guid"), "guid"),
         "video_codec": _short(value.get("video_codec"), "video_codec", limit=40),
+        "media_index": media_index,
+        "media_id": media_id,
     }
 
 
@@ -320,7 +326,7 @@ def from_plex_queue_response(source: Mapping[str, Any],
         if not isinstance(versions, list):
             raise HandoffError("Malformed Plex Media array")
         copies = []
-        for version in versions[:10]:
+        for media_index, version in enumerate(versions[:10]):
             if not isinstance(version, Mapping):
                 continue
             height = version.get("height")
@@ -337,6 +343,8 @@ def from_plex_queue_response(source: Mapping[str, Any],
                 "server_id": server_id, "rating_key": rating_key,
                 "guid": guid, "height": height, "bitrate_kbps": bitrate,
                 "library_title": str(row.get("librarySectionTitle") or ""),
+                "media_index": media_index,
+                "media_id": str(version.get("id") or ""),
             })
         season = row.get("parentIndex") if kind == "episode" else None
         episode = row.get("index") if kind == "episode" else None

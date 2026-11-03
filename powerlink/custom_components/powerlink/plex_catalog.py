@@ -170,7 +170,7 @@ class PlexCopyCatalog:
             media = row.get("Media") or []
             if not isinstance(media, list):
                 continue
-            for version in media[:10]:
+            for media_index, version in enumerate(media[:10]):
                 if not isinstance(version, dict):
                     continue
                 resolution = _height(version.get("height")) or _height(version.get("videoResolution"))
@@ -190,5 +190,7 @@ class PlexCopyCatalog:
                     "height": resolution,
                     "bitrate_kbps": max(0, kbps),
                     "video_codec": str(version.get("videoCodec") or ""),
+                    "media_index": media_index,
+                    "media_id": str(version.get("id") or ""),
                 })
         return found
