@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:plezy/media/media_kind.dart';
+import 'package:plezy/media/media_item.dart';
 import 'package:plezy/services/deep_links/deep_link.dart';
 import 'package:plezy/services/powerlink/powerlink_transfer.dart';
 
@@ -108,8 +109,8 @@ void main() {
       expect(queue.playQueueShuffled, true);
       expect(queue.items!.length, 3);
       expect(queue.items![0].id, queue.items![1].id);
-      expect(queue.items![0].playQueueItemId, 1);
-      expect(queue.items![1].playQueueItemId, 2);
+      expect((queue.items![0] as PlexMediaItem).playQueueItemId, 1);
+      expect((queue.items![1] as PlexMediaItem).playQueueItemId, 2);
     });
 
     test('normal playback queue is not converted into shuffle', () {
@@ -130,7 +131,7 @@ void main() {
       ]));
       expect(result.items[1].isAvailable, false);
       expect(result.items[1].toQueueItem().raw?['powerlink_unavailable'], true);
-      expect(result.items[1].toQueueItem().playQueueItemId, 2);
+      expect((result.items[1].toQueueItem() as PlexMediaItem).playQueueItemId, 2);
     });
 
     test('truncated/reordered windows and invalid offsets fail closed', () {
