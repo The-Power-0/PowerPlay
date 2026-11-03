@@ -370,7 +370,14 @@ class PlaybackStateProvider with ChangeNotifier, DisposableChangeNotifierMixin {
 
     var target = anchorIndex + delta;
     if (target >= 0 && target < _loadedItems.length) {
-      return QueueNavigationResult.found(_loadedItems[target]);
+      final candidate = _loadedItems[target];
+      // PowerLink preserves unavailable slots in the original queue instead
+      // of dropping or reordering them. Never navigate a placeholder as if
+      // it were a playable title or accidentally fetch an unrelated ratingKey.
+      if (candidate.raw?['powerlink_unavailable'] == true) {
+        return const QueueNavigationResult.failed();
+      }
+      return QueueNavigationResult.found(candidate);
     }
 
     // Local queues are fully resident, so their window edge is the queue edge.
@@ -389,9 +396,13 @@ class PlaybackStateProvider with ChangeNotifier, DisposableChangeNotifierMixin {
     anchorIndex = _findLoadedIndex(anchorId);
     if (anchorIndex == -1) return const QueueNavigationResult.failed();
     target = anchorIndex + delta;
-    return target >= 0 && target < _loadedItems.length
-        ? QueueNavigationResult.found(_loadedItems[target])
-        : const QueueNavigationResult.boundary();
+    if (target < 0 || target >= _loadedItems.length) {
+      return const QueueNavigationResult.boundary();
+    }
+    final candidate = _loadedItems[target];
+    return candidate.raw?['powerlink_unavailable'] == true
+        ? const QueueNavigationResult.failed()
+        : QueueNavigationResult.found(candidate);
   }
 
   /// Queue items backed by the same physical file as [current] — the other
