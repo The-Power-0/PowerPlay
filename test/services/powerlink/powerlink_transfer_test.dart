@@ -8,7 +8,7 @@ Map<String, dynamic> slot(int index, {
   String status = 'resolved',
   String ratingKey = '15',
   int height = 1080,
-  int? mediaIndex,
+  int? mediaIndex = 0,
   String? mediaId,
 }) => {
   'index': index,
