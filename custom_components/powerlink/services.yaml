@@ -1,0 +1,36 @@
+discover_devices:
+  name: Discover players
+  description: Find existing Home Assistant media_player entities that may be suitable for PowerLink. Does not scan networks.
+  fields: {}
+pair_device:
+  name: Pair PowerPlay device
+  description: Rotate and reveal a one-time pairing token for one configured device. Admin only; store securely in PowerPlay's PowerLink settings.
+  fields:
+    device_id:
+      required: true
+      selector:
+        text: {}
+launch:
+  name: Wake and launch PowerPlay
+  description: Execute the configured device power-on sequence and launch PowerPlay.
+  fields:
+    device_id:
+      required: true
+      selector:
+        text: {}
+    uri:
+      required: false
+      selector:
+        text: {}
+handoff:
+  name: Transfer PowerPlay queue
+  description: Prepare a lossless queue transfer using the latest fresh source snapshot, then wake and launch its destination.
+  fields:
+    source_device:
+      required: true
+      selector:
+        text: {}
+    destination_device:
+      required: true
+      selector:
+        text: {}

@@ -1,0 +1,101 @@
+{
+  "title": "PowerLink",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up PowerLink",
+        "description": "PowerLink orchestrates PowerPlay players through Home Assistant. Add devices and Plex servers under Configure."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "PowerLink is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "menu_options": {
+          "add_device": "Add device",
+          "edit_device": "Edit device",
+          "remove_device": "Remove device",
+          "add_plex_server": "Add Plex server",
+          "remove_plex_server": "Remove Plex server"
+        }
+      },
+      "add_device": {
+        "title": "Add PowerPlay endpoint",
+        "description": "Use an existing Home Assistant media_player or a launch script for remote networks. Wake scripts control TV power, inputs and delays.",
+        "data": {
+          "device_id": "Stable device ID",
+          "name": "Display name",
+          "media_player": "HA media_player entity (optional for script launch)",
+          "wake_script": "Power-on script entity (optional)",
+          "launch_script": "Launch script entity (required for script launch)",
+          "wake_mode": "When to run wake sequence",
+          "warmup_seconds": "Startup delay in seconds",
+          "max_height": "Maximum source resolution (vertical pixels)",
+          "launch_method": "Launch method"
+        }
+      },
+      "edit_device": {
+        "title": "Select device to edit",
+        "data": {
+          "device_id": "Device"
+        }
+      },
+      "edit_device_details": {
+        "title": "Edit PowerPlay endpoint",
+        "data": {
+          "device_id": "Device ID",
+          "name": "Display name",
+          "media_player": "HA media_player entity",
+          "wake_script": "Wake script",
+          "launch_script": "Launch script",
+          "wake_mode": "Wake policy",
+          "warmup_seconds": "Warmup seconds",
+          "max_height": "Maximum source resolution",
+          "launch_method": "Launch method"
+        }
+      },
+      "remove_device": {
+        "title": "Remove PowerPlay endpoint",
+        "data": {
+          "device_id": "Device"
+        }
+      },
+      "add_plex_server": {
+        "title": "Add Plex server for GUID matching",
+        "data": {
+          "id": "Plex server ID",
+          "url": "Plex base URL (reachable by Home Assistant)",
+          "token": "Plex access token"
+        }
+      },
+      "remove_plex_server": {
+        "title": "Remove Plex server",
+        "data": {
+          "id": "Server"
+        }
+      }
+    },
+    "error": {
+      "bad_device_id": "Use 2–40 lowercase letters, numbers and underscores (starting with a letter).",
+      "bad_device_name": "Enter a short name.",
+      "duplicate_device_id": "A device with this ID already exists.",
+      "bad_media_player": "Enter a media_player entity.",
+      "bad_wake_script": "Enter a script entity.",
+      "bad_launch_script": "Enter a script entity.",
+      "launch_script_required": "Choose a launch script.",
+      "media_player_required": "An HA media_player is required.",
+      "device_id_immutable": "Device ID cannot change.",
+      "duplicate_server_id": "That Plex server ID exists.",
+      "invalid_plex_url": "Use an HTTP(S) URL without embedded credentials.",
+      "missing_plex_token": "A Plex access token is required."
+    },
+    "abort": {
+      "device_limit": "Maximum number of devices reached.",
+      "device_not_found": "Device no longer exists.",
+      "server_limit": "Maximum number of Plex servers reached."
+    }
+  }
+}
