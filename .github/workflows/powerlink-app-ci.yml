@@ -40,8 +40,8 @@ jobs:
           cache: true
       - name: Resolve canonical PowerPlay source
         run: flutter pub get
-      - name: Parse, validate and launch PowerLink deep links
-        run: flutter test test/services/powerlink/powerlink_transfer_test.dart test/services/deep_links/deep_link_test.dart
+      - name: Verify PowerLink receiver, active destination takeover and deep links
+        run: flutter test test/services/powerlink/powerlink_transfer_test.dart test/services/powerlink/powerlink_destination_takeover_test.dart test/services/deep_links/deep_link_test.dart test/services/playback_coordinator_test.dart
       - name: Protect existing playback queue and video-start logic
         run: flutter test test/providers/playback_state_provider_test.dart
       - name: Analyze PowerLink, source capture and player integration
