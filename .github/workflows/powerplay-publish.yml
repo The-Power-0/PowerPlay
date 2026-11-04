@@ -126,6 +126,12 @@ jobs:
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Release already exists, refusing overwrite: $RELEASE_TAG"; exit 1
           fi
+          # Accurate patch notes for the queue metadata bug fixed in 1.3.1.
+          # Leave this empty for later versions unless their own notes are set.
+          PATCH_NOTE=""
+          if [[ "$RELEASE_VERSION" == "1.3.1" ]]; then
+            PATCH_NOTE="- **New in v1.3.1 — PowerLink queue presentation:** preserves series name, S/E labels and Plex thumbnails in transferred shuffled or sequential queues. This corrects visual metadata after handoff without changing exact order, playback position, selected file quality or network workload."
+          fi
           cat > /tmp/powerplay-release-notes.md <<EOF_NOTES
           # PowerPlay v$RELEASE_VERSION — Fire TV
 
@@ -137,7 +143,8 @@ jobs:
           - Automatic defaults are not saved into the portable hidden-library list. Newly connected libraries receive the same defaults; removing \`[4K]\` from a name removes only the automatic hiding.
           - Unknown hardware keeps libraries visible. Explicitly saved Hide choices are preserved.
           - Includes the PowerPlay 1.1.0 settings defaults, startup branding, and About updates.
-          - **New in v$RELEASE_VERSION — PowerLink (experimental):** supports Home Assistant-initiated on-demand queue capture and destination resume through authenticated one-time, short-lived handoff links.
+          $PATCH_NOTE
+          - Since v1.3.0 — PowerLink (experimental): supports Home Assistant-initiated on-demand queue capture and destination resume through authenticated one-time, short-lived handoff links.
           - Transfers retain exact ordered Plex play queues, shuffled/non-shuffled state, repeated episodes, current item and playback position. PowerLink for Home Assistant resolves and serves the destination queue in bounded windows rather than continuously polling the Fire TV.
           - Per-device resolution policies select the corresponding verified Plex file, including 1080p equivalents for HD Fire Sticks and up to 4K copies for capable devices. Remote/wake methods are configured in the separate Home Assistant integration.
           - **Requires the companion [PowerLink HACS integration](https://github.com/The-Power-0/PowerLink).** Cross-room handoff is a preview until tested on actual Fire TV devices and Plex profiles; it is not automatically enabled. Existing playback, deep links and local shuffle do not depend on PowerLink.
