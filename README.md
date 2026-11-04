@@ -12,7 +12,7 @@
 
 *An independent, GPL-3.0-licensed derivative of [Plezy](https://github.com/edde746/plezy); not affiliated with or endorsed by Plex, Plezy, or Amazon.*
 
-[Download](#download) · [Why PowerPlay?](#the-story) · [Features](#what-makes-powerplay-different) · [Home Assistant](#home-assistant-automations) · [Version history](#version-history) · [Source & license](#source-releases-and-license)
+[Download](#download) · [Why PowerPlay?](#the-story) · [Features](#what-makes-powerplay-different) · [Home Assistant](#smart-home-integration) · [Version history](#version-history) · [Source & license](#source-releases-and-license)
 
 </div>
 
@@ -52,6 +52,7 @@ Today the focus is still the same: **a fast, comfortable Plex experience on Fire
 | ⚡ **Fire TV performance** | Startup, artwork prioritization, Plex request handling, navigation responsiveness and memory budgets tailored for Fire OS hardware. |
 | ▶️ **Media3 playback** | ExoPlayer/Media3 video with FFmpeg codec libraries; no MPV player runtime in the distributed build. |
 | 🏠 **Automation-ready** | Android deep links let Home Assistant open the app or start continuous shuffled-show playback. |
+| 🔗 **PowerLink (1.3.0 preview)** | Optional [PowerLink HACS companion](https://github.com/The-Power-0/PowerLink) for cross-room queue capture/resume, per-device 1080p/4K copy selection, and configurable TV/Fire Stick power routines. Requires live device validation before production use. |
 | 📺 **Hardware-aware libraries** | Known 1080p-only Fire Sticks start with libraries named `[4K]` hidden; 4K-capable models keep them visible even if HDMI output is currently 1080p. |
 | 🎨 **Customizable appearance** | Ten curated color themes (including Aurora and Synthwave dual-tone palettes) with independent Light, Dark, System, and OLED modes; PowerPlay artwork, startup screens and About page remain branded. |
 
@@ -92,7 +93,7 @@ Replace the placeholders with the **Plex server ID** and the show's **rating key
 
 Home Assistant can use its **Android TV integration and ADB commands** to send these deep links to a Fire Stick. This makes it possible to start a favorite show's shuffle from a dashboard button, a scene, a schedule, or a presence-based automation—without manually navigating the PowerPlay interface.
 
-Home Assistant handles the surrounding logic, such as turning on the television, waiting for the Fire Stick to become responsive, and choosing which room to target. **PowerPlay handles the incoming playback request.** There is no separate built-in Home Assistant integration or automatic TV power management required by the app.
+Home Assistant can still handle turning on the television, waiting for the Fire Stick and targeting a room using existing automations. **PowerPlay handles the incoming playback request.** For PowerPlay 1.3.0, the independently developed [PowerLink HACS integration](https://github.com/The-Power-0/PowerLink) optionally adds a central controller for device discovery, configurable wake-up sequences and cross-room queue handoff. PowerLink is **experimental** until complete source/destination playback, shuffle and 4K↔1080p transitions are verified on real Fire Sticks. Existing playback and shuffle deep links continue to work without it.
 
 ## Version history
 
@@ -100,6 +101,7 @@ PowerPlay's version numbers began with the standalone rebrand. Earlier releases 
 
 | Release | Milestone |
 | --- | --- |
+| **[1.3.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.0)** | Adds experimental PowerLink queue capture and remote resume, preserving shuffle/normal queue order, duplicate episodes, playback position and explicit Plex 1080p/4K media-version selection. Uses the separate [PowerLink Home Assistant integration](https://github.com/The-Power-0/PowerLink). |
 | **[1.2.4](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.2.4)** | Transparent splash-only artwork that works across theme backgrounds; four new themes (Aurora, Synthwave, Midnight Gold, Ocean Depths), bringing the total to ten. Existing launcher artwork remains unchanged. |
 | **[1.2.1](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.2.1)** | Prevent unnecessary D-pad focus scroll animations from collapsing or bouncing the floating library header. Retains existing performance work and curated themes. |
 | **[1.2.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.2.0)** | Six curated color themes (Signature Purple, Moonlight Blue, Ember, Evergreen, Rosé, Monochrome), each compatible with Light, Dark, System, and true-black OLED. Live changes persist per Fire TV. |
