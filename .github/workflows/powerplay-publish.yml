@@ -126,11 +126,13 @@ jobs:
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Release already exists, refusing overwrite: $RELEASE_TAG"; exit 1
           fi
-          # Accurate patch notes for the queue metadata bug fixed in 1.3.1.
-          # Leave this empty for later versions unless their own notes are set.
+          # Version-specific notes. This does not alter source selection,
+          # signing, APK promotion or release safety checks.
           PATCH_NOTE=""
           if [[ "$RELEASE_VERSION" == "1.3.1" ]]; then
             PATCH_NOTE="- **New in v1.3.1 — PowerLink queue presentation:** preserves series name, S/E labels and Plex thumbnails in transferred shuffled or sequential queues. This corrects visual metadata after handoff without changing exact order, playback position, selected file quality or network workload."
+          elif [[ "$RELEASE_VERSION" == "1.3.6" ]]; then
+            PATCH_NOTE="- **New in v1.3.6 — PowerLink handoff reliability:** when a receiving Fire Stick is already playing, fully retire its previous video before installing the transferred queue and starting the exact episode. A refused/expired shutdown leaves the existing queue unchanged and avoids overlapping native playback cores. Update the separate PowerLink HACS integration as well: it now pauses the source only after receiving the destination's verified playback-start acknowledgment, never after a failed transfer. An occasional native pointer error may have other causes and still needs a device log if reproduced."
           fi
           cat > /tmp/powerplay-release-notes.md <<EOF_NOTES
           # PowerPlay v$RELEASE_VERSION — Fire TV
