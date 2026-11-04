@@ -1,6 +1,7 @@
 import '../../media/ids.dart';
 import '../../media/media_kind.dart';
 import '../../models/livetv_channel.dart';
+import '../powerlink/powerlink_transfer.dart';
 import '../../profiles/profile.dart';
 import '../../screens/video_player/live_tv_session_args.dart';
 import '../../utils/app_logger.dart';
@@ -57,6 +58,8 @@ sealed class DeepLink {
             )
           : null,
       LiveLink.host => LiveLink._parse(params, profile),
+      PowerLinkResumeLink.host => PowerLinkResumeLink._parse(uri, params, profile),
+      PowerLinkCaptureLink.host => PowerLinkCaptureLink._parse(uri, params, profile),
       ExternalPlayerReturnLink.host => ExternalPlayerReturnLink(uri),
       _ => null,
     };
@@ -287,6 +290,67 @@ final class LiveLink extends DeepLink {
       LiveTvStartPosition.beginning => const {'start': 'beginning'},
       LiveTvStartPosition.live => const {'start': 'live'},
     },
+    ..._profileParam,
+  });
+}
+
+/// `powerplay://powerlink?v=1&base=<HA_url>&token=<one-time-capability>`.
+///
+/// Only the temporary transfer capability is in the link. Neither the
+/// Home Assistant long-lived access token nor a Plex account token is sent.
+final class PowerLinkResumeLink extends DeepLink {
+  const PowerLinkResumeLink(this.request, {super.profile});
+
+  static const host = 'powerlink';
+
+  final PowerLinkRequest request;
+
+  static PowerLinkResumeLink? _parse(
+    Uri uri, Map<String, String> params, String? profile,
+  ) {
+    if (uri.path.isNotEmpty || params['v'] != '1') return null;
+    final request = PowerLinkRequest.parse(params['base'], params['token']);
+    return request == null ? null : PowerLinkResumeLink(request, profile: profile);
+  }
+
+  @override
+  Uri toUri() => DeepLink._uri(host, {
+    'v': '1',
+    'base': request.base.toString(),
+    'token': request.token,
+    ..._profileParam,
+  });
+}
+
+/// HA-initiated one-shot queue capture from an already playing PowerPlay app.
+///
+/// Only a short-lived upload capability and registered entity ID travel in
+/// the link. No Plex token, HA bearer or actual queue is embedded.
+final class PowerLinkCaptureLink extends DeepLink {
+  const PowerLinkCaptureLink(this.request, this.sourceDevice, {super.profile});
+
+  static const host = 'powerlink-capture';
+
+  final PowerLinkRequest request;
+  final String sourceDevice;
+  static final _device = RegExp(r'^media_player\.[a-z0-9_]{2,100}$');
+
+  static PowerLinkCaptureLink? _parse(
+    Uri uri, Map<String, String> params, String? profile,
+  ) {
+    if (uri.path.isNotEmpty || params['v'] != '1') return null;
+    final request = PowerLinkRequest.parse(params['base'], params['token']);
+    final source = params['source'];
+    if (request == null || source == null || !_device.hasMatch(source)) return null;
+    return PowerLinkCaptureLink(request, source, profile: profile);
+  }
+
+  @override
+  Uri toUri() => DeepLink._uri(host, {
+    'v': '1',
+    'base': request.base.toString(),
+    'token': request.token,
+    'source': sourceDevice,
     ..._profileParam,
   });
 }
