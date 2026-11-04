@@ -18,7 +18,7 @@ on:
         description: 'Stable version: patch +0.0.1 for a feature; minor +0.1.0 for a full batch'
         required: true
         type: string
-        default: '1.2.4'
+        default: '1.3.0'
       confirm:
         description: 'Type PUBLISH_POWERPLAY to publish the candidate as the Latest stable release'
         required: true
@@ -137,15 +137,19 @@ jobs:
           - Automatic defaults are not saved into the portable hidden-library list. Newly connected libraries receive the same defaults; removing \`[4K]\` from a name removes only the automatic hiding.
           - Unknown hardware keeps libraries visible. Explicitly saved Hide choices are preserved.
           - Includes the PowerPlay 1.1.0 settings defaults, startup branding, and About updates.
-          - New in v$RELEASE_VERSION: the startup logo now has genuine transparency, so it blends with Light, Dark, OLED and every curated theme, without an opaque square.
-          - New in v$RELEASE_VERSION: four curated color themes — Aurora (teal and violet), Synthwave (cyan and magenta), Midnight Gold and Ocean Depths. The two multicolor themes use separate primary and secondary colors across controls, card surfaces, outlines and theme previews.
+          - **New in v$RELEASE_VERSION — PowerLink (experimental):** supports Home Assistant-initiated on-demand queue capture and destination resume through authenticated one-time, short-lived handoff links.
+          - Transfers retain exact ordered Plex play queues, shuffled/non-shuffled state, repeated episodes, current item and playback position. PowerLink for Home Assistant resolves and serves the destination queue in bounded windows rather than continuously polling the Fire TV.
+          - Per-device resolution policies select the corresponding verified Plex file, including 1080p equivalents for HD Fire Sticks and up to 4K copies for capable devices. Remote/wake methods are configured in the separate Home Assistant integration.
+          - **Requires the companion [PowerLink HACS integration](https://github.com/The-Power-0/PowerLink).** Cross-room handoff is a preview until tested on actual Fire TV devices and Plex profiles; it is not automatically enabled. Existing playback, deep links and local shuffle do not depend on PowerLink.
+          - Since v1.2.4: transparent startup logo blends with Light, Dark, OLED and every curated theme.
+          - Since v1.2.4: four added curated color themes — Aurora, Synthwave, Midnight Gold and Ocean Depths; the two multicolor themes use distinct primary and secondary accents.
           - Ten curated palettes total, retaining Signature Purple, Moonlight Blue, Ember, Evergreen, Rosé and Monochrome and all saved selections.
           - Since v1.2.1: D-pad navigation no longer triggers no-op scrolling that collapses or bounces floating library headers.
           - Each color palette works independently with System, Light, Dark, and true-black OLED display modes.
           - Theme choices apply live, persist locally on each Fire TV, and keep existing installations on Monochrome until changed.
           - Native Android launch canvas keeps its stable dark fallback; launcher icon remains unchanged while the Flutter and Android splash foregrounds are separate transparent PNGs.
           - Retains the PowerPlay 1.1.2 startup resources, 1.1.1 hardware-aware library defaults, and 1.1.0 settings/branding.
-          - Stable publication is marked Latest.
+          - Stable APK publication is marked Latest; PowerLink's multi-device handoff feature remains explicitly experimental pending real-device verification.
 
           Application ID: \`com.power.powerplay\`. Deep links: \`powerplay://\`. Playback: ExoPlayer/Media3; ARMv7 Fire TV APK with the tested Fire TV optimizations retained.
 
