@@ -10,11 +10,13 @@ import '../../media/media_version.dart';
 import '../../providers/multi_server_provider.dart';
 import '../../providers/playback_state_provider.dart';
 import '../../services/playback_launch_observer.dart';
+import '../../services/playback_coordinator.dart';
 import '../../utils/app_logger.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../utils/video_player_navigation.dart';
 import '../deep_links/deep_link.dart';
 import 'powerlink_transfer.dart';
+import 'powerlink_destination_takeover.dart';
 
 /// Receives an exact, already-ordered PowerLink transfer from Home Assistant.
 ///
@@ -73,6 +75,18 @@ class PowerLinkReceiver {
         viewOffsetMs: initial.positionMs,
       );
 
+      // The old player must release its route, media session and native core
+      // *before* PowerLink commits its queue. Otherwise the normal navigation
+      // guard refuses to launch a second video ('playbackActive'), leaving
+      // the original show playing while the transferred queue appears in UI.
+      // Awaiting complete retirement also prevents simultaneous Media3 core
+      // teardown/startup, a potential source of transient native errors.
+      await PowerLinkDestinationTakeover.retire(
+        hasVideoSession: () => PlaybackCoordinator.instance.hasVideoSession,
+        stopVideoAndExit: () => PlaybackCoordinator.instance.stopVideoAndExit(),
+      );
+      if (!context.mounted || _generation != generation) return;
+
       final queue = context.read<PlaybackStateProvider>();
       // Keep only one bounded queue window in memory; the callback loads the
       // neighboring window on demand. An unavailable slot remains an explicit
@@ -106,7 +120,14 @@ class PowerLinkReceiver {
         selectedMediaSourceId: choice.$2,
         strictMediaSelection: true,
         launchObserver: observer,
-      ));
+      ).catchError((Object error, StackTrace stack) {
+        // Navigation is asynchronous; a failing route commit should never
+        // silently leave a swapped queue with no destination playback.
+        appLogger.w('PowerLink destination navigation failed',
+            error: error, stackTrace: stack);
+        observer.mark('failed', failure: 'navigationFailed');
+        return null;
+      }));
       unawaited(_acknowledgeWhenPlaying(
         bridge, observer, selected, initial.positionMs, generation,
       ));
