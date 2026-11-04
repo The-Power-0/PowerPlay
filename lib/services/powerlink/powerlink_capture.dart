@@ -2,7 +2,6 @@ import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../../profiles/active_profile_provider.dart';
-import '../../profiles/profile.dart';
 
 import '../../services/playback_coordinator.dart';
 import '../../utils/app_logger.dart';
