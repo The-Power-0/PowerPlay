@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:plezy/media/media_kind.dart';
 import 'package:plezy/media/media_item.dart';
+import 'package:plezy/media/media_item_labels.dart';
 import 'package:plezy/services/deep_links/deep_link.dart';
 import 'package:plezy/services/powerlink/powerlink_transfer.dart';
 
@@ -15,6 +16,10 @@ Map<String, dynamic> slot(int index, {
   'status': status,
   'title': 'Episode $index',
   'kind': 'episode',
+  'show_title': 'Example Show',
+  'season': 2,
+  'episode': index + 1,
+  'thumb_path': '/library/metadata/15/thumb/100',
   if (status == 'resolved')
     'media': {
       'server_id': 'plex-main',
@@ -111,6 +116,46 @@ void main() {
       expect(queue.items![0].id, queue.items![1].id);
       expect((queue.items![0] as PlexMediaItem).playQueueItemId, 1);
       expect((queue.items![1] as PlexMediaItem).playQueueItemId, 2);
+    });
+
+    test('PowerLink queue renders full series labels and episode thumbnails', () {
+      final result = PowerLinkQueueWindow.parse(window([
+        slot(0, ratingKey: '11'),
+        slot(1, ratingKey: '12', height: 2160, mediaIndex: 1),
+        slot(2, ratingKey: '13'),
+      ]));
+      final first = result.items[0].toQueueItem() as PlexMediaItem;
+      final selected = result.items[1].toQueueItem() as PlexMediaItem;
+      expect(first.title, 'Episode 0');
+      expect(first.grandparentTitle, 'Example Show');
+      expect(first.parentIndex, 2);
+      expect(first.index, 1);
+      expect(first.thumbPath, '/library/metadata/15/thumb/100');
+      expect(formatQueueItemSubtitle(first), 'Example Show · S2E1');
+      expect(formatQueueItemSubtitle(selected), 'Example Show · S2E2');
+      expect(selected.playQueueItemId, 2);
+      expect(result.shuffled, true);
+      expect(result.positionMs, 253400);
+    });
+
+    test('old integration metadata remains optional and does not change playback', () {
+      final older = slot(0);
+      for (final name in ['show_title', 'season', 'episode', 'thumb_path']) {
+        older.remove(name);
+      }
+      final row = PowerLinkQueueWindow.parse(window([older], currentIndex: 0, total: 1));
+      final item = row.items.single.toQueueItem() as PlexMediaItem;
+      expect(item.grandparentTitle, isNull);
+      expect(item.thumbPath, isNull);
+      expect(item.playQueueItemId, 1);
+      expect(item.id, '15');
+    });
+
+    test('external thumbnail URLs are not forwarded to the image loader', () {
+      final row = slot(0)..['thumb_path'] = 'https://external.example/image.jpg';
+      final result = PowerLinkQueueWindow.parse(window([row], currentIndex: 0, total: 1));
+      expect(result.items.single.toQueueItem().thumbPath, isNull);
+      expect(result.items.single.isAvailable, true);
     });
 
     test('normal playback queue is not converted into shuffle', () {

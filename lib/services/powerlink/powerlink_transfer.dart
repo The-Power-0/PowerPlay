@@ -71,6 +71,11 @@ class PowerLinkQueueSlot {
     this.serverId,
     this.ratingKey,
     this.guid,
+    this.showTitle,
+    this.season,
+    this.episode,
+    this.year,
+    this.thumbPath,
     this.mediaIndex,
     this.mediaId,
     this.height,
@@ -83,6 +88,11 @@ class PowerLinkQueueSlot {
   final String? serverId;
   final String? ratingKey;
   final String? guid;
+  final String? showTitle;
+  final int? season;
+  final int? episode;
+  final int? year;
+  final String? thumbPath;
   final int? mediaIndex;
   final String? mediaId;
   final int? height;
@@ -125,9 +135,26 @@ class PowerLinkQueueSlot {
     if (height != null && (height is! int || height <= 0 || height > 8640)) {
       throw const FormatException('Invalid media source resolution');
     }
+    // Optional, purely visual metadata. Old PowerLink servers omit these;
+    // queue identity and playhead remain unaffected if they are absent.
+    int? optionalNumber(String field, int maximum) {
+      final value = raw[field];
+      return value is int && value >= 0 && value <= maximum ? value : null;
+    }
+    final season = optionalNumber('season', 999);
+    final episode = optionalNumber('episode', 9999);
+    final year = optionalNumber('year', 3000);
+    final showTitle = nonempty(raw['show_title']);
+    final thumb = nonempty(raw['thumb_path']);
+    final thumbPath = thumb != null && thumb.startsWith('/') && thumb.length <= 1024
+        ? thumb
+        : null;
     return PowerLinkQueueSlot(
       index: index, status: status, title: title, kind: kind,
       serverId: server, ratingKey: rating, guid: nonempty(ref['guid']),
+      showTitle: showTitle,
+      season: season, episode: episode, year: year,
+      thumbPath: thumbPath,
       mediaIndex: sourceIndex as int?, mediaId: nonempty(ref['media_id']),
       height: height as int?,
     );
@@ -142,6 +169,11 @@ class PowerLinkQueueSlot {
       title: title,
       guid: guid,
       serverId: serverId,
+      grandparentTitle: showTitle,
+      parentIndex: season,
+      index: episode,
+      year: year,
+      thumbPath: thumbPath,
       playQueueItemId: index + 1,
       raw: isAvailable
           ? {
