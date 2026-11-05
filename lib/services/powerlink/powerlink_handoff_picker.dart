@@ -29,6 +29,7 @@ class _PowerLinkHandoffPickerState extends State<PowerLinkHandoffPicker> {
   PowerLinkDeviceList? _devices;
   bool _loading = true;
   bool _sending = false;
+  String? _sendingDestination;
   String? _error;
 
   @override
@@ -80,7 +81,11 @@ class _PowerLinkHandoffPickerState extends State<PowerLinkHandoffPicker> {
       setState(() => _error = 'Select a Plex Home profile first.');
       return;
     }
-    setState(() { _sending = true; _error = null; });
+    setState(() {
+      _sending = true;
+      _sendingDestination = device.name;
+      _error = null;
+    });
     try {
       await _api.initiateHandoff(identity, destination: device.entityId, snapshot: {
         ...snapshot,
@@ -102,7 +107,10 @@ class _PowerLinkHandoffPickerState extends State<PowerLinkHandoffPicker> {
                 : 'Handoff failed or could not be confirmed. Check the destination before retrying.');
       }
     } finally {
-      if (mounted) setState(() => _sending = false);
+      if (mounted) setState(() {
+        _sending = false;
+        _sendingDestination = null;
+      });
     }
   }
 
@@ -159,6 +167,12 @@ class _PowerLinkHandoffPickerState extends State<PowerLinkHandoffPicker> {
                   },
                 ),
               ),
+            if (_sending) ...[
+              const SizedBox(height: 12),
+              Text('Home Assistant is preparing and waking ${_sendingDestination ?? 'the destination'}. Playback continues here until confirmed.'),
+              const SizedBox(height: 8),
+              const LinearProgressIndicator(),
+            ],
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
