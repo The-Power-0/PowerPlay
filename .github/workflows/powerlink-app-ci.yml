@@ -15,6 +15,7 @@ on:
       - 'lib/widgets/video_controls/**'
       - 'pubspec.yaml'
       - 'test/services/powerlink/**'
+      - 'test/screens/settings/powerlink_settings_screen_test.dart'
       - '.github/workflows/powerlink-app-ci.yml'
   pull_request:
     paths:
@@ -29,6 +30,7 @@ on:
       - 'lib/widgets/video_controls/**'
       - 'pubspec.yaml'
       - 'test/services/powerlink/**'
+      - 'test/screens/settings/powerlink_settings_screen_test.dart'
       - '.github/workflows/powerlink-app-ci.yml'
   workflow_dispatch:
 
@@ -52,6 +54,8 @@ jobs:
         run: git diff -- pubspec.lock
       - name: Verify PowerLink receiver, active destination takeover and deep links
         run: flutter test test/services/powerlink/powerlink_transfer_test.dart test/services/powerlink/powerlink_destination_takeover_test.dart test/services/deep_links/deep_link_test.dart test/services/playback_coordinator_test.dart test/services/powerlink/powerlink_app_client_test.dart
+      - name: Check native Fire TV keyboard and D-pad pairing navigation
+        run: flutter test test/screens/settings/powerlink_settings_screen_test.dart
       - name: Protect existing playback queue and video-start logic
         run: flutter test test/providers/playback_state_provider_test.dart
       - name: Analyze PowerLink, source capture and player integration
@@ -68,5 +72,6 @@ jobs:
             lib/screens/settings/settings_screen.dart \
             lib/widgets/video_controls \
             lib/screens/video_player/parts/build.dart \
-            test/services/powerlink
+            test/services/powerlink \
+            test/screens/settings/powerlink_settings_screen_test.dart
 
