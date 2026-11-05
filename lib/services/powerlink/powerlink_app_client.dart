@@ -185,6 +185,9 @@ class PowerLinkAppClient {
     try {
       return await () async {
         final request = http.Request(method, url);
+        // Never forward a per-device credential through a reverse-proxy or
+        // cross-origin redirect. Configure the final HA URL explicitly.
+        request.followRedirects = false;
         request.headers['Accept'] = 'application/json';
         if (identity != null) {
           request.headers['X-PowerLink-Device'] = identity.sourceDevice;
