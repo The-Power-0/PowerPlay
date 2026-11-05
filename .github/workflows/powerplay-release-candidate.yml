@@ -71,6 +71,8 @@ jobs:
           flutter test test/theme/powerplay_curated_palette_test.dart test/theme/mono_theme_test.dart test/providers/theme_provider_test.dart test/startup_bootstrap_test.dart
           flutter test test/focus/focusable_wrapper_test.dart
           flutter test test/services/deep_links/legacy_shuffle_link_test.dart test/services/deep_links/deep_link_test.dart
+          # 1.3.8 Fire TV native IME and D-pad pairing navigation regression.
+          flutter test test/screens/settings/powerlink_settings_screen_test.dart
           # 1.3.0 PowerLink: exact shuffle/normal queue, remote handoff and
           # active-player capture must pass alongside pre-existing playback.
           flutter test test/services/powerlink/powerlink_transfer_test.dart test/services/powerlink/powerlink_destination_takeover_test.dart test/services/playback_coordinator_test.dart test/providers/playback_state_provider_test.dart test/services/powerlink/powerlink_app_client_test.dart
@@ -86,7 +88,8 @@ jobs:
             lib/screens/settings/powerlink_settings_screen.dart \
             lib/screens/settings/settings_screen.dart \
             lib/widgets/video_controls \
-            test/services/powerlink
+            test/services/powerlink \
+            test/screens/settings/powerlink_settings_screen_test.dart
           git diff --exit-code -- pubspec.yaml pubspec.lock
       - name: Prepare existing Fire TV signing identity
         shell: bash

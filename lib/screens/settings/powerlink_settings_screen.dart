@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../../focus/focusable_text_field.dart';
 import '../../services/powerlink/powerlink_app_client.dart';
+import '../../widgets/focusable_list_tile.dart';
 import '../../widgets/settings_page.dart';
 import '../../widgets/settings_section.dart';
 
@@ -18,6 +21,18 @@ class PowerLinkSettingsScreen extends StatefulWidget {
 class _PowerLinkSettingsScreenState extends State<PowerLinkSettingsScreen> {
   final _url = TextEditingController();
   final _code = TextEditingController();
+  // Fire TV needs a managed native IME session and explicit focus targets.
+  final _urlFocus = FocusNode(debugLabel: 'PowerLink URL');
+  final _codeFocus = FocusNode(debugLabel: 'PowerLink pairing code');
+  final _pairFocus = FocusNode(debugLabel: 'PowerLink pair action');
+  final _refreshFocus = FocusNode(debugLabel: 'PowerLink refresh');
+  final _disconnectFocus = FocusNode(debugLabel: 'PowerLink disconnect');
+  final _urlInput = TvTextInputController();
+  final _codeInput = TvTextInputController();
+
+  void _focusCode() => _codeInput.focusInputWithoutOpening();
+  void _focusUrl() => _urlInput.focusInputWithoutOpening();
+  void _focusPair() => _pairFocus.requestFocus();
   final _credentials = PowerLinkAppCredentials();
   final _api = const PowerLinkAppClient();
 
@@ -36,6 +51,11 @@ class _PowerLinkSettingsScreenState extends State<PowerLinkSettingsScreen> {
   void dispose() {
     _url.dispose();
     _code.dispose();
+    _urlFocus.dispose();
+    _codeFocus.dispose();
+    _pairFocus.dispose();
+    _refreshFocus.dispose();
+    _disconnectFocus.dispose();
     super.dispose();
   }
 
@@ -65,6 +85,9 @@ class _PowerLinkSettingsScreenState extends State<PowerLinkSettingsScreen> {
       if (!mounted) return;
       _code.clear();
       setState(() { _identity = identity; _devices = null; });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _refreshFocus.requestFocus();
+      });
       await _refresh();
     } catch (err) {
       if (mounted) {
@@ -100,7 +123,12 @@ class _PowerLinkSettingsScreenState extends State<PowerLinkSettingsScreen> {
     setState(() { _busy = true; _error = null; });
     try {
       await _credentials.disconnect();
-      if (mounted) setState(() { _identity = null; _devices = null; });
+      if (mounted) {
+        setState(() { _identity = null; _devices = null; });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _focusUrl();
+        });
+      }
     } catch (_) {
       if (mounted) setState(() => _error = 'Could not clear PowerLink credentials.');
     } finally {
@@ -128,9 +156,16 @@ class _PowerLinkSettingsScreenState extends State<PowerLinkSettingsScreen> {
             if (identity == null) ...[
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: TextField(
+                child: FocusableTextField(
+                  key: const Key('powerlink_url_field'),
                   controller: _url,
+                  focusNode: _urlFocus,
+                  tvTextInputController: _urlInput,
+                  // Traversal must not re-open the native keyboard.
+                  tvTextInputAutoOpenBehavior: TvTextInputAutoOpenBehavior.never,
                   keyboardType: TextInputType.url,
+                  onNavigateDown: _focusCode,
+                  onSubmitted: (_) => _focusCode(),
                   decoration: const InputDecoration(
                     labelText: 'Home Assistant URL',
                     hintText: 'http://homeassistant.local:8123',
@@ -140,14 +175,22 @@ class _PowerLinkSettingsScreenState extends State<PowerLinkSettingsScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: TextField(
+                child: FocusableTextField(
+                  key: const Key('powerlink_code_field'),
                   controller: _code,
+                  focusNode: _codeFocus,
+                  tvTextInputController: _codeInput,
+                  tvTextInputAutoOpenBehavior: TvTextInputAutoOpenBehavior.never,
                   keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  textInputAction: TextInputAction.done,
+                  onNavigateUp: _focusUrl,
+                  onNavigateDown: _focusPair,
+                  onSubmitted: (_) => _focusPair(),
                   maxLength: 9,
                   decoration: const InputDecoration(
                     labelText: 'Nine-digit pairing code',
                   ),
-                  onSubmitted: (_) => _pair(),
                 ),
               ),
               const ListTile(
@@ -158,7 +201,9 @@ class _PowerLinkSettingsScreenState extends State<PowerLinkSettingsScreen> {
                   'the one-time code above within three minutes.',
                 ),
               ),
-              ListTile(
+              FocusableListTile(
+                key: const Key('powerlink_pair_button'),
+                focusNode: _pairFocus,
                 leading: const Icon(Symbols.link_rounded),
                 title: const Text('Pair this Fire Stick'),
                 trailing: _busy ? const CircularProgressIndicator() : null,
@@ -172,13 +217,15 @@ class _PowerLinkSettingsScreenState extends State<PowerLinkSettingsScreen> {
                 subtitle: Text('${identity.sourceDevice}\n${identity.base}'),
                 isThreeLine: true,
               ),
-              ListTile(
+              FocusableListTile(
+                focusNode: _refreshFocus,
                 leading: const Icon(Symbols.refresh_rounded),
                 title: const Text('Refresh PowerLink destinations'),
                 enabled: !_busy,
                 onTap: _refresh,
               ),
-              ListTile(
+              FocusableListTile(
+                focusNode: _disconnectFocus,
                 leading: const Icon(Symbols.link_off_rounded),
                 title: const Text('Disconnect this Fire Stick'),
                 subtitle: const Text('Re-pair to bind a different Home Assistant device.'),
