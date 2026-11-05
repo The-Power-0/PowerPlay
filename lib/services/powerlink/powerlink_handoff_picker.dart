@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
@@ -93,9 +95,11 @@ class _PowerLinkHandoffPickerState extends State<PowerLinkHandoffPicker> {
       ));
     } catch (err) {
       if (mounted) {
-        setState(() => _error = err is FormatException
-            ? err.message.toString()
-            : 'Handoff failed. Current playback was not stopped.');
+        setState(() => _error = err is TimeoutException
+            ? 'Home Assistant may still be waking this TV. Check the destination before retrying; the source only pauses after verified playback.'
+            : err is FormatException
+                ? err.message.toString()
+                : 'Handoff failed or could not be confirmed. Check the destination before retrying.');
       }
     } finally {
       if (mounted) setState(() => _sending = false);
