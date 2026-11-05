@@ -15,6 +15,11 @@ void main() {
     sourceName: 'Bedroom', token: token,
   );
 
+  test('request timeout permits a 600-second protected wake script', () {
+    expect(PowerLinkAppClient.handoffRequestTimeout,
+           greaterThan(const Duration(minutes: 10)));
+  });
+
   test('pairs by a short-lived code without an HA admin token', () async {
     var calls = 0;
     final client = PowerLinkAppClient(client: MockClient((request) async {
