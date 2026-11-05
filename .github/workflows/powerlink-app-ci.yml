@@ -56,6 +56,8 @@ jobs:
         run: flutter test test/services/powerlink/powerlink_transfer_test.dart test/services/powerlink/powerlink_destination_takeover_test.dart test/services/deep_links/deep_link_test.dart test/services/playback_coordinator_test.dart test/services/powerlink/powerlink_app_client_test.dart
       - name: Check native Fire TV keyboard and D-pad pairing navigation
         run: flutter test test/screens/settings/powerlink_settings_screen_test.dart
+      - name: Verify PowerLink picker TV focus and destination selection
+        run: flutter test test/services/powerlink/powerlink_handoff_picker_test.dart
       - name: Protect existing playback queue and video-start logic
         run: flutter test test/providers/playback_state_provider_test.dart
       - name: Analyze PowerLink, source capture and player integration
