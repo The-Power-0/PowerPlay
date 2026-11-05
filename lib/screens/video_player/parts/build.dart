@@ -316,6 +316,11 @@ extension _VideoPlayerBuildMethods on VideoPlayerScreenState {
                         onSeekRequested: _seekPlayback,
                         onRateRequested: _setPlaybackRate,
                         onPlayPauseRequested: _handleControlsTransport,
+                        onPowerLinkHandoff: authority.canControlPlayback &&
+                                authority.canNavigateMediaItems &&
+                                !widget.isLive && !_isOfflinePlayback
+                            ? () => PowerLinkHandoffPicker.show(context)
+                            : null,
                         onBack: _handleBackButton,
                         onReachedEnd: ({skipAutoPlayCountdown = false}) =>
                             _onVideoCompleted(true, skipAutoPlayCountdown: skipAutoPlayCountdown),
