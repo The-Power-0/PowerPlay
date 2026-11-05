@@ -106,7 +106,11 @@ class PowerLinkDeviceList {
 }
 
 class PowerLinkAppClient {
-  const PowerLinkAppClient();
+  const PowerLinkAppClient({http.Client? client}) : _testClient = client;
+
+  // Injectable only for tests/authorized transports; production opens a
+  // short-lived client per explicit user action and closes it afterwards.
+  final http.Client? _testClient;
 
   static Uri _api(Uri base, String path) => base.replace(path: path);
 
@@ -173,7 +177,7 @@ class PowerLinkAppClient {
     Map<String, dynamic>? payload,
     Duration timeout = const Duration(seconds: 12),
   }) async {
-    final client = http.Client();
+    final client = _testClient ?? http.Client();
     try {
       return await () async {
         final request = http.Request(method, url);
@@ -210,7 +214,7 @@ class PowerLinkAppClient {
         return decoded;
       }().timeout(timeout);
     } finally {
-      client.close();
+      if (_testClient == null) client.close();
     }
   }
 }
