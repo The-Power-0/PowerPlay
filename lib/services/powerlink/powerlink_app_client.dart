@@ -112,6 +112,11 @@ class PowerLinkDeviceList {
 class PowerLinkAppClient {
   const PowerLinkAppClient({http.Client? client}) : _testClient = client;
 
+  // A verified HA wake script can legitimately take up to 600 seconds.
+  // Include time for Plex queue preparation and the destination launch;
+  // this timeout is not a playback acknowledgment or a cancellation signal.
+  static const handoffRequestTimeout = Duration(minutes: 11);
+
   // Injectable only for tests/authorized transports; production opens a
   // short-lived client per explicit user action and closes it afterwards.
   final http.Client? _testClient;
@@ -167,7 +172,7 @@ class PowerLinkAppClient {
       _api(identity.base, '/api/powerlink/v1/app/handoff'),
       identity: identity, method: 'POST',
       payload: {'destination': destination, 'snapshot': snapshot},
-      timeout: const Duration(seconds: 75),
+      timeout: handoffRequestTimeout,
     );
     if (result['accepted'] != true || result['destination'] != destination) {
       throw const FormatException('Home Assistant did not accept the handoff');
