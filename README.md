@@ -52,7 +52,7 @@ Today the focus is still the same: **a fast, comfortable Plex experience on Fire
 | ⚡ **Fire TV performance** | Startup, artwork prioritization, Plex request handling, navigation responsiveness and memory budgets tailored for Fire OS hardware. |
 | ▶️ **Media3 playback** | ExoPlayer/Media3 video with FFmpeg codec libraries; no MPV player runtime in the distributed build. |
 | 🏠 **Automation-ready** | Android deep links let Home Assistant open the app or start continuous shuffled-show playback. |
-| 🔗 **PowerLink (1.3.0 preview)** | Optional [PowerLink HACS companion](https://github.com/The-Power-0/PowerLink) for cross-room queue capture/resume, per-device 1080p/4K copy selection, and configurable TV/Fire Stick power routines. Requires live device validation before production use. |
+| 🔗 **PowerLink (1.3.7 / HACS 0.2.0)** | Pair each Fire Stick in Settings → PowerLink, then use the in-player PowerLink button for room-to-room handoff. The optional [PowerLink HACS companion](https://github.com/The-Power-0/PowerLink/releases/tag/v0.2.0) handles wake routines, exact queue/order/playhead continuity, source pausing after confirmed playback, and HD/4K matching. Requires real-device validation before production use. |
 | 📺 **Hardware-aware libraries** | Known 1080p-only Fire Sticks start with libraries named `[4K]` hidden; 4K-capable models keep them visible even if HDMI output is currently 1080p. |
 | 🎨 **Customizable appearance** | Ten curated color themes (including Aurora and Synthwave dual-tone palettes) with independent Light, Dark, System, and OLED modes; PowerPlay artwork, startup screens and About page remain branded. |
 
@@ -93,7 +93,7 @@ Replace the placeholders with the **Plex server ID** and the show's **rating key
 
 Home Assistant can use its **Android TV integration and ADB commands** to send these deep links to a Fire Stick. This makes it possible to start a favorite show's shuffle from a dashboard button, a scene, a schedule, or a presence-based automation—without manually navigating the PowerPlay interface.
 
-Home Assistant can still handle turning on the television, waiting for the Fire Stick and targeting a room using existing automations. **PowerPlay handles the incoming playback request.** For PowerPlay 1.3.0, the independently developed [PowerLink HACS integration](https://github.com/The-Power-0/PowerLink) optionally adds a central controller for device discovery, configurable wake-up sequences and cross-room queue handoff. PowerLink is **experimental** until complete source/destination playback, shuffle and 4K↔1080p transitions are verified on real Fire Sticks. Existing playback and shuffle deep links continue to work without it.
+Home Assistant can still handle turning on the television, waiting for the Fire Stick and targeting a room using existing automations. **PowerPlay handles the incoming playback request.** PowerPlay 1.3.0 introduced HA-initiated PowerLink handoff; 1.3.6 improved destination takeover and source pausing after playback confirmation. **PowerPlay 1.3.7** and the independently released [PowerLink HACS 0.2.0 integration](https://github.com/The-Power-0/PowerLink/releases/tag/v0.2.0) additionally allow a Fire Stick to pair through Settings → PowerLink and initiate handoff directly from its Plex player controls. PowerLink is **experimental** until complete source/destination playback, shuffle and 4K↔1080p transitions are verified on real Fire Sticks. Existing playback and shuffle deep links continue to work without it.
 
 ## Version history
 
@@ -101,6 +101,9 @@ PowerPlay's version numbers began with the standalone rebrand. Earlier releases 
 
 | Release | Milestone |
 | --- | --- |
+| **[1.3.7](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.7)** | New Fire TV PowerLink button and destination picker for player-initiated transfers. Pair each Fire Stick using scoped, encrypted credentials and one-time HA pairing codes; supports exact re-handoff of a retained queue, long protected wake routines and HD/4K policies. Requires [PowerLink HACS v0.2.0](https://github.com/The-Power-0/PowerLink/releases/tag/v0.2.0). |
+| **[1.3.6](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.6)** | Ensures incoming transfers retire any existing destination playback before launching the requested episode; source pauses only after a verified successful handoff. |
+| **[1.3.1](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.1)** | Restores episode labels and thumbnails in transferred PowerLink queues. |
 | **[1.3.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.0)** | Adds experimental PowerLink queue capture and remote resume, preserving shuffle/normal queue order, duplicate episodes, playback position and explicit Plex 1080p/4K media-version selection. Uses the separate [PowerLink Home Assistant integration](https://github.com/The-Power-0/PowerLink). |
 | **[1.2.4](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.2.4)** | Transparent splash-only artwork that works across theme backgrounds; four new themes (Aurora, Synthwave, Midnight Gold, Ocean Depths), bringing the total to ten. Existing launcher artwork remains unchanged. |
 | **[1.2.1](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.2.1)** | Prevent unnecessary D-pad focus scroll animations from collapsing or bouncing the floating library header. Retains existing performance work and curated themes. |
