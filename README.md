@@ -101,6 +101,7 @@ PowerPlay's version numbers began with the standalone rebrand. Earlier releases 
 
 | Release | Milestone |
 | --- | --- |
+| **[1.3.8](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.8)** | Fire TV PowerLink pairing UI repair: both Home Assistant URL and numeric code can open their own keyboard reliably; Next/Done and D-pad Up/Down reach the focusable Pair button. Refresh/Disconnect are also remote-selectable. No changes to Plex handoff, shuffle order or PowerLink HACS 0.2.0. |
 | **[1.3.7](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.7)** | New Fire TV PowerLink button and destination picker for player-initiated transfers. Pair each Fire Stick using scoped, encrypted credentials and one-time HA pairing codes; supports exact re-handoff of a retained queue, long protected wake routines and HD/4K policies. Requires [PowerLink HACS v0.2.0](https://github.com/The-Power-0/PowerLink/releases/tag/v0.2.0). |
 | **[1.3.6](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.6)** | Ensures incoming transfers retire any existing destination playback before launching the requested episode; source pauses only after a verified successful handoff. |
 | **[1.3.1](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.1)** | Restores episode labels and thumbnails in transferred PowerLink queues. |
