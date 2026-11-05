@@ -55,6 +55,7 @@ import '../services/episode_navigation_service.dart';
 import '../services/apple_tv_remote_touch_service.dart';
 import '../services/media_controls_manager.dart';
 import '../services/playback_coordinator.dart';
+import '../services/powerlink/powerlink_receiver.dart';
 import '../services/music/music_playback_service.dart';
 import '../services/playback_initialization_service.dart';
 import '../services/playback_context.dart';
@@ -1375,9 +1376,26 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
       };
     }
 
+    // PowerLink queues are deliberately windowed on low-memory Fire Sticks.
+    // Only a random active HA session capability is sent back, never the
+    // incomplete 32-item subset. HA verifies the session was delivered to
+    // this paired device, is acknowledged, and still exists before reusing
+    // the exact immutable original order with the current cursor/playhead.
+    if (queue.playQueueId == -2) {
+      final sessionToken = PowerLinkReceiver.activeManifestToken;
+      final cursor = queue.currentPlayQueueItemID;
+      if (sessionToken == null || cursor == null || cursor < 1) return null;
+      return {
+        ...result,
+        'current_index': cursor - 1,
+        'queue_source': {
+          'type': 'powerlink_transfer',
+          'session_token': sessionToken,
+        },
+      };
+    }
+
     // Local queue fallback is finite and only used on explicit handoff.
-    // PowerLink-imported queues keep just a 32-item window; exporting that
-    // partial window would irreversibly lose the shuffle order, so reject.
     if (queue.playQueueId != -1 || queue.loadedItems.isEmpty ||
         queue.loadedItems.length > 5000) {
       return null;

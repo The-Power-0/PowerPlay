@@ -27,6 +27,10 @@ class PowerLinkReceiver {
   PowerLinkReceiver._();
 
   static int _generation = 0;
+  // The HA host retains the complete imported queue; a subsequent handoff
+  // can reuse that immutable manifest without shipping 5000 entries.
+  static String? activeManifestToken;
+
 
   static Future<void> launch(BuildContext context, PowerLinkResumeLink link) async {
     final generation = ++_generation;
@@ -107,6 +111,7 @@ class PowerLinkReceiver {
       });
       await queue.setPlaybackFromPlayQueue(initial.toPlaybackWindow(), 'powerlink');
       if (!context.mounted || _generation != generation) return;
+      activeManifestToken = link.request.token;
 
       final observer = PlaybackLaunchObserver(isCurrent: () => _generation == generation);
       // Navigation's future completes when the player closes, not after
