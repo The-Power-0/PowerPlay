@@ -83,6 +83,19 @@ void main() {
     expect(calls, 1);
   });
 
+  test('never follows an HTTP redirect with a scoped PowerLink token', () async {
+    var calls = 0;
+    final client = PowerLinkAppClient(client: MockClient((request) async {
+      calls++;
+      expect(request.followRedirects, isFalse);
+      expect(request.headers['X-PowerLink-Token'], token);
+      return http.Response('', 302,
+          headers: {'location': 'https://another-host.example/capture'});
+    }));
+    await expectLater(client.discover(identity), throwsFormatException);
+    expect(calls, 1);
+  });
+
   test('rejects redirect/insecure public HTTP and invalid code', () async {
     const client = PowerLinkAppClient();
     await expectLater(
