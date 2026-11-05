@@ -18,7 +18,10 @@ dependencies:
   intl: ^0.20.2
   json_annotation: ^4.12.0
   shared_preferences: ^2.5.4
-  flutter_secure_storage: ^11.2.0
+  flutter_secure_storage: 10.0.0
+  # PowerPlay's pinned wakelock_plus Windows code still requires win32 5.x.
+  # Pin the compatible secure-storage Windows shim (Android uses Keystore).
+  flutter_secure_storage_windows: 4.1.0
   cached_network_image_ce: ^4.9.0
   http: ^1.2.0
   url_launcher: ^6.3.0
