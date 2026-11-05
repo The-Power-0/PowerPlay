@@ -48,6 +48,8 @@ jobs:
           cache: true
       - name: Resolve canonical PowerPlay source
         run: flutter pub get
+      - name: Show dependency lock changes requiring a source commit
+        run: git diff -- pubspec.lock
       - name: Verify PowerLink receiver, active destination takeover and deep links
         run: flutter test test/services/powerlink/powerlink_transfer_test.dart test/services/powerlink/powerlink_destination_takeover_test.dart test/services/deep_links/deep_link_test.dart test/services/playback_coordinator_test.dart test/services/powerlink/powerlink_app_client_test.dart
       - name: Protect existing playback queue and video-start logic
