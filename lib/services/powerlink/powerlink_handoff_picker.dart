@@ -107,10 +107,12 @@ class _PowerLinkHandoffPickerState extends State<PowerLinkHandoffPicker> {
                 : 'Handoff failed or could not be confirmed. Check the destination before retrying.');
       }
     } finally {
-      if (mounted) setState(() {
-        _sending = false;
-        _sendingDestination = null;
-      });
+      if (mounted) {
+        setState(() {
+          _sending = false;
+          _sendingDestination = null;
+        });
+      }
     }
   }
 
