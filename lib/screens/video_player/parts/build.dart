@@ -316,8 +316,9 @@ extension _VideoPlayerBuildMethods on VideoPlayerScreenState {
                         onSeekRequested: _seekPlayback,
                         onRateRequested: _setPlaybackRate,
                         onPlayPauseRequested: _handleControlsTransport,
-                        onPowerLinkHandoff: authority.canControlPlayback &&
-                                authority.canNavigateMediaItems &&
+                        onPowerLinkHandoff: Platform.isAndroid && PlatformDetector.isTV() &&
+                                _currentMetadata.backend == MediaBackend.plex &&
+                                authority.canControlPlayback && authority.canNavigateMediaItems &&
                                 !widget.isLive && !_isOfflinePlayback
                             ? () => PowerLinkHandoffPicker.show(context)
                             : null,
