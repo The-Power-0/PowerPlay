@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:plezy/focus/focusable_text_field.dart';
 import 'package:plezy/screens/settings/powerlink_settings_screen.dart';
+import 'package:plezy/theme/mono_theme.dart';
 import 'package:plezy/utils/platform_detector.dart';
 import 'package:plezy/widgets/focusable_list_tile.dart';
 
@@ -20,7 +21,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(
-      const MaterialApp(home: PowerLinkSettingsScreen()),
+      MaterialApp(theme: monoTheme(MonoPalette.dark), home: const PowerLinkSettingsScreen()),
     );
     await tester.pump();
   }
