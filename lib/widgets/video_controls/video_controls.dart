@@ -614,6 +614,9 @@ class PlexVideoControls extends StatefulWidget {
   /// Called when back button is pressed (for Watch Together session leave confirmation)
   final VoidCallback? onBack;
 
+  /// On-demand PowerLink destination picker (never idle discovery).
+  final VoidCallback? onPowerLinkHandoff;
+
   /// Called when the video has effectively reached the end (e.g. credits extend
   /// to EOF and can't be seeked past). Parent should route this into its normal
   /// completion flow so the auto-play-next setting is honored.
@@ -740,6 +743,7 @@ class PlexVideoControls extends StatefulWidget {
     this.onPlayPauseRequested,
     this.onSeekCompleted,
     this.onBack,
+    this.onPowerLinkHandoff,
     this.onReachedEnd,
     this.canControl = true,
     required this.canNavigateMediaItems,

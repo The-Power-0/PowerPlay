@@ -67,6 +67,7 @@ class DesktopVideoControls extends StatefulWidget {
 
   final TrackControlsState trackControlsState;
   final VoidCallback? onBack;
+  final VoidCallback? onPowerLinkHandoff;
 
   /// Notifier for whether first video frame has rendered (shows loading state when false).
   final ValueNotifier<bool>? hasFirstFrame;
@@ -139,6 +140,7 @@ class DesktopVideoControls extends StatefulWidget {
     this.onHideControls,
     this.trackControlsState = const TrackControlsState(),
     this.onBack,
+    this.onPowerLinkHandoff,
     this.hasFirstFrame,
     this.thumbnailDataBuilder,
     this.liveChannelName,
@@ -177,6 +179,7 @@ class DesktopVideoControlsState extends State<DesktopVideoControls> {
   late final FocusNode _nextChapterFocusNode;
   late final FocusNode _nextItemFocusNode;
   late final FocusNode _goToLiveFocusNode;
+  late final FocusNode _powerLinkFocusNode;
   late final FocusNode _timelineFocusNode;
 
   late final FocusNode _volumeFocusNode;
@@ -215,6 +218,7 @@ class DesktopVideoControlsState extends State<DesktopVideoControls> {
     _nextChapterFocusNode = FocusNode(debugLabel: 'NextChapter');
     _nextItemFocusNode = FocusNode(debugLabel: 'NextItem');
     _goToLiveFocusNode = FocusNode(debugLabel: 'GoToLive');
+    _powerLinkFocusNode = FocusNode(debugLabel: 'PowerLink');
     _timelineFocusNode = FocusNode(debugLabel: 'Timeline');
     _volumeFocusNode = FocusNode(debugLabel: 'Volume');
 
@@ -230,6 +234,7 @@ class DesktopVideoControlsState extends State<DesktopVideoControls> {
       _nextChapterFocusNode,
       _nextItemFocusNode,
       _goToLiveFocusNode,
+      _powerLinkFocusNode,
     ];
     _bindChapterLabelStreams();
     widget.chromeController?.addListener(_onChromeControllerChanged);
@@ -287,6 +292,7 @@ class DesktopVideoControlsState extends State<DesktopVideoControls> {
     _nextChapterFocusNode.dispose();
     _nextItemFocusNode.dispose();
     _goToLiveFocusNode.dispose();
+    _powerLinkFocusNode.dispose();
     _timelineFocusNode.dispose();
     _volumeFocusNode.dispose();
     for (final node in _trackControlFocusNodes) {
@@ -925,6 +931,20 @@ class DesktopVideoControlsState extends State<DesktopVideoControls> {
                     onFocusActivity: widget.onFocusActivity,
                   ),
                   const SizedBox(width: 16),
+                ],
+                // PowerLink is a normal focusable transport button on TV.
+                // Clicking it loads registered HA destinations on demand,
+                // rather than polling while an episode is playing.
+                if (!_isLive && widget.onPowerLinkHandoff != null) ...[
+                  const SizedBox(width: 8),
+                  _buildFocusableButton(
+                    focusNode: _powerLinkFocusNode,
+                    index: 8,
+                    icon: Symbols.cast_rounded,
+                    onPressed: _canControl ? widget.onPowerLinkHandoff : null,
+                    semanticLabel: 'PowerLink: move playback to another room',
+                    tooltip: 'PowerLink',
+                  ),
                 ],
                 // Audio track, subtitle, and chapter controls
                 TrackChapterControls(
