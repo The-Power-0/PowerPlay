@@ -85,8 +85,9 @@ class _PowerLinkHandoffPickerState extends State<PowerLinkHandoffPicker> {
         'profile_id': linkProfileRef(profile),
       });
       if (!mounted) return;
+      final messenger = ScaffoldMessenger.maybeOf(context);
       Navigator.of(context).pop();
-      ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
+      messenger?.showSnackBar(SnackBar(
         content: Text('Starting playback on ' + device.name +
             '. This Fire Stick will pause after the handoff is confirmed.'),
       ));
