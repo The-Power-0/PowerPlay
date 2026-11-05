@@ -60,6 +60,7 @@ import 'general_settings_screen.dart';
 import 'keyboard_shortcuts_screen.dart';
 import 'logs_screen.dart';
 import 'playback_settings_screen.dart';
+import 'powerlink_settings_screen.dart';
 import '../profile/profile_switch_screen.dart';
 import 'services_settings_screen.dart';
 import 'settings_utils.dart';
@@ -102,6 +103,7 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
   static const _kGeneral = 'general';
   static const _kAppearance = 'appearance';
   static const _kPlayback = 'playback';
+  static const _kPowerLink = 'powerlink';
   static const _kManageLibraries = 'manage_libraries';
   static const _kServices = 'services';
   static const _kDownloadLocation = 'download_location';
@@ -225,6 +227,20 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
                       if (!kFireTvNoExternalServices) _buildServicesTile(),
                     ],
                   ),
+
+                  if (Platform.isAndroid && PlatformDetector.isTV())
+                    SettingsGroup(
+                      title: 'PowerLink',
+                      children: [
+                        SettingNavigationTile(
+                          focusNode: _focusTracker.get(_kPowerLink),
+                          icon: Symbols.cast_rounded,
+                          title: 'PowerLink',
+                          subtitle: 'Pair with Home Assistant and discover other rooms',
+                          destinationBuilder: (_) => const PowerLinkSettingsScreen(),
+                        ),
+                      ],
+                    ),
 
                   _buildConnectionsSection(sheetContext),
 
