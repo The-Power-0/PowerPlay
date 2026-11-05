@@ -84,12 +84,14 @@ class _PowerLinkSettingsScreenState extends State<PowerLinkSettingsScreen> {
       final destinations = await _api.discover(identity);
       if (mounted) setState(() { _devices = destinations; _error = null; });
     } catch (err) {
-      if (mounted) setState(() {
-        _devices = null;
-        _error = err is FormatException
+      if (mounted) {
+        setState(() {
+          _devices = null;
+          _error = err is FormatException
             ? err.message.toString()
             : 'Unable to discover registered PowerLink devices.';
-      });
+        });
+      }
     }
   }
 
@@ -166,9 +168,8 @@ class _PowerLinkSettingsScreenState extends State<PowerLinkSettingsScreen> {
             ] else ...[
               ListTile(
                 leading: const Icon(Symbols.check_circle_rounded),
-                title: Text('Paired: ' + identity.sourceName),
-                subtitle: Text(identity.sourceDevice + '\n' +
-                    identity.base.toString()),
+                title: Text('Paired: ${identity.sourceName}'),
+                subtitle: Text('${identity.sourceDevice}\n${identity.base}'),
                 isThreeLine: true,
               ),
               ListTile(

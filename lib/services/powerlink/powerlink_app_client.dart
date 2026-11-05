@@ -37,7 +37,9 @@ class PowerLinkAppCredentials {
     if (url == null || source == null || name == null || token == null) return null;
     final base = Uri.tryParse(url);
     if (base == null || !PowerLinkRequest.validEndpoint(base) ||
-        source.isEmpty || token.length < 40) return null;
+        source.isEmpty || token.length < 40) {
+      return null;
+    }
     return PowerLinkAppIdentity(
       base: base, sourceDevice: source, sourceName: name, token: token,
     );
@@ -77,7 +79,9 @@ class PowerLinkDestination {
     final available = value['available'];
     if (id is! String || !(id.startsWith('media_player.') || id.startsWith('remote.')) ||
         name is! String || name.isEmpty || height is! int || height < 1 ||
-        available is! bool) throw const FormatException('Invalid destination properties');
+        available is! bool) {
+      throw const FormatException('Invalid destination properties');
+    }
     return PowerLinkDestination(
       entityId: id, name: name, maxHeight: height, available: available,
     );
@@ -199,8 +203,7 @@ class PowerLinkAppClient {
           throw const FormatException('Pair this Fire Stick again in PowerLink settings');
         }
         if (response.statusCode < 200 || response.statusCode >= 300) {
-          throw FormatException('PowerLink request failed (HTTP ' +
-              response.statusCode.toString() + ')');
+          throw FormatException('PowerLink request failed (HTTP ${response.statusCode})');
         }
         final bytes = <int>[];
         await for (final chunk in response.stream) {

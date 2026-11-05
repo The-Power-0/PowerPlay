@@ -3,6 +3,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 
 import '../../profiles/active_profile_provider.dart';
+import '../deep_links/deep_link.dart';
 import '../../services/playback_coordinator.dart';
 import 'powerlink_app_client.dart';
 
@@ -88,8 +89,7 @@ class _PowerLinkHandoffPickerState extends State<PowerLinkHandoffPicker> {
       final messenger = ScaffoldMessenger.maybeOf(context);
       Navigator.of(context).pop();
       messenger?.showSnackBar(SnackBar(
-        content: Text('Starting playback on ' + device.name +
-            '. This Fire Stick will pause after the handoff is confirmed.'),
+        content: Text('Starting playback on ${device.name}. This Fire Stick will pause after the handoff is confirmed.'),
       ));
     } catch (err) {
       if (mounted) {
