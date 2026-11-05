@@ -9,7 +9,11 @@ on:
       - 'lib/providers/playback_state_provider.dart'
       - 'lib/services/playback_coordinator.dart'
       - 'lib/screens/video_player_screen.dart'
-      - 'lib/screens/video_player/parts/episode_navigation.dart'
+      - 'lib/screens/video_player/parts/**'
+      - 'lib/screens/settings/powerlink_settings_screen.dart'
+      - 'lib/screens/settings/settings_screen.dart'
+      - 'lib/widgets/video_controls/**'
+      - 'pubspec.yaml'
       - 'test/services/powerlink/**'
       - '.github/workflows/powerlink-app-ci.yml'
   pull_request:
@@ -19,7 +23,11 @@ on:
       - 'lib/providers/playback_state_provider.dart'
       - 'lib/services/playback_coordinator.dart'
       - 'lib/screens/video_player_screen.dart'
-      - 'lib/screens/video_player/parts/episode_navigation.dart'
+      - 'lib/screens/video_player/parts/**'
+      - 'lib/screens/settings/powerlink_settings_screen.dart'
+      - 'lib/screens/settings/settings_screen.dart'
+      - 'lib/widgets/video_controls/**'
+      - 'pubspec.yaml'
       - 'test/services/powerlink/**'
       - '.github/workflows/powerlink-app-ci.yml'
   workflow_dispatch:
@@ -41,7 +49,7 @@ jobs:
       - name: Resolve canonical PowerPlay source
         run: flutter pub get
       - name: Verify PowerLink receiver, active destination takeover and deep links
-        run: flutter test test/services/powerlink/powerlink_transfer_test.dart test/services/powerlink/powerlink_destination_takeover_test.dart test/services/deep_links/deep_link_test.dart test/services/playback_coordinator_test.dart
+        run: flutter test test/services/powerlink/powerlink_transfer_test.dart test/services/powerlink/powerlink_destination_takeover_test.dart test/services/deep_links/deep_link_test.dart test/services/playback_coordinator_test.dart test/services/powerlink/powerlink_app_client_test.dart
       - name: Protect existing playback queue and video-start logic
         run: flutter test test/providers/playback_state_provider_test.dart
       - name: Analyze PowerLink, source capture and player integration
@@ -54,5 +62,9 @@ jobs:
             lib/providers/playback_state_provider.dart \
             lib/screens/video_player_screen.dart \
             lib/screens/video_player/parts/episode_navigation.dart \
+            lib/screens/settings/powerlink_settings_screen.dart \
+            lib/screens/settings/settings_screen.dart \
+            lib/widgets/video_controls \
+            lib/screens/video_player/parts/build.dart \
             test/services/powerlink
 
