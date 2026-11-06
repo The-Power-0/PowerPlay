@@ -17,6 +17,7 @@ on:
       - 'scripts/audit_libass_historical_wraps.py'
       - 'scripts/audit_powerplay_maven_poms.py'
       - 'scripts/check_powerplay_native_signoff.py'
+      - 'scripts/compare_powerplay_libass_archives.py'
       - 'scripts/export_gradle_runtime_artifacts.init.gradle'
       - '.github/workflows/native-license-inventory.yml'
 
@@ -360,3 +361,99 @@ jobs:
           name: PowerPlay-v1.3.9-source-license-signoff-report
           path: compliance-signoff/
           if-no-files-found: error
+
+
+  reproduce-libass-armv7:
+    name: Rebuild historical libass ARMv7 from verified source
+    needs: inspect-separate-static-archives
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-pinned-native-prebuilt-manifests
+          path: reproduced-source-inputs
+      - name: Install original Android libass build prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config nasm gperf python3-pip zip xz-utils
+          python3 -m pip install --user --break-system-packages 'meson>=1.6.0'
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Install original upstream Android NDK family
+        shell: bash
+        env:
+          ORIGINAL_NDK_VERSION: '28.1.13356709'
+        run: |
+          set -euo pipefail
+          if [ ! -x "$ANDROID_HOME/ndk/$ORIGINAL_NDK_VERSION/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar" ]; then
+            SDKMANAGER="$(command -v sdkmanager || echo "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager")"
+            "$SDKMANAGER" "ndk;$ORIGINAL_NDK_VERSION"
+          fi
+          test -x "$ANDROID_HOME/ndk/$ORIGINAL_NDK_VERSION/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/$ORIGINAL_NDK_VERSION" >> "$GITHUB_ENV"
+      - name: Stage tag-pinned libass with time-qualified WrapDB source archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --quiet --depth 1 --branch 0.18.3 \
+            https://github.com/edde746/libass.git /tmp/rep-libass
+          test "$(git -C /tmp/rep-libass rev-parse HEAD)" = \
+            76cdb2bc174828aac74a458d38a0786cb7af922d
+          SOURCE="$GITHUB_WORKSPACE/reproduced-source-inputs/libass-historical-wrapdb-2026-07-10"
+          test -f "$SOURCE/wrapdb-source-manifest.json"
+          mkdir -p /tmp/rep-libass/subprojects/packagecache
+          cp "$SOURCE"/wraps/*.wrap /tmp/rep-libass/subprojects/
+          cp "$SOURCE"/source-archives/* /tmp/rep-libass/subprojects/packagecache/
+          mkdir -p /tmp/rep-libass/subprojects/packagefiles
+          cp -R "$SOURCE"/patches/. /tmp/rep-libass/subprojects/packagefiles/
+          python3 - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          root=Path('reproduced-source-inputs/libass-historical-wrapdb-2026-07-10')
+          m=json.loads((root/'wrapdb-source-manifest.json').read_text())
+          assert m['wrapdb_snapshot_commit']=='99634f253c3f2e83295b210018d071f6570284e6'
+          for comp in m['components']:
+              archive=Path('/tmp/rep-libass/subprojects/packagecache')/Path(comp['source_file']).name
+              actual=hashlib.sha256(archive.read_bytes()).hexdigest()
+              assert actual==comp['source_sha256'],(comp['name'],actual)
+          print('Verified all six source archives and immutable WrapDB snapshot')
+          PY
+      - name: Build ARMv7 libass with the upstream 0.18.3 recipe
+        shell: bash
+        env:
+          ANDROID_API: '21'
+          ANDROID_ABIS: 'armeabi-v7a'
+          DIST_DIR: ${{ github.workspace }}/libass-reproduced-dist
+        run: |
+          set -euo pipefail
+          bash /tmp/rep-libass/.github/scripts/build-android-release.sh \
+            2>&1 | tee /tmp/powerplay-libass-rebuild.log
+          mkdir -p reproduced-comparison
+          cp /tmp/powerplay-libass-rebuild.log reproduced-comparison/build-log.txt
+          meson --version > reproduced-comparison/rebuild-meson-version.txt
+          "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" --version \
+            > reproduced-comparison/rebuild-clang-version.txt
+      - name: Compare source-rebuilt archive against the public historical prebuilt
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 \
+            'https://github.com/edde746/libass/releases/download/0.18.3/libass-android-0.18.3.zip' \
+            -o /tmp/powerplay-original-libass.zip
+          echo 'fc98637752695d7cf9e26b02befaa634dd4cad25a2f38fba80de814bfd310a17  /tmp/powerplay-original-libass.zip' | sha256sum -c -
+          python3 scripts/compare_powerplay_libass_archives.py \
+            --original-zip /tmp/powerplay-original-libass.zip \
+            --rebuilt-zip libass-reproduced-dist/libass-android-0.18.3.zip \
+            --ar-tool "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar" \
+            --output reproduced-comparison
+      - name: Publish libass reproducibility evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-libass-source-reproduction
+          path: reproduced-comparison/
+          if-no-files-found: warn
