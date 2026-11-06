@@ -18,6 +18,7 @@ on:
       - 'scripts/audit_powerplay_maven_poms.py'
       - 'scripts/check_powerplay_native_signoff.py'
       - 'scripts/compare_powerplay_libass_archives.py'
+      - 'scripts/audit_powerplay_dex_classes.py'
       - 'scripts/export_gradle_runtime_artifacts.init.gradle'
       - '.github/workflows/native-license-inventory.yml'
 
@@ -48,6 +49,13 @@ jobs:
           python3 scripts/audit_powerplay_native_release.py \
             --apk release-apk/PowerPlay-v1.3.9.apk \
             --expected-sha256 f832a2c507f997fcb047c0ab899254d1fd111520942e88da50e61ebc82e3c764 \
+            --output audit-evidence
+      - name: Inventory defined Java classes surviving R8 in the published APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/audit_powerplay_dex_classes.py \
+            --apk release-apk/PowerPlay-v1.3.9.apk \
             --output audit-evidence
       - name: Verify AAR-derived FFmpeg and C++ native bytes
         shell: bash
