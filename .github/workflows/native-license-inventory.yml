@@ -18,6 +18,7 @@ on:
       - 'scripts/audit_powerplay_maven_poms.py'
       - 'scripts/check_powerplay_native_signoff.py'
       - 'scripts/compare_powerplay_libass_archives.py'
+      - 'scripts/compare_powerplay_libdovi_archives.py'
       - 'scripts/audit_powerplay_dex_classes.py'
       - 'scripts/export_gradle_runtime_artifacts.init.gradle'
       - '.github/workflows/native-license-inventory.yml'
@@ -473,4 +474,72 @@ jobs:
         with:
           name: PowerPlay-v1.3.9-libass-source-reproduction
           path: reproduced-comparison/
+          if-no-files-found: warn
+
+
+  reproduce-libdovi-armv7:
+    name: Rebuild historical libdovi with March 2026 Rust stable
+    needs: inspect-separate-static-archives
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install the Rust stable version available at the original build date
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: '1.93.1'
+          targets: armv7-linux-androideabi
+      - name: Clone pinned Dolby Vision source and apply original staticlib patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p libdovi-reproduced-evidence
+          rustc --version --verbose > libdovi-reproduced-evidence/rustc-version.txt
+          cargo --version > libdovi-reproduced-evidence/cargo-version.txt
+          git clone --quiet --depth 1 --branch 2.3.1 \
+            https://github.com/quietvoid/dovi_tool.git /tmp/rep-dovi-tool
+          test "$(git -C /tmp/rep-dovi-tool rev-parse HEAD)" = \
+            b25558062e4a56973482ec70133bd7b891320e48
+          cp /tmp/rep-dovi-tool/dolby_vision/Cargo.lock \
+            libdovi-reproduced-evidence/Cargo.lock.before
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          file=Path('/tmp/rep-dovi-tool/dolby_vision/Cargo.toml')
+          original=file.read_text()
+          changed,n=re.subn(r'\[lib\]', '[lib]\ncrate-type = ["staticlib"]', original, count=1)
+          if n!=1:
+              raise SystemExit('Original upstream cargo staticlib patch cannot be reproduced')
+          file.write_text(changed)
+          print('Applied exact upstream staticlib crate-type patch')
+          PY
+      - name: Build original unlocked Cargo command and retain lockfile diff
+        shell: bash
+        working-directory: /tmp/rep-dovi-tool/dolby_vision
+        run: |
+          set -euo pipefail
+          cargo build --release --target armv7-linux-androideabi --features capi \
+            2>&1 | tee "$GITHUB_WORKSPACE/libdovi-reproduced-evidence/cargo-build.log"
+          test -f target/armv7-linux-androideabi/release/libdolby_vision.a
+          cp Cargo.lock "$GITHUB_WORKSPACE/libdovi-reproduced-evidence/Cargo.lock.after"
+      - name: Compare v2.3.1 public prebuilt to pinned Rust source rebuild
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 \
+            'https://github.com/edde746/libdovi-builds/releases/download/v2.3.1/libdovi-armv7-linux-androideabi.tar.gz' \
+            -o /tmp/powerplay-original-dovi.tar.gz
+          echo 'ed6fec8bf744e41c661b97f5fc4bf1197ebe9b09a140cbde369728e790ee3a68  /tmp/powerplay-original-dovi.tar.gz' | sha256sum -c -
+          python3 scripts/compare_powerplay_libdovi_archives.py \
+            --published-tar /tmp/powerplay-original-dovi.tar.gz \
+            --rebuilt-lib /tmp/rep-dovi-tool/dolby_vision/target/armv7-linux-androideabi/release/libdolby_vision.a \
+            --lock-before libdovi-reproduced-evidence/Cargo.lock.before \
+            --lock-after libdovi-reproduced-evidence/Cargo.lock.after \
+            --output libdovi-reproduced-evidence
+      - name: Publish Rust static archive build comparison
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-libdovi-source-reproduction
+          path: libdovi-reproduced-evidence/
           if-no-files-found: warn
