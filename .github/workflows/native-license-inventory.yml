@@ -2,6 +2,12 @@ name: Inventory PowerPlay v1.3.9 native dependencies
 
 on:
   workflow_dispatch:
+    inputs:
+      strict_signoff:
+        description: 'Fail until native source/license obligations are genuinely cleared'
+        type: boolean
+        required: false
+        default: false
   pull_request:
     paths:
       - 'docs/compliance/**'
@@ -10,6 +16,7 @@ on:
       - 'scripts/audit_powerplay_rust_crates.py'
       - 'scripts/audit_libass_historical_wraps.py'
       - 'scripts/audit_powerplay_maven_poms.py'
+      - 'scripts/check_powerplay_native_signoff.py'
       - 'scripts/export_gradle_runtime_artifacts.init.gradle'
       - '.github/workflows/native-license-inventory.yml'
 
@@ -296,3 +303,60 @@ jobs:
           name: PowerPlay-v1.3.9-Android-runtime-graph
           path: audit-dependency-graph/
           if-no-files-found: warn
+
+
+  evaluate-native-source-signoff:
+    name: Reconcile source evidence (release remains blocked)
+    needs:
+      - packaged-native-elfs
+      - inspect-separate-static-archives
+      - resolved-android-runtime-graph
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-ELF-inventory
+          path: compliance-inputs/elf
+      - uses: actions/download-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-pinned-native-prebuilt-manifests
+          path: compliance-inputs/prebuilt
+      - uses: actions/download-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-Android-runtime-graph
+          path: compliance-inputs/gradle
+      - name: Verify every captured source and notice checksum; report blockers
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/check_powerplay_native_signoff.py \
+            --policy docs/compliance/native-v1.3.9-signoff.json \
+            --native compliance-inputs/elf/native-elf-inventory.json \
+            --gradle compliance-inputs/gradle/gradle-runtime-artifacts.json \
+            --rust compliance-inputs/prebuilt/libdovi-locked-source-snapshot/manifest.json \
+            --wrap compliance-inputs/prebuilt/libass-historical-wrapdb-2026-07-10/wrapdb-source-manifest.json \
+            --maven compliance-inputs/gradle/maven-license-reconciliation/maven-pom-license-evidence.json \
+            --output compliance-signoff
+      - name: Strict source/legal compliance sign-off (manual opt-in)
+        if: github.event_name == 'workflow_dispatch' && inputs.strict_signoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/check_powerplay_native_signoff.py \
+            --policy docs/compliance/native-v1.3.9-signoff.json \
+            --native compliance-inputs/elf/native-elf-inventory.json \
+            --gradle compliance-inputs/gradle/gradle-runtime-artifacts.json \
+            --rust compliance-inputs/prebuilt/libdovi-locked-source-snapshot/manifest.json \
+            --wrap compliance-inputs/prebuilt/libass-historical-wrapdb-2026-07-10/wrapdb-source-manifest.json \
+            --maven compliance-inputs/gradle/maven-license-reconciliation/maven-pom-license-evidence.json \
+            --output compliance-signoff \
+            --strict
+      - name: Preserve explicit source/license approval status
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-source-license-signoff-report
+          path: compliance-signoff/
+          if-no-files-found: error
