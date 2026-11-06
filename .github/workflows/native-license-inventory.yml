@@ -171,6 +171,7 @@ jobs:
             --target armv7-linux-androideabi
           python3 scripts/audit_powerplay_rust_crates.py \
             --components audit-prebuilt/libdovi-android-armv7-license-components.json \
+            --lockfile audit-prebuilt/dolby_vision-Cargo.lock \
             --output audit-prebuilt/libdovi-locked-source-snapshot
       - name: Publish prebuilt license provenance evidence
         if: always()
