@@ -52,6 +52,7 @@ def check_checksums(basedir, records, key="sha256"):
 def audit(args):
     policy = read(args.policy)
     native = read(args.native)
+    dex = read(args.dex)
     gradle = read(args.gradle)
     rust = read(args.rust)
     wraps = read(args.wrap)
@@ -59,6 +60,8 @@ def audit(args):
     libass_rebuild = read(args.libass_rebuild)
     if policy["release"] != native["target_release"] or native["target_release"] != gradle["target_release"]:
         raise ValueError("Source ledger and binary reports refer to different releases")
+    if dex["published_apk_sha256"] != policy["signed_apk_sha256"]:
+        raise ValueError("DEX class inventory is not from the signed target APK")
     if native["apk_sha256"] != policy["signed_apk_sha256"]:
         raise ValueError("Ledger checksum differs from the signed APK inventory")
     expected = set(policy["native_components"])
@@ -142,6 +145,9 @@ def audit(args):
         "signed_apk_sha256": policy["signed_apk_sha256"],
         "audit_integrity_passed": True,
         "native_elf_names_reconciled": len(observed),
+        "dex_defined_classes": dex["total_defined_classes"],
+        "recognizable_google_play_services_classes": dex["recognized_package_counts"]["google_play_services"],
+        "dex_inventory_coverage": len(dex["top_level_dex_entries"]),
         "maven_native_binary_byte_matches": len(REQUIRED_MAVEN_NATIVE_ORIGINS),
         "historical_wrapdb_verified_archives": len(wraps["components"]),
         "historical_wrapdb_notices_and_patch_files_verified": wrap_checksum_count,
@@ -191,6 +197,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--policy", type=Path, required=True)
     parser.add_argument("--native", type=Path, required=True)
+    parser.add_argument("--dex", type=Path, required=True)
     parser.add_argument("--gradle", type=Path, required=True)
     parser.add_argument("--rust", type=Path, required=True)
     parser.add_argument("--wrap", type=Path, required=True)
