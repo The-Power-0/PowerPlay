@@ -321,6 +321,7 @@ jobs:
       - packaged-native-elfs
       - inspect-separate-static-archives
       - reproduce-libass-armv7
+      - reproduce-libdovi-armv7
       - resolved-android-runtime-graph
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -342,6 +343,10 @@ jobs:
         with:
           name: PowerPlay-v1.3.9-libass-source-reproduction
           path: compliance-inputs/libass-rebuild
+      - uses: actions/download-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-libdovi-source-reproduction
+          path: compliance-inputs/libdovi-rebuild
       - name: Verify every captured source and notice checksum; report blockers
         shell: bash
         run: |
@@ -354,6 +359,7 @@ jobs:
             --rust compliance-inputs/prebuilt/libdovi-locked-source-snapshot/manifest.json \
             --wrap compliance-inputs/prebuilt/libass-historical-wrapdb-2026-07-10/wrapdb-source-manifest.json \
             --libass-rebuild compliance-inputs/libass-rebuild/libass-armv7-rebuild-comparison.json \
+            --libdovi-rebuild compliance-inputs/libdovi-rebuild/libdovi-armv7-rebuild-comparison.json \
             --maven compliance-inputs/gradle/maven-license-reconciliation/maven-pom-license-evidence.json \
             --output compliance-signoff
       - name: Strict source/legal compliance sign-off (manual opt-in)
@@ -369,6 +375,7 @@ jobs:
             --rust compliance-inputs/prebuilt/libdovi-locked-source-snapshot/manifest.json \
             --wrap compliance-inputs/prebuilt/libass-historical-wrapdb-2026-07-10/wrapdb-source-manifest.json \
             --libass-rebuild compliance-inputs/libass-rebuild/libass-armv7-rebuild-comparison.json \
+            --libdovi-rebuild compliance-inputs/libdovi-rebuild/libdovi-armv7-rebuild-comparison.json \
             --maven compliance-inputs/gradle/maven-license-reconciliation/maven-pom-license-evidence.json \
             --output compliance-signoff \
             --strict
