@@ -80,6 +80,8 @@ jobs:
           Path('audit-evidence/aar-extracted-binary-match.json').write_text(json.dumps(rows,indent=2)+'\n')
           print('All four AAR native library hashes match the shipping APK exactly')
           PY
+      - name: Set up Android SDK for pinned NDK verification
+        uses: android-actions/setup-android@v3
       - name: Verify libc++ provenance against pinned Android NDK 29
         shell: bash
         run: |
