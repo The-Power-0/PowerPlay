@@ -56,6 +56,7 @@ def audit(args):
     rust = read(args.rust)
     wraps = read(args.wrap)
     pom = read(args.maven)
+    libass_rebuild = read(args.libass_rebuild)
     if policy["release"] != native["target_release"] or native["target_release"] != gradle["target_release"]:
         raise ValueError("Source ledger and binary reports refer to different releases")
     if native["apk_sha256"] != policy["signed_apk_sha256"]:
@@ -96,6 +97,16 @@ def audit(args):
             if digest(file) != patch["sha256"]:
                 raise ValueError(f"Incorrect historical Meson patch for {component['name']}")
             wrap_checksum_count += 1
+    # Independently reconstructed from the six SHA-pinned historical wraps,
+    # and compared with the archived upstream ARMv7 libass.a.
+    pinned_libass_sha = "c5cd611c2b0ddbdf9ab863d91e5901789b1623a808081c91627b65a486fffcc3"
+    if not libass_rebuild.get("byte_identical") or not libass_rebuild.get("same_archive_member_sequence"):
+        raise ValueError("Historical libass.a was not independently reproduced byte-identically")
+    if (libass_rebuild.get("published_archive_sha256") != pinned_libass_sha
+            or libass_rebuild.get("rebuilt_archive_sha256") != pinned_libass_sha
+            or libass_rebuild.get("published_archive_members") != 182
+            or libass_rebuild.get("rebuilt_archive_members") != 182):
+        raise ValueError("Historical rebuilt libass.a identity/member count changed")
     unibreak = next(x for x in wraps["components"] if x["name"] == "libunibreak")
     if not any(Path(x["upstream_path"]).name == "LICENCE" for x in unibreak["legal_texts"]):
         raise ValueError("Known missing libunibreak LICENCE not recovered from upstream source")
@@ -140,7 +151,9 @@ def audit(args):
         "maven_poms_retrieved": pom["counts"]["retrieved_poms"],
         "maven_modules_with_published_license_declarations":
             pom["counts"]["modules_with_pom_license_declaration"],
-        "historical_libass_binary_source_provenance_verified": False,
+        "historical_libass_binary_source_provenance_verified": True,
+        "libass_static_archive_sha256": pinned_libass_sha,
+        "libass_static_archive_members_matched": 182,
         "historical_libdovi_binary_source_provenance_verified": False,
         "complete_source_and_notice_signoff": signed_off,
         "release_approval": "CLEARED" if signed_off else "BLOCKED",
@@ -181,6 +194,7 @@ def main():
     parser.add_argument("--gradle", type=Path, required=True)
     parser.add_argument("--rust", type=Path, required=True)
     parser.add_argument("--wrap", type=Path, required=True)
+    parser.add_argument("--libass-rebuild", type=Path, required=True)
     parser.add_argument("--maven", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--strict", action="store_true",
