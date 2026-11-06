@@ -6,6 +6,10 @@ on:
     paths:
       - 'docs/compliance/**'
       - 'scripts/audit_powerplay_native_release.py'
+      - 'scripts/audit_powerplay_gradle_runtime.py'
+      - 'scripts/audit_powerplay_rust_crates.py'
+      - 'scripts/audit_libass_historical_wraps.py'
+      - 'scripts/export_gradle_runtime_artifacts.init.gradle'
       - '.github/workflows/native-license-inventory.yml'
 
 permissions:
@@ -174,6 +178,33 @@ jobs:
             --lockfile audit-prebuilt/dolby_vision-Cargo.lock \
             --dovi-root /tmp/dovi-tool \
             --output audit-prebuilt/libdovi-locked-source-snapshot
+      - name: Preserve exact libass and Dolby Vision upstream source cores
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --quiet --depth 1 --branch 0.18.3 \
+            https://github.com/edde746/libass.git /tmp/powerplay-libass-core
+          test "$(git -C /tmp/powerplay-libass-core rev-parse HEAD)" = \
+            76cdb2bc174828aac74a458d38a0786cb7af922d
+          git -C /tmp/powerplay-libass-core archive --format=tar.gz \
+            --prefix=libass-0.18.3/ \
+            -o "$GITHUB_WORKSPACE/audit-prebuilt/libass-core-v0.18.3-source.tar.gz" HEAD
+          git -C /tmp/dovi-tool archive --format=tar.gz \
+            --prefix=dovi-tool-2.3.1/ \
+            -o "$GITHUB_WORKSPACE/audit-prebuilt/dovi-tool-v2.3.1-source.tar.gz" HEAD
+          (
+            cd audit-prebuilt
+            sha256sum libass-core-v0.18.3-source.tar.gz dovi-tool-v2.3.1-source.tar.gz \
+              > pinned-native-core-source-SHA256SUMS.txt
+          )
+          echo 'These tag-locked upstream source archives do not establish the historical dynamic Meson WrapDB resolution or unlocked Cargo build.' \
+            > audit-prebuilt/pinned-native-core-source-LIMITATIONS.txt
+      - name: Reconstruct historical libass WrapDB source and missing LICENCE texts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/audit_libass_historical_wraps.py \
+            --output audit-prebuilt/libass-historical-wrapdb-2026-07-10
       - name: Publish prebuilt license provenance evidence
         if: always()
         uses: actions/upload-artifact@v4
