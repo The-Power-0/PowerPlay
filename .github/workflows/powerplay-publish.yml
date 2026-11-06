@@ -107,6 +107,22 @@ jobs:
                   assert f'plezy-custom-source/{path}' in names, path
               pubspec=archive.extractfile('plezy-custom-source/pubspec.yaml').read().decode()
               assert f"version: {data['version']}+{data['build_number']}\n" in pubspec
+              # Release notes are version-scoped and part of the exact
+              # source commit used to compile the signed candidate.
+              notes_name=f"plezy-custom-source/.github/powerplay/release-notes/v{data['version']}.md"
+              assert notes_name in names, 'missing release-specific notes'
+              notes=archive.extractfile(notes_name).read().decode('utf-8')
+              assert notes.startswith(f"# PowerPlay v{data['version']} — Fire TV\n")
+              assert "## Changes in this release\n" in notes
+              assert "## Download and source\n" in notes
+              assert "## Build and attribution\n" in notes
+              assert notes.count('{{CANDIDATE_RUN_ID}}') == 2
+              assert notes.count('{{SOURCE_SHA}}') == 1
+              assert "Since v1." not in notes, 'do not repeat prior release changelogs'
+              rendered=notes.replace('{{CANDIDATE_RUN_ID}}',os.environ['CANDIDATE_RUN_ID'])
+              rendered=rendered.replace('{{SOURCE_SHA}}',os.environ['SOURCE_SHA'])
+              assert '{{' not in rendered and '}}' not in rendered
+              Path('../release/RELEASE_NOTES.md').write_text(rendered,encoding='utf-8')
           PY
           unzip -tq "PowerPlay-v$RELEASE_VERSION-rc1-NativeSourceInputs.zip" >/dev/null
           grep -q "name='com.power.powerplay'" apk-badging.txt
@@ -126,52 +142,9 @@ jobs:
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Release already exists, refusing overwrite: $RELEASE_TAG"; exit 1
           fi
-          # Version-specific notes. This does not alter source selection,
-          # signing, APK promotion or release safety checks.
-          PATCH_NOTE=""
-          if [[ "$RELEASE_VERSION" == "1.3.1" ]]; then
-            PATCH_NOTE="- **New in v1.3.1 — PowerLink queue presentation:** preserves series name, S/E labels and Plex thumbnails in transferred shuffled or sequential queues. This corrects visual metadata after handoff without changing exact order, playback position, selected file quality or network workload."
-          elif [[ "$RELEASE_VERSION" == "1.3.9" ]]; then
-            PATCH_NOTE="- **New in v1.3.9 — Fire TV PowerLink destination picker navigation:** after discovering registered TVs, automatically focus the first available room in the player-view dialog. D-pad Up/Down now moves between available rooms, skips unavailable destinations, and reaches Refresh/Cancel actions. Select activates the focused room to initiate the existing authenticated handoff. Preserves existing pairing, resolution mapping, exact queue, source-pause and protected wake behavior. No PowerLink HACS change is required."
-          elif [[ "$RELEASE_VERSION" == "1.3.8" ]]; then
-            PATCH_NOTE="- **New in v1.3.8 — Fire TV PowerLink pairing navigation:** replace plain URL/code TextFields with the existing TV-native keyboard session manager, so both fields can open their keyboards independently. D-pad Up/Down and keyboard Next/Done reliably move focus from URL to nine-digit pairing code to a focusable Pair button. Refresh and Disconnect settings are also reachable by remote. No change to queue transfer, 4K matching, destination takeover, or source pause semantics."
-          elif [[ "$RELEASE_VERSION" == "1.3.7" ]]; then
-            PATCH_NOTE="- **New in v1.3.7 — player-initiated PowerLink:** pair each Fire Stick to its registered Home Assistant PowerLink device with a nine-digit single-use code in Settings → PowerLink, then use the D-pad cast icon during Plex playback to select another room. Includes authenticated on-demand destination discovery, exact Plex shuffle/normal queue and playback-position preservation, re-handoff of an active imported queue, and 1080p/4K selection. Requires the companion PowerLink HACS **v0.2.0** integration. The original Fire Stick is paused only after the new device verifies playback. Long protected wake routines show progress and support bounded request timeouts. First real-device pairing/D-pad and mixed-resolution tests remain recommended."
-          elif [[ "$RELEASE_VERSION" == "1.3.6" ]]; then
-            PATCH_NOTE="- **New in v1.3.6 — PowerLink handoff reliability:** when a receiving Fire Stick is already playing, fully retire its previous video before installing the transferred queue and starting the exact episode. A refused/expired shutdown leaves the existing queue unchanged and avoids overlapping native playback cores. Update the separate PowerLink HACS integration as well: it now pauses the source only after receiving the destination's verified playback-start acknowledgment, never after a failed transfer. An occasional native pointer error may have other causes and still needs a device log if reproduced."
-          fi
-          cat > /tmp/powerplay-release-notes.md <<EOF_NOTES
-          # PowerPlay v$RELEASE_VERSION — Fire TV
-
-          Unofficial GPLv3-licensed Plezy derivative, optimized for Plex movies and TV on Fire OS 7/8.
-
-          - On known 1080p-only Fire Sticks (including Stick Lite), libraries whose name contains \`[4K]\` are hidden by default.
-          - 4K-capable Fire Sticks keep those libraries visible by default, including when their current UI or HDMI mode is 1080p.
-          - Existing library controls let you show an automatically hidden library. That choice persists separately for each profile on that device.
-          - Automatic defaults are not saved into the portable hidden-library list. Newly connected libraries receive the same defaults; removing \`[4K]\` from a name removes only the automatic hiding.
-          - Unknown hardware keeps libraries visible. Explicitly saved Hide choices are preserved.
-          - Includes the PowerPlay 1.1.0 settings defaults, startup branding, and About updates.
-          $PATCH_NOTE
-          - Since v1.3.0 — PowerLink (experimental): supports Home Assistant-initiated on-demand queue capture and destination resume through authenticated one-time, short-lived handoff links.
-          - Transfers retain exact ordered Plex play queues, shuffled/non-shuffled state, repeated episodes, current item and playback position. PowerLink for Home Assistant resolves and serves the destination queue in bounded windows rather than continuously polling the Fire TV.
-          - Per-device resolution policies select the corresponding verified Plex file, including 1080p equivalents for HD Fire Sticks and up to 4K copies for capable devices. Remote/wake methods are configured in the separate Home Assistant integration.
-          - **Requires the companion [PowerLink HACS integration](https://github.com/The-Power-0/PowerLink).** Cross-room handoff is a preview until tested on actual Fire TV devices and Plex profiles; it is not automatically enabled. Existing playback, deep links and local shuffle do not depend on PowerLink.
-          - Since v1.2.4: transparent startup logo blends with Light, Dark, OLED and every curated theme.
-          - Since v1.2.4: four added curated color themes — Aurora, Synthwave, Midnight Gold and Ocean Depths; the two multicolor themes use distinct primary and secondary accents.
-          - Ten curated palettes total, retaining Signature Purple, Moonlight Blue, Ember, Evergreen, Rosé and Monochrome and all saved selections.
-          - Since v1.2.1: D-pad navigation no longer triggers no-op scrolling that collapses or bounces floating library headers.
-          - Each color palette works independently with System, Light, Dark, and true-black OLED display modes.
-          - Theme choices apply live, persist locally on each Fire TV, and keep existing installations on Monochrome until changed.
-          - Native Android launch canvas keeps its stable dark fallback; launcher icon remains unchanged while the Flutter and Android splash foregrounds are separate transparent PNGs.
-          - Retains the PowerPlay 1.1.2 startup resources, 1.1.1 hardware-aware library defaults, and 1.1.0 settings/branding.
-          - Stable APK publication is marked Latest; PowerLink's multi-device handoff feature remains explicitly experimental pending real-device verification.
-
-          Application ID: \`com.power.powerplay\`. Deep links: \`powerplay://\`. Playback: ExoPlayer/Media3; ARMv7 Fire TV APK with the tested Fire TV optimizations retained.
-
-          Install \`PowerPlay-v$RELEASE_VERSION.apk\`. Complete corresponding application source is attached as \`PowerPlay-v$RELEASE_VERSION-Source.tar.gz\`; pinned native-source inputs are in \`PowerPlay-v$RELEASE_VERSION-NativeSourceInputs.zip\`; hashes are in \`SHA256SUMS.txt\`. GitHub's automatic source downloads are not the corresponding APK build source.
-
-          Promoted without recompilation from [candidate run $CANDIDATE_RUN_ID](https://github.com/$GITHUB_REPOSITORY/actions/runs/$CANDIDATE_RUN_ID), workflow commit \`$SOURCE_SHA\`. Original project: https://github.com/edde746/plezy. Not endorsed by Plex, Plezy, or Amazon. Original license notices are retained; the previously deferred full transitive native-dependency license/source review remains unresolved.
-          EOF_NOTES
+          # Notes come from this candidate's reviewed, version-specific
+          # source file, not a running history of previous PowerPlay updates.
+          test -s release/RELEASE_NOTES.md
           gh release create "$RELEASE_TAG" \
             "release/PowerPlay-v$RELEASE_VERSION.apk" \
             "release/PowerPlay-v$RELEASE_VERSION-Source.tar.gz" \
@@ -181,7 +154,7 @@ jobs:
             --target "$SOURCE_SHA" \
             --latest \
             --title "PowerPlay v$RELEASE_VERSION — Fire TV" \
-            --notes-file /tmp/powerplay-release-notes.md
+            --notes-file release/RELEASE_NOTES.md
           LATEST_TAG="$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .tag_name)"
           [[ "$LATEST_TAG" == "$RELEASE_TAG" ]] || { echo "Latest release mismatch: $LATEST_TAG"; exit 1; }
           gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json url,assets \
