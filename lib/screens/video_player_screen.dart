@@ -155,7 +155,7 @@ part 'video_player/parts/seeking.dart';
 part 'video_player/parts/build.dart';
 part 'video_player/parts/watch_together.dart';
 
-final WakelockController _wakelockController = WakelockController();
+// One owner for Android's screen-on flag, including PowerLink's pre-player load.\nfinal WakelockController _wakelockController = powerplayVideoWakelock;
 
 /// Property names the free-form mpv config is not allowed to write.
 ///
