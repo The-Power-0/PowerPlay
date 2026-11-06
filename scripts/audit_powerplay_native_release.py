@@ -24,6 +24,11 @@ KNOWN = {
     "libdovi_bridge.so": ("PowerPlay bridge with static libdovi and Rust crates", "GPL-3.0-only wrapper; libdovi MIT plus crate licenses", "Rust resolved crate closure/build recipe not archived"),
     "libasskt.so": ("PowerPlay subtitle JNI with static libass", "GPL-3.0-only wrapper; ISC and several third-party licenses", "Six wrapped static dependency revisions/sources not archived"),
     "libc++_shared.so": ("Android NDK libc++ runtime (mpv AAR copy)", "Apache-2.0 WITH LLVM-exception (verify binary revision)", "Source/toolchain revision and copy verification pending"),
+    "libdartjni.so": ("Dart jni 0.14.2 native bridge", "BSD-3-Clause", "Verify exact package source/revision and native build output"),
+    "libdatastore_shared_counter.so": ("AndroidX DataStore shared-counter JNI", "Apache-2.0", "Verify resolved AndroidX Maven artifact/version and source/notice"),
+    "libsentry-android.so": ("Sentry Android NDK JNI", "MIT and upstream third-party notices", "Confirm resolved Sentry Android SDK and sentry-native revision"),
+    "libsentry.so": ("Sentry native crash-reporting library", "MIT and upstream third-party notices", "Confirm native source version and any vendored dependencies"),
+    "libsqlite3.so": ("SQLite via Dart sqlite3 3.5.0 native asset", "SQLite public domain; Dart wrapper MIT", "Verify actual SQLite core version, compiled extensions and native binary source"),
 }
 REQUIRED = frozenset(("libapp.so", "libflutter.so", "libavcodec.so",
                       "libavutil.so", "libswresample.so", "libffmpegJNI.so",
