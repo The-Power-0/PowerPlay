@@ -107,6 +107,17 @@ The independent libass upstream [Android 0.18.3 release workflow](https://github
 
 These additions produce reviewable evidence but **do not change the sign-off status**. The original release's incomplete-source warning remains appropriate.
 
+### Verified APK-embedded notice evidence (signed v1.3.9)
+
+The updated ELF inventory job [42161034057](https://github.com/The-Power-0/PowerPlay/actions/runs/42161034057) extracts the actual published APK's legal assets:
+
+- `assets/flutter_assets/NOTICES.Z` — 153,893 compressed bytes, SHA256 `e18eddabcdfd3c6b62197b1b20e7f444477de4ea313c69582cc7b8ddd1484db8`; successfully decoded into 1,560,143 bytes of readable notices. This corpus is genuine distributed attribution evidence, **not** by itself proof that every Flutter engine/Skia/ICU source requirement has been fulfilled.
+- `META-INF/SENTRY_THIRD_PARTY_NOTICES.md` — 24,486 bytes, SHA256 `a2ea6ba8658edd12f4601e7351c2e6fc9eb85f7c1a234b04945ca4fa194a395e`. Sentry Java's documented vendored/third-party notice text is present in the APK; separately inspect native sentry source, its build and license closure.
+- Four AndroidX `META-INF/.../LICENSE.txt` assets are present, each copied from the signed APK and checksum-inventoried. License assets for other Maven components must not be assumed to exist merely because these four are present.
+- All 15 `armeabi-v7a` APK ELF libraries remain identified by name and SHA256, with no as-yet-unclassified library; this is not a static-dependency closure.
+
+The **lockfile-derived** libdovi evidence artifact captures all 15 identified Rust source components. It includes checksum-verified source archives for registry packages and original legal text for each component, including `crc-catalog`'s `LICENSES/` files and the local Dolby Vision MIT license from the pinned dovi_tool tag. Those packages are not a substitute for reconstructing the exact historical `cargo build` resolution.
+
 ### Conclusion
 
 **Corresponding application source: available. Native license and source closure: incomplete.** Until the static/embedded/Gradle/Flutter graphs and a replacement release-native-source bundle are reconciled, do not remove the incompleteness disclosure from existing releases or label v1.3.9 fully compliant.
