@@ -80,6 +80,65 @@ jobs:
           Path('audit-evidence/aar-extracted-binary-match.json').write_text(json.dumps(rows,indent=2)+'\n')
           print('All four AAR native library hashes match the shipping APK exactly')
           PY
+      - name: Verify libc++ provenance against pinned Android NDK 29
+        shell: bash
+        run: |
+          set -euo pipefail
+          NDK_VERSION=29.0.14206865
+          test -n "$ANDROID_HOME"
+          NDK_ROOT="$ANDROID_HOME/ndk/$NDK_VERSION"
+          if [ ! -f "$NDK_ROOT/source.properties" ]; then
+            SDKMANAGER="$(command -v sdkmanager || true)"
+            if [ -z "$SDKMANAGER" ]; then SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"; fi
+            "$SDKMANAGER" "ndk;$NDK_VERSION"
+          fi
+          test -f "$NDK_ROOT/source.properties"
+          clang="$(find "$NDK_ROOT/toolchains/llvm/prebuilt" -path '*/bin/clang' -type f | head -1)"
+          test -n "$clang"
+          "$clang" --version > audit-evidence/pinned-ndk-clang-version.txt
+          cp "$NDK_ROOT/source.properties" audit-evidence/pinned-ndk-source.properties
+          python3 - "$NDK_ROOT" <<'PY'
+          import hashlib,json,sys,zipfile
+          from pathlib import Path
+          ndk=Path(sys.argv[1])
+          native=list((ndk/'toolchains/llvm/prebuilt').glob(
+              '*/sysroot/usr/lib/arm-linux-androideabi/libc++_shared.so'))
+          if len(native)!=1:
+              raise SystemExit('Could not uniquely resolve NDK ARMv7 libc++ runtime: '+str(native))
+          data=native[0].read_bytes()
+          with zipfile.ZipFile('release-apk/PowerPlay-v1.3.9.apk') as archive:
+              shipped=archive.read('lib/armeabi-v7a/libc++_shared.so')
+          result={
+              'release':'powerplay-v1.3.9',
+              'upstream_mpv_build_commit':'3b9f38affe3c4171f8e6bc47331feffd3d13be1d',
+              'upstream_toolchain_pin':'toolchain/android.txt: ndk=29.0.14206865',
+              'ndk_revision':'29.0.14206865',
+              'ndk_source_properties':(ndk/'source.properties').read_text().strip(),
+              'toolchain_path_relative_to_ndk':str(native[0].relative_to(ndk)),
+              'ndk_armv7_libcxx_sha256':hashlib.sha256(data).hexdigest(),
+              'shipped_libcxx_sha256':hashlib.sha256(shipped).hexdigest(),
+              'byte_identical':data==shipped,
+              'llvm_notice_files':[],
+              'limitations':'Binary identity proves toolchain origin, not legal/source closure.',
+          }
+          for notice in sorted(ndk.glob('**/LICENSE.TXT')):
+              if 'llvm' not in str(notice).lower() and 'c++' not in str(notice).lower():
+                  continue
+              if notice.stat().st_size>1048576:
+                  continue
+              original=notice.read_bytes()
+              dst=Path('audit-evidence/ndk-libcxx-notices')/notice.relative_to(ndk)
+              dst.parent.mkdir(parents=True,exist_ok=True)
+              dst.write_bytes(original)
+              result['llvm_notice_files'].append({
+                  'relative_path':str(notice.relative_to(ndk)),
+                  'sha256':hashlib.sha256(original).hexdigest(),
+              })
+          Path('audit-evidence/ndk-libcxx-provenance.json').write_text(json.dumps(result,indent=2)+'\n')
+          if data!=shipped:
+              raise SystemExit('NDK 29 ARMv7 libc++ does NOT match shipped APK')
+          print('APK libc++ runtime is byte-identical to NDK 29.0.14206865')
+          PY
       - name: Publish inspectable ELF audit
         if: always()
         uses: actions/upload-artifact@v4
