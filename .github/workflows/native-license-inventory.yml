@@ -162,6 +162,16 @@ jobs:
           PY
           echo 'CAUTION: This is tag/Cargo.lock resolution, not an attestation of the prebuilt artifact.' \
             > audit-prebuilt/PROVENANCE-LIMITATION.txt
+      - name: Preserve checksum-verified lockfile Rust crates and legal notices
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo fetch --locked \
+            --manifest-path /tmp/dovi-tool/dolby_vision/Cargo.toml \
+            --target armv7-linux-androideabi
+          python3 scripts/audit_powerplay_rust_crates.py \
+            --components audit-prebuilt/libdovi-android-armv7-license-components.json \
+            --output audit-prebuilt/libdovi-locked-source-snapshot
       - name: Publish prebuilt license provenance evidence
         if: always()
         uses: actions/upload-artifact@v4
