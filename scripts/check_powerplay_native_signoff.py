@@ -58,6 +58,7 @@ def audit(args):
     wraps = read(args.wrap)
     pom = read(args.maven)
     libass_rebuild = read(args.libass_rebuild)
+    libdovi_rebuild = read(args.libdovi_rebuild)
     if policy["release"] != native["target_release"] or native["target_release"] != gradle["target_release"]:
         raise ValueError("Source ledger and binary reports refer to different releases")
     if dex["published_apk_sha256"] != policy["signed_apk_sha256"]:
@@ -114,6 +115,17 @@ def audit(args):
     if not any(Path(x["upstream_path"]).name == "LICENCE" for x in unibreak["legal_texts"]):
         raise ValueError("Known missing libunibreak LICENCE not recovered from upstream source")
 
+    # Historical Rust stable toolchain and unlocked build command reproduced
+    # the original checksum-pinned ARMv7 libdovi.a byte-for-byte.
+    pinned_dovi_sha = "9f5e4e7cbacdf26581a6c2832ececa3caa33ac805c6f808b4f02febfc76eeb39"
+    if (not libdovi_rebuild.get("byte_identical")
+            or not libdovi_rebuild.get("member_sequence_equal")
+            or not libdovi_rebuild.get("cargo_lock_unchanged_by_historical_unlocked_command")
+            or libdovi_rebuild.get("published_libdovi_sha256") != pinned_dovi_sha
+            or libdovi_rebuild.get("reproduced_libdovi_sha256") != pinned_dovi_sha
+            or libdovi_rebuild.get("published_archive_members") != 443
+            or libdovi_rebuild.get("rebuilt_archive_members") != 443):
+        raise ValueError("Historical libdovi.a provenance was not reproduced byte-identically")
     if len(rust) != 15 or len({(x["name"], x["version"]) for x in rust}) != 15:
         raise ValueError("Expected 15 lockfile-selected Rust package records")
     rust_root = args.rust.parent
@@ -160,7 +172,9 @@ def audit(args):
         "historical_libass_binary_source_provenance_verified": True,
         "libass_static_archive_sha256": pinned_libass_sha,
         "libass_static_archive_members_matched": 182,
-        "historical_libdovi_binary_source_provenance_verified": False,
+        "historical_libdovi_binary_source_provenance_verified": True,
+        "libdovi_static_archive_sha256": pinned_dovi_sha,
+        "libdovi_static_archive_members_matched": 443,
         "complete_source_and_notice_signoff": signed_off,
         "release_approval": "CLEARED" if signed_off else "BLOCKED",
         "open_blockers": remaining,
@@ -202,6 +216,7 @@ def main():
     parser.add_argument("--rust", type=Path, required=True)
     parser.add_argument("--wrap", type=Path, required=True)
     parser.add_argument("--libass-rebuild", type=Path, required=True)
+    parser.add_argument("--libdovi-rebuild", type=Path, required=True)
     parser.add_argument("--maven", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--strict", action="store_true",
