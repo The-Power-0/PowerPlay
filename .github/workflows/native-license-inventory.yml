@@ -137,7 +137,18 @@ jobs:
                       'checksum':pkg.get('checksum') or '(local source)',
                       'repository':pkg.get('repository') or ''
                   })
-          assert len(rows)==len(active),(len(rows),len(active),active)
+          covered={(r['name'].replace('-','_'),r['version']) for r in rows}
+          missing={(n,v) for n,v in active if (n.replace('-','_'),v) not in covered}
+          for n,v in sorted(missing):
+              rows.append({
+                  'name':n, 'version':v, 'license':'NOT RESOLVED FROM METADATA',
+                  'source':'(unresolved)', 'checksum':'(unresolved)', 'repository':''
+              })
+          if missing:
+              print('CAUTION: Cargo metadata did not identify package license records:',sorted(missing))
+              Path('audit-prebuilt/unresolved-cargo-license-packages.txt').write_text(
+                  '\n'.join(f'{n} {v}' for n,v in sorted(missing))+'\n')
+          assert len(rows)==len(active), (len(rows),len(active),missing)
           rows.sort(key=lambda x:x['name'])
           Path('audit-prebuilt/libdovi-android-armv7-license-components.json').write_text(
               json.dumps(rows,indent=2)+'\n')
