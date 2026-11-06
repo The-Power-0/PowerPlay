@@ -5,7 +5,8 @@ import groovy.json.JsonOutput
 gradle.projectsEvaluated {
     def app = gradle.rootProject.findProject(':app')
     if (app == null) {
-        throw new GradleException("Cannot find :app project for dependency audit")
+        // Flutter plugin-loader included builds have their own root, with no :app.
+        return
     }
     app.tasks.register('exportReleaseRuntimeArtifacts') {
         group = 'verification'
