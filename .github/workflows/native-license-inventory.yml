@@ -201,7 +201,25 @@ jobs:
                       if not member.isfile() or member.size>524288:
                           continue
                       base=Path(member.name).name
-                      if not re.match(r'^(LICENSE|LICENCE|COPYING|NOTICE|COPYRIGHT)([._-].*)?        if: always()
+                      if not re.match(r'^(LICENSE|LICENCE|COPYING|NOTICE|COPYRIGHT)([._-].*)?$',base,re.I):
+                          continue
+                      raw=tar.extractfile(member).read()
+                      if b'\x00' in raw:
+                          continue
+                      out=notice_dest/f'{name}-{version}'/base
+                      out.parent.mkdir(parents=True,exist_ok=True)
+                      out.write_bytes(raw)
+                      record['license_texts'].append({'file':base,'sha256':hashlib.sha256(raw).hexdigest()})
+              records.append(record)
+          (dest/'manifest.json').write_text(json.dumps(records,indent=2)+'\n')
+          (dest/'PROVENANCE-LIMIT.txt').write_text(
+              'These Cargo.lock-selected crate archives and notices are not evidence of the exact dependency resolution used by the historical unlocked binary build.\n')
+          if errors:
+              raise SystemExit('Missing locked crate sources: '+'; '.join(errors))
+          print('Preserved '+str(len(records))+' crate and local-package records, including license text snapshots')
+          PY
+      - name: Publish prebuilt license provenance evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: PowerPlay-v1.3.9-pinned-native-prebuilt-manifests
