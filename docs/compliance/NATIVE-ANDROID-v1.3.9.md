@@ -169,6 +169,23 @@ The audit workflow downloaded the six checksum-pinned upstream source archives, 
 
 The proof is stronger than a version-string match and establishes **practical corresponding source and reproducibility for that combined static archive**. This closes `SRC-001` in the machine-readable sign-off ledger. It does *not* retroactively add `LICENCE` to the public release or fulfill the remaining static LGPL requirements. Nor does it close FFmpeg/Chromium/Sentry/Flutter or the separate unlocked Rust-native archive.
 
+### Signed DEX class-definition evidence and Google SDK licensing
+
+An additional audit reads the actual signed APK's `classes.dex` **class_defs** structures, not text-string matches. `classes.dex` (SHA256 `4207d148ea269632ca55507d6bdbb2fee23724b194c22ededdc917ce6b5b0a1e`) contains **5,605 defined classes**, with recognizable surviving package namespaces:
+
+| Java/Kotlin namespace in signed release | Defined classes |
+| --- | ---: |
+| `com.google.android.gms` | **16** |
+| `com.google.android.datatransport` | **4** |
+| `org.chromium.net` | **125** |
+| `io.sentry` | **796** |
+| `androidx.media3` | **10** |
+| `androidx.work` | **16** |
+
+This demonstrates that Google Play Services code is **not fully absent** from the published Fire TV APK, despite R8 shrinking. Some additional code might be obfuscated or renamed, so these are reliable *recognizable class* counts, not proof of total origin-by-library class counts. The signed binary may also contain native code outside DEX.
+
+Combining this evidence with the six `com.google.android.gms` POM entries referencing the [Android SDK License Agreement](https://developer.android.com/studio/terms) makes license compatibility and redistribution terms an **active review requirement**, not a purely theoretical unused-dependency concern. The agreement's SDK restrictions have an open-source carve-out and do not necessarily determine the redistribution rights of each packaged Google Play Services artifact in an Android app. Establish actual artifact terms and GPLv3 compatibility without assuming either blanket permission or an automatic violation. The DEX report is preserved in the workflow's `PowerPlay-v1.3.9-ELF-inventory` artifact.
+
 ### Conclusion
 
 **Corresponding application source: available. Native license and source closure: incomplete.** Until the static/embedded/Gradle/Flutter graphs and a replacement release-native-source bundle are reconciled, do not remove the incompleteness disclosure from existing releases or label v1.3.9 fully compliant.
