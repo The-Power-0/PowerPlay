@@ -348,6 +348,7 @@ jobs:
           python3 scripts/check_powerplay_native_signoff.py \
             --policy docs/compliance/native-v1.3.9-signoff.json \
             --native compliance-inputs/elf/native-elf-inventory.json \
+            --dex compliance-inputs/elf/dex-defined-class-inventory.json \
             --gradle compliance-inputs/gradle/gradle-runtime-artifacts.json \
             --rust compliance-inputs/prebuilt/libdovi-locked-source-snapshot/manifest.json \
             --wrap compliance-inputs/prebuilt/libass-historical-wrapdb-2026-07-10/wrapdb-source-manifest.json \
@@ -362,6 +363,7 @@ jobs:
           python3 scripts/check_powerplay_native_signoff.py \
             --policy docs/compliance/native-v1.3.9-signoff.json \
             --native compliance-inputs/elf/native-elf-inventory.json \
+            --dex compliance-inputs/elf/dex-defined-class-inventory.json \
             --gradle compliance-inputs/gradle/gradle-runtime-artifacts.json \
             --rust compliance-inputs/prebuilt/libdovi-locked-source-snapshot/manifest.json \
             --wrap compliance-inputs/prebuilt/libass-historical-wrapdb-2026-07-10/wrapdb-source-manifest.json \
