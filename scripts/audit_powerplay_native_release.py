@@ -12,6 +12,7 @@ import shutil
 import subprocess
 import tempfile
 import zipfile
+import zlib
 from pathlib import Path
 
 KNOWN = {
@@ -93,6 +94,44 @@ def audit(apk, expected_sha, output):
                         size=len(data), sha256=sha256(data), **identity(name))
             item.update(needed_from_elf(f"lib-{i}.so", data, Path(tmp)))
             entries.append(item)
+    # Flutter often embeds the actual engine/Dart notice corpus in NOTICES.Z.
+    # Keep the exact bytes and a decoded copy when the format is understood.
+    # Other shipped textual license assets also deserve explicit inventory.
+    legal_assets = []
+    with zipfile.ZipFile(apk) as archive:
+        for filename in sorted(archive.namelist()):
+            lower = filename.lower()
+            if filename.endswith("/"):
+                continue
+            if not (
+                lower.endswith("/notices.z")
+                or lower.startswith("assets/licenses/")
+                or (lower.startswith("meta-inf/") and
+                    any(term in lower for term in ("license", "licence", "notice", "copying")))
+            ):
+                continue
+            original = archive.read(filename)
+            record = {"apk_path": filename, "size": len(original), "sha256": sha256(original)}
+            output_name = sha256(filename.encode())[:16] + "-" + Path(filename).name
+            dest = output / "embedded-license-assets" / output_name
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_bytes(original)
+            record["copied_to"] = str(dest)
+            if lower.endswith("/notices.z"):
+                try:
+                    decoded = zlib.decompress(original)
+                except zlib.error:
+                    try:
+                        decoded = zlib.decompress(original, 16 + zlib.MAX_WBITS)
+                    except zlib.error as error:
+                        record["decode_error"] = str(error)
+                    else:
+                        record["decoded_sha256"] = sha256(decoded)
+                        (output / "flutter-notices-decoded.txt").write_bytes(decoded)
+                else:
+                    record["decoded_sha256"] = sha256(decoded)
+                    (output / "flutter-notices-decoded.txt").write_bytes(decoded)
+            legal_assets.append(record)
     abis = sorted({entry["abi"] for entry in entries})
     names = {entry["name"] for entry in entries}
     missing = sorted(REQUIRED - names)
@@ -106,6 +145,7 @@ def audit(apk, expected_sha, output):
         "apk_sha256": actual,
         "abi_list": abis,
         "library_count": len(entries),
+        "embedded_license_assets": legal_assets,
         "missing_expected_libraries": missing,
         "unclassified_packaged_libraries": unclassified,
         "unresolved_external_sonames": unresolved_sonames,
