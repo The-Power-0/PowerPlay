@@ -17,6 +17,8 @@ The three GMS client artifacts are application build inputs with implementation 
 
 The evidence supports a **hold** for the current public binary. It does not certify infringement or full compliance. The [ledger](native-v1.3.9-signoff.json) retains the required evidence for release clearance. The privately saved review files are evidence for assembling a corrected public source and notice package.
 
+The [APK payload review](APK-PAYLOAD-REVIEW-v1.3.9.md) records the subsequent Play Billing finding, Dart source checks, and asset provenance.
+
 ## Run the isolated Fire TV check
 
 Use the ARMv7 FriBidi relink kit to build `modified.so`. Install Python with pyelftools and Android Build Tools. The unsigned APK builder verifies the original release digest before replacing the ELF.

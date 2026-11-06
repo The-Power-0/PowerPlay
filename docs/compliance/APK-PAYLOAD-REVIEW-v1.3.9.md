@@ -1,0 +1,24 @@
+# PowerPlay v1.3.9 APK payload review
+
+The signed ARMv7 APK contains 506 file entries. The review inventory records each entry's size and SHA-256 and maps all 296 compiled resource files to names in the APK's Android resource table. The table shows what shipped. Original ownership of merged resources and bytecode renamed by R8 cannot be inferred from those names alone. See the [payload summary](evidence-v1.3.9/application-payload-review.json).
+
+| Shipped material | Result |
+| --- | --- |
+| Flutter app assets | 68 entries match the verified public application source archive byte-for-byte, including the chapter model, original application artwork, the bundled shader presets and the modified NoSleep JavaScript. The opacity image matches the lockfile-pinned flex_color_picker 3.8.0 archive. |
+| Font inputs | The Go Noto Current font matches the exact v7.0 release. Running the archived Hangul generation script against the published Go Noto Kurrent v7.0 input recreates the shipped font byte-for-byte. The pinned Flutter font-subset tool recreates the four Material icon font subsets byte-for-byte from the framework's Material Icons archive and the locked Material Symbols package. |
+| Framework shaders | Both packaged Flutter runtime shaders rebuild byte-for-byte using the framework commit's GLSL source and the pinned engine's Impeller compiler. |
+| Dart sources | Verified all 180 hosted package archives against the release lockfile, retrieved all seven pinned Git package inputs and collected available original license files from all 187. Four local paths and five SDK records resolve separately. The lockfile includes development inputs, so the counts describe source availability for the resolved build, not the set of packages retained by the AOT compiler. |
+| Google Play Billing | `billing.properties` names version 8.0.0. Three recognizable DEX classes match names in the exact Google Maven AAR, including two activity classes and `Purchase`. The signed DEX contains 14 method bodies in those three classes. The POM identifies the Android SDK license. The standard source JAR URL returns HTTP 404. The AAR's embedded third-party notices do not establish the applicable grant for Google's retained client implementation. |
+
+The [Google Play Billing POM](evidence-v1.3.9/billing-8.0.0.pom), [DEX evidence](evidence-v1.3.9/billing-dex-evidence.json) and [Google Billing architecture](https://developer.android.com/google/play/billing/) distinguish the bundled library from the external billing service. Resolve exact artifact rights and the GPLv3 treatment of the bundled billing client together with the Google Play Services findings in MAVEN-011. See the [Android SDK terms](https://developer.android.com/studio/terms) and [GPLv3 sections 1, 5, 6 and 12](https://opensource.org/license/gpl-3.0).
+
+Retain these attributions in the applicable distribution materials:
+
+- The pinned Flutter archive supplies a **CC BY 4.0** text for its Material Icons font. Preserve that text and Google's attribution, and identify the shipped glyph subset as modified. Preserve the lockfile-pinned Material Symbols package license and font attribution separately.
+- The Go Noto TTF metadata identifies **OFL 1.1**. Retain the original Noto notices and identify the renamed Hangul subset as modified. The Go Noto build scripts and the merged font files have separate terms. The audit verified the released font inputs, but not each original constituent font license and reserved-name declaration from the historical merge.
+- Anime4K, ArtCNN and NVScaler files carry their MIT terms in the exact shipped shader source. Preserve those in-file notices and attribution. The shipped NoSleep script matches the release source and identifies its MIT origin. Retain the original MIT notice and identify the modifications.
+- Third-party service and player icons are packaged and have matching files in the released source. Byte identity does not establish permission for their copyright or trademark use. The bundled artwork needs the applicable upstream grants or usage terms recorded.
+
+The shipped chapter classifier weights match the public archive and the archive contains the training script. The original training dataset is absent. The upstream trainer explicitly expects chapter metadata from media libraries. Record the dataset provenance, how the exact weights were produced, and the rights and practical source-delivery treatment for those inputs. The audit does not assume that access to a user's private library is required or authorized.
+
+The [release disposition](SOURCE-REVIEW-DISPOSITION-v1.3.9.md) and [signoff ledger](native-v1.3.9-signoff.json) retain the distribution hold. The open-source evidence archive and original notices can be reviewed independently of the rights question for Google artifacts.

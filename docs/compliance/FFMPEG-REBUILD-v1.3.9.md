@@ -9,3 +9,5 @@ Use the release's `PowerPlay-v1.3.9-NativeSourceInputs.zip` with SHA-256 `9b58ba
 5. Strip the rebuilt `libavcodec.so`, `libavutil.so` and `libswresample.so` under `platforms/android/deps/ffmpeg/_build` with NDK `llvm-strip --strip-unneeded`. Compare each to the matching ELF extracted from the original signed APK using `scripts/compare_powerplay_review_elf.py ORIGINAL REBUILT` with pyelftools installed.
 
 The verified run matched every byte after masking only the GNU build-ID descriptor. Run from the same checkout and Cargo paths because they appear in the shipped binary. See the [comparison report](evidence-v1.3.9/ffmpeg-binary-comparison.json).
+
+The [file-level notice index](evidence-v1.3.9/ffmpeg-extra-notices.json) identifies 31 files with additional or distinct terms from 1,675 source paths observed in the matching rebuilds. Preserve the original header texts from the supplement and the original full source files.

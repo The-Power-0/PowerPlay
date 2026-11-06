@@ -8,7 +8,7 @@
   "human_license_review_approved": false,
   "version_specific_complete_source_bundle_verified": false,
   "native_components": {
-    "libapp.so": "PowerPlay Flutter AOT application; source release archive verified, but app-wide source closure remains pending",
+    "libapp.so": "The application source archive is verified. All 180 lockfile-hosted Dart inputs have verified source archives and all seven Git inputs were retrieved. Exact AOT reproduction, original training inputs for the shipped chapter model and other app-wide rights remain unverified.",
     "libasskt.so": "Tagged JNI relink matches the signed ELF except for its GNU build ID. Source-built modified FriBidi relinks successfully. Device test and public distribution remain open.",
     "libavcodec.so": "Rebuilt from pinned patched FFmpeg, dav1d and Dolby Vision Rust sources. All bytes match except the GNU build-ID descriptor.",
     "libavutil.so": "Rebuilt from pinned patched FFmpeg. All bytes match except the GNU build-ID descriptor.",
@@ -57,8 +57,9 @@
     {
       "id": "FFMPEG-005",
       "area": "FFmpeg GPLv3 and static libraries",
-      "detail": "All three shipped ARMv7 FFmpeg libraries independently rebuilt and matched except the GNU build-ID descriptor. Pinned source, locked Rust crates, patches, configuration, IJG terms and build instructions captured.",
-      "required_evidence": "Finish file-specific notice review and publish source and notices with RELEASE-012."
+      "detail": "All three shipped ARMv7 FFmpeg libraries independently rebuilt and matched except the GNU build-ID descriptor. Pinned source, locked Rust crates, patches, configuration, IJG terms and build instructions captured. Reviewed headers for 1,675 FFmpeg source paths in the matching rebuilds and retained 31 with additional or distinct terms. This includes ISC-style grants, BSD notices, the IJG terms and Mark Adler\u2019s zlib-derived Adler-32 notice.",
+      "required_evidence": "Include the corresponding source, exact build recipes, and original FFmpeg file-specific attribution with RELEASE-012.",
+      "status": "awaiting_publication"
     },
     {
       "id": "LLVM-006",
@@ -93,8 +94,8 @@
     {
       "id": "MAVEN-011",
       "area": "Android runtime dependencies",
-      "detail": "All 137 Maven module POMs were retrieved (133 with a license declaration). The signed APK still defines 16 recognizable Google Play Services classes and four DataTransport classes after shrinking; these are not merely absent/runtime-only Gradle dependencies. Six GMS modules declare Android SDK License terms. File-level terms, actual redistributed Java/native code and GPLv3 compatibility remain unresolved. Fifteen surviving class names match the exact Google Maven base, basement and cronet AARs. Their embedded third-party license lists do not establish terms for the Google client classes. Ten recognizable GMS classes contain 61 method bodies. The standard Google Maven source JAR URLs for the three matched artifacts return HTTP 404. Artifact-specific source and grant are unavailable in the reviewed public evidence.",
-      "required_evidence": "Obtain terms and source for the retained Google client code, or document a supported exception. Review GPLv3 compatibility and public Corresponding Source delivery for the exact signed APK.",
+      "detail": "All 137 Maven module POMs were retrieved (133 with a license declaration). The signed APK still defines 16 recognizable Google Play Services classes and four DataTransport classes after shrinking; these are not merely absent/runtime-only Gradle dependencies. Six GMS modules declare Android SDK License terms. File-level terms, actual redistributed Java/native code and GPLv3 compatibility remain unresolved. Fifteen surviving class names match the exact Google Maven base, basement and cronet AARs. Their embedded third-party license lists do not establish terms for the Google client classes. Ten recognizable GMS classes contain 61 method bodies. The standard Google Maven source JAR URLs for the three matched artifacts return HTTP 404. Artifact-specific source and grant are unavailable in the reviewed public evidence. Play Billing 8.0.0 adds three matching classes and 14 method bodies. Its POM cites the Android SDK license and its standard source JAR URL returns 404.",
+      "required_evidence": "Obtain applicable terms and source for the retained Play Services and Play Billing client implementations, or document a supported exception, and complete public Corresponding Source review.",
       "status": "blocked_external_evidence"
     },
     {
@@ -109,6 +110,13 @@
       "detail": "The audited GitHub download conveys the standalone APK for separately acquired hardware. GPLv3 section 6 installation information is conditional on a transaction transferring possession or use of a User Product, which is not present in this delivery.",
       "required_evidence": "Distribution facts assessment recorded. Complete section 6(d) public Corresponding Source delivery under RELEASE-012 and reassess installation information if distribution includes hardware.",
       "status": "closed"
+    },
+    {
+      "id": "ASSET-014",
+      "area": "Application assets and generated payloads",
+      "status": "open_external_provenance",
+      "detail": "Verified 506 APK entries, exact archived asset matches, six Material/Flutter generated payloads and the reconstructed Hangul font. The chapter classifier has shipped weights and a training script, but its exact original data is absent. Third-party logo terms and constituent Go Noto font notices require provenance.",
+      "required_evidence": "Confirm original chapter model input provenance and applicable source obligations, terms for bundled logos and constituent font notices, and include original notices in the public distribution."
     }
   ],
   "limitations": [
