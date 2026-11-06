@@ -153,6 +153,16 @@ The `scripts/audit_libass_historical_wraps.py` workflow integration downloads al
 
 **Remaining limitation:** the historical libass job did not pin a WrapDB snapshot or preserve its resolved dependency manifests/compilation records. Therefore date-qualified source checksums do not by themselves prove that the compiled `libass.a` was built from these exact archives. The related static LGPL-2.1 compliance route (relinkable objects versus suitable GPL conversion under the actual license terms) must also be resolved before source-closure sign-off.
 
+### Maven POM and source-JAR legal evidence (137 unique module coordinates)
+
+The checksum-verified runtime graph contains **230 artifact records representing 137 unique external Maven modules**, not 230 distinct dependencies. The `scripts/audit_powerplay_maven_poms.py` job retrieved the POM for **all 137/137 modules** from Google Maven, Maven Central or Flutter's repository, and recorded upstream parent POM inheritance, source-control links, license declarations and original POM SHA256 values. Published license declarations were found for **133/137**. The only four without a declaration in those POMs are Flutter release engine/embedding Maven coordinates; review those from the pinned Flutter engine source and its distributed `NOTICES.Z`, not by guessing a license from absent POM tags.
+
+Four high-priority source JARs were downloaded with exact hashes for `cronet-embedded`, `cronet-api`, `sentry-native-ndk`, and `datastore-core-android`. Java/Kotlin source JARs **do not prove** the corresponding source of a bundled Chromium, Sentry or SQLite native binary. The full per-module manifest is in the `PowerPlay-v1.3.9-Android-runtime-graph` workflow artifact.
+
+**Licensing review escalation:** six runtime modules in `com.google.android.gms` (play-services-base, basement, cronet, location, places-placereport and tasks) declare the **Android Software Development Kit License** in their POM metadata, rather than an ordinary Apache/MIT grant. The linked [Google SDK terms](https://developer.android.com/studio/terms) have separate redistribution restrictions and open-source-component exceptions. This is **not** proof the PowerPlay distribution violates those terms, nor proof GPLv3 incompatibility; establish precisely which Google SDK code is shipped after shrinking, which specific artifact terms permit that redistribution, and whether it is distributed as part of the GPL-covered combined work. Avoid publishing a blanket GPL compatibility certification until reviewed.
+
+The Chromium Cronet POM references a Chromium-and-built-in-dependencies license resource for version `143.0.7445.0`. The native asset is independently proven byte-identical to `org.chromium.net:cronet-embedded:143.7445.0`, but the license URL's availability and full embedded third-party/native source closure still require investigation.
+
 ### Conclusion
 
 **Corresponding application source: available. Native license and source closure: incomplete.** Until the static/embedded/Gradle/Flutter graphs and a replacement release-native-source bundle are reconciled, do not remove the incompleteness disclosure from existing releases or label v1.3.9 fully compliant.
