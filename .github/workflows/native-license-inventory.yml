@@ -36,12 +36,89 @@ jobs:
             --apk release-apk/PowerPlay-v1.3.9.apk \
             --expected-sha256 f832a2c507f997fcb047c0ab899254d1fd111520942e88da50e61ebc82e3c764 \
             --output audit-evidence
+      - name: Verify AAR-derived FFmpeg and C++ native bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 \
+            'https://github.com/edde746/mpv-build/releases/download/binaries-android/mpv-android-2f74669e1ec7.aar' \
+            -o /tmp/mpv-android-pinned.aar
+          echo '8ad8dbf2ebae864a14d768d7787895a74d044f18b270df886e76c9a23ee80158  /tmp/mpv-android-pinned.aar' | sha256sum -c -
+          python3 - <<'PY'
+          import json,zipfile,hashlib
+          from pathlib import Path
+          rows=[]
+          with zipfile.ZipFile('/tmp/mpv-android-pinned.aar') as a, zipfile.ZipFile('release-apk/PowerPlay-v1.3.9.apk') as b:
+              for name in ('libavcodec.so','libavutil.so','libswresample.so','libc++_shared.so'):
+                  source=a.read('jni/armeabi-v7a/'+name)
+                  shipped=b.read('lib/armeabi-v7a/'+name)
+                  if source!=shipped:
+                      raise SystemExit(f'Binary mismatch between pinned AAR and APK: {name}')
+                  rows.append(dict(name=name,sha256=hashlib.sha256(source).hexdigest(),equal=True))
+          Path('audit-evidence/aar-extracted-binary-match.json').write_text(json.dumps(rows,indent=2)+'\n')
+          print('All four AAR native library hashes match the shipping APK exactly')
+          PY
       - name: Publish inspectable ELF audit
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: PowerPlay-v1.3.9-ELF-inventory
           path: audit-evidence/
+          if-no-files-found: warn
+
+
+  inspect-separate-static-archives:
+    name: Inspect pinned libass and libdovi prebuilt manifests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - name: Validate checksum-pinned prebuilt archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p audit-prebuilt
+          curl -fsSL --retry 3 \
+            'https://github.com/edde746/libass/releases/download/0.18.3/libass-android-0.18.3.zip' \
+            -o /tmp/powerplay-libass.zip
+          echo 'fc98637752695d7cf9e26b02befaa634dd4cad25a2f38fba80de814bfd310a17  /tmp/powerplay-libass.zip' | sha256sum -c -
+          curl -fsSL --retry 3 \
+            'https://github.com/edde746/libdovi-builds/releases/download/v2.3.1/libdovi-armv7-linux-androideabi.tar.gz' \
+            -o /tmp/powerplay-libdovi.tar.gz
+          echo 'ed6fec8bf744e41c661b97f5fc4bf1197ebe9b09a140cbde369728e790ee3a68  /tmp/powerplay-libdovi.tar.gz' | sha256sum -c -
+          unzip -Z1 /tmp/powerplay-libass.zip > audit-prebuilt/libass-archive-contents.txt
+          tar -tzf /tmp/powerplay-libdovi.tar.gz > audit-prebuilt/libdovi-archive-contents.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          import zipfile
+          with zipfile.ZipFile('/tmp/powerplay-libass.zip') as z:
+              names=z.namelist()
+              notices=[s for s in names if '/licenses/' in s.lower() and not s.endswith('/')]
+              Path('audit-prebuilt/libass-license-file-list.txt').write_text('\n'.join(sorted(notices))+'\n')
+              readmes=[s for s in names if s.endswith('/README.md')]
+              for s in readmes:
+                  Path('audit-prebuilt/libass-package-README.md').write_bytes(z.read(s))
+              print(f'Found {len(notices)} packaged libass upstream notice files')
+          PY
+      - name: Resolve libdovi Cargo lockfile closure for Android ARMv7
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone -q --depth 1 --branch 2.3.1 https://github.com/quietvoid/dovi_tool.git /tmp/dovi-tool
+          git -C /tmp/dovi-tool rev-parse HEAD > audit-prebuilt/dovi-tool-commit.txt
+          grep -qx 'b25558062e4a56973482ec70133bd7b891320e48' audit-prebuilt/dovi-tool-commit.txt
+          cp /tmp/dovi-tool/dolby_vision/Cargo.lock audit-prebuilt/dolby_vision-Cargo.lock
+          cargo tree --locked --manifest-path /tmp/dovi-tool/dolby_vision/Cargo.toml \
+            --features capi --target armv7-linux-androideabi --edges normal \
+            > audit-prebuilt/libdovi-android-armv7-cargo-closure.txt
+          echo 'CAUTION: This is tag/Cargo.lock resolution, not an attestation of the prebuilt artifact.' \
+            > audit-prebuilt/PROVENANCE-LIMITATION.txt
+      - name: Publish prebuilt license provenance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-pinned-native-prebuilt-manifests
+          path: audit-prebuilt/
           if-no-files-found: warn
 
   resolved-android-runtime-graph:
