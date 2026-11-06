@@ -22,6 +22,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--components", type=Path, required=True)
     parser.add_argument("--lockfile", type=Path, required=True)
+    parser.add_argument("--dovi-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     rows = json.loads(args.components.read_text())
@@ -48,6 +49,15 @@ def main():
         }
         if not source.startswith("registry+"):
             record["status"] = "pinned-dovi-tool-local-package"
+            upstream_license = args.dovi_root / "LICENSE"
+            if not upstream_license.is_file():
+                errors.append("Missing verified upstream dovi_tool/LICENSE")
+                continue
+            legal = upstream_license.read_bytes()
+            target = notices_dir / f"{name}-{version}" / "dovi_tool-LICENSE"
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(legal)
+            record["license_texts"] = [{"name": "dovi_tool-LICENSE", "sha256": sha256(legal)}]
             sources.append(record)
             continue
         filename = f"{name}-{version}.crate"
@@ -72,24 +82,31 @@ def main():
             for member in package.getmembers():
                 if not member.isfile() or member.size > 524288:
                     continue
+                parts = Path(member.name).parts
                 basename = Path(member.name).name
+                in_licenses_directory = any(p.lower() in ("licenses", "licences") for p in parts[1:-1])
                 if basename == "Cargo.toml" and member.name.count("/") == 1:
                     try:
                         manifest = tomllib.loads(package.extractfile(member).read().decode("utf-8"))
                         record["license_expression_from_crate_manifest"] = manifest.get("package", {}).get("license", "")
                     except (UnicodeDecodeError, ValueError):
                         record["license_expression_from_crate_manifest"] = "(cannot parse crate manifest)"
-                if not re.match(r"^(LICENSE|LICENCE|COPYING|NOTICE|COPYRIGHT)([._-].*)?$",
-                                basename, re.IGNORECASE):
+                if not (in_licenses_directory or re.match(
+                    r"^(LICENSE|LICENCE|COPYING|NOTICE|COPYRIGHT|UNLICENSE)([._-].*)?$",
+                    basename, re.IGNORECASE
+                )):
                     continue
                 data = package.extractfile(member).read()
                 if b"\x00" in data:
                     continue
-                target = notices_dir / f"{name}-{version}" / basename
+                relative = Path(*parts[1:])
+                if ".." in relative.parts:
+                    continue
+                target = notices_dir / f"{name}-{version}" / relative
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(data)
                 record["license_texts"].append({
-                    "name": basename, "sha256": sha256(data)
+                    "name": str(relative), "sha256": sha256(data)
                 })
         sources.append(record)
     (args.output / "manifest.json").write_text(json.dumps(sources, indent=2) + "\n")
