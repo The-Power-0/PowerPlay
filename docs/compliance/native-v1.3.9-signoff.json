@@ -14,8 +14,8 @@
     "libavutil.so": "GPLv3 FFmpeg core; independently validate all compiled source and notices",
     "libc++_shared.so": "Pinned AAR and official NDK 29.0.14206865 match the APK, with the NDK copy stripped using llvm-strip --strip-unneeded.",
     "libcronet.143.0.7445.0.so": "Pinned Cronet AAR is byte-identical and its version-specific notice corpus was recovered. Exact build and compiled third-party closure remain open.",
-    "libdartjni.so": "Dart native bridge; exact native source/binary provenance pending",
-    "libdatastore_shared_counter.so": "Byte-identical AndroidX DataStore 1.1.7 AAR; per-file source/notice review pending",
+    "libdartjni.so": "Rebuilt lockfile-pinned jni 0.14.2 ARMv7 source with NDK r28c. The stripped ELF matches the APK apart from the GNU build ID.",
+    "libdatastore_shared_counter.so": "Rebuilt AndroidX DataStore 1.1.7 native source with NDK r25c. The stripped ELF matches the APK apart from the GNU build ID.",
     "libdovi_bridge.so": "Project JNI includes static libdovi 2.3.1 proven byte-identical from pinned Rust 1.93.1 and 15 Cargo.lock selected packages; final redistribution notice bundle remains open",
     "libffmpegJNI.so": "Project-owned Media3 FFmpeg JNI adapter; verify upstream source-attribution requirements",
     "libflutter.so": "Pinned Flutter ARMv7 release JAR engine becomes byte-identical to the APK after stripping. Compiled third-party source and notices still need reconciliation.",
@@ -86,8 +86,8 @@
     {
       "id": "NATIVE-010",
       "area": "Dart JNI and SQLite",
-      "detail": "Actual native binary to source, SQLite core version and compiler options not established",
-      "required_evidence": "Checksum-anchored original native asset builds and full relevant sources"
+      "detail": "Pinned Dart JNI source rebuild matches the shipped stripped ELF after removing only the build ID. The SQLite 3.53.3 upstream asset matches after stripping. The AndroidX DataStore native rebuild also matches after build-ID normalization.",
+      "required_evidence": "Retain the source pins, build recipes and applicable original notices in the public release materials. SQLite independent source rebuild is unverified."
     },
     {
       "id": "MAVEN-011",
