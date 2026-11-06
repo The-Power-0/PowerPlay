@@ -95,6 +95,18 @@ The repository workflow `.github/workflows/native-license-inventory.yml` downloa
 
 The inventory code intentionally sets `source_coverage_complete: false`. The initial scan reported 15 native ELF libraries, including five not found through the original hand-read native build inputs: `libdartjni.so`, `libdatastore_shared_counter.so`, `libsentry-android.so`, `libsentry.so`, and `libsqlite3.so`. Those are now provisionally mapped above, but their source/notice obligations remain open. A green inventory job is **not** a license certification; these artifacts are evidence inputs for the outstanding transitive-source closure.
 
+### Additional audit evidence introduced by this PR
+
+The inventory now includes **two separate dependency-resolution layers** anchored to the signed v1.3.9 release, each deliberately limited to what it can prove:
+
+- `scripts/export_gradle_runtime_artifacts.init.gradle` runs against the **immutable shipped Flutter/Gradle source**. `scripts/audit_powerplay_gradle_runtime.py` records exact resolved AAR/JAR paths, artifact SHA256 values and notice-file contents, and matches embedded ARMv7 native libraries to the release APK by full binary hash. A missing embedded license is **not automatically a license violation**; upstream Maven POM/source terms still require separate review. Resolving an artifact does not prove its bytecode survived shrinking.
+- `scripts/audit_powerplay_rust_crates.py` copies `Cargo.lock`-selected Rust registry source archives, validates each against its registry checksum, and extracts each crate's available legal texts. It separately labels local dovi_tool crates and retains a **historical provenance limitation**: the published libdovi prebuilt was compiled without `--locked`, so a current lockfile source snapshot does **not** establish the exact dependency set used in the original binary.
+- `scripts/audit_powerplay_native_release.py` also archives APK-embedded license assets and tries to decode Flutter's `NOTICES.Z` license corpus when present. This helps distinguish Flutter/engine-provided notices from separately packaged native libraries and non-Android-only notice assets.
+
+The independent libass upstream [Android 0.18.3 release workflow](https://github.com/edde746/libass/actions/runs/29063098223) was built on July 10, 2026. Its build recipe calls the **live** Meson WrapDB during compilation and does not package exact resolved `.wrap` files. Historical workflow logs could not be retrieved through the GitHub API. Consequently, the six WrapDB source revisions cannot be certified solely from the published `libass.a` ZIP; for a future fully reproducible release, the builder needs to pin and archive those wraps and actual source archives before compiling.
+
+These additions produce reviewable evidence but **do not change the sign-off status**. The original release's incomplete-source warning remains appropriate.
+
 ### Conclusion
 
 **Corresponding application source: available. Native license and source closure: incomplete.** Until the static/embedded/Gradle/Flutter graphs and a replacement release-native-source bundle are reconciled, do not remove the incompleteness disclosure from existing releases or label v1.3.9 fully compliant.
