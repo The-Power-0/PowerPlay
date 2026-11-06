@@ -90,8 +90,8 @@
     {
       "id": "MAVEN-011",
       "area": "Android runtime dependencies",
-      "detail": "Every Maven AAR/JAR license and distributable file has not been reconciled; Google SDK licensing may need separate compatibility review",
-      "required_evidence": "Release-specific licence declarations, file-level notices, binary packaging and compatibility review"
+      "detail": "All 137 Maven module POMs were retrieved (133 with a license declaration). The signed APK still defines 16 recognizable Google Play Services classes and four DataTransport classes after shrinking; these are not merely absent/runtime-only Gradle dependencies. Six GMS modules declare Android SDK License terms. File-level terms, actual redistributed Java/native code and GPLv3 compatibility remain unresolved.",
+      "required_evidence": "Identify effective distribution rights for the GMS components and exact surviving code, any exceptions and GPLv3 linkage compatibility; reconcile package-level notices and all source requirements. DEX inventory artifact: GitHub Actions 42165050072."
     },
     {
       "id": "RELEASE-012",
@@ -110,5 +110,11 @@
     "This policy is a living evidence/issue ledger, not legal advice or proof of violation.",
     "Passing evidence inventory jobs is not full-source compliance.",
     "All status fields must remain NOT_CLEARED until independently reviewed and approved."
-  ]
+  ],
+  "dex_defined_class_evidence": {
+    "total_classes": 5605,
+    "recognizable_gms": 16,
+    "google_datatransport": 4,
+    "scan_sha256": "4207d148ea269632ca55507d6bdbb2fee23724b194c22ededdc917ce6b5b0a1e"
+  }
 }
