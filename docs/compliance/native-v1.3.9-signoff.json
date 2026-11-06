@@ -13,12 +13,12 @@
     "libavcodec.so": "Rebuilt from pinned patched FFmpeg, dav1d and Dolby Vision Rust sources. All bytes match except the GNU build-ID descriptor.",
     "libavutil.so": "Rebuilt from pinned patched FFmpeg. All bytes match except the GNU build-ID descriptor.",
     "libc++_shared.so": "Pinned AAR and official NDK 29.0.14206865 match the APK, with the NDK copy stripped using llvm-strip --strip-unneeded.",
-    "libcronet.143.0.7445.0.so": "Exact Maven ARMv7 artifact match. Official bucket binary matches allocated sections and build ID. Source pins, matching DWARF, builder arguments and missing notice texts recovered. Historical build closure remains open.",
+    "libcronet.143.0.7445.0.so": "Exact Maven ARMv7 ELF match. Official bucket binary matches allocated sections and build ID. Recorded source and toolchain paths resolve and generator inputs are identified. Historical full build output verification remains open.",
     "libdartjni.so": "Rebuilt lockfile-pinned jni 0.14.2 ARMv7 source with NDK r28c. The stripped ELF matches the APK apart from the GNU build ID.",
     "libdatastore_shared_counter.so": "Rebuilt AndroidX DataStore 1.1.7 native source with NDK r25c. The stripped ELF matches the APK apart from the GNU build ID.",
-    "libdovi_bridge.so": "Project JNI includes static libdovi 2.3.1 proven byte-identical from pinned Rust 1.93.1 and 15 Cargo.lock selected packages; final redistribution notice bundle remains open",
-    "libffmpegJNI.so": "Project-owned Media3 FFmpeg JNI adapter; verify upstream source-attribution requirements",
-    "libflutter.so": "Exact match to the upstream ARMv7 engine after stripping. Matching symbols, source pins and notices verified. Historical GN generation and toolchain inputs remain open.",
+    "libdovi_bridge.so": "Rebuilt the bridge from the public release source and checksum-pinned standalone libdovi archive. All bytes match except the GNU build-ID descriptor. The underlying libdovi static archive was independently reproduced byte-for-byte.",
+    "libffmpegJNI.so": "Rebuilt the Apache-2.0 Media3-derived adapter from the public release source. All bytes match except the GNU build-ID descriptor. Preserve the original notices and modification attribution.",
+    "libflutter.so": "Exact upstream ARMv7 ELF match after stripping. Recorded source and toolchain paths resolve and generator inputs are identified. Historical full build output verification remains open.",
     "libsentry-android.so": "Rebuilt with the same Sentry 0.16.6 build. All bytes match except the GNU build-ID descriptor.",
     "libsentry.so": "Rebuilt from Sentry 0.16.6 and exact unwindstack-ndk submodule with NDK 27.0.12077973. All bytes match except the GNU build-ID descriptor.",
     "libsqlite3.so": "Rebuilt byte-for-byte from SQLite 3.53.3 amalgamation, sqlite3 3.5.0 hook configuration and NDK 29.0.14206865.",
@@ -42,8 +42,9 @@
     {
       "id": "LGPL-003",
       "area": "FriBidi static linkage",
-      "detail": "Verified source-based LGPL relink on Linux for the exact signed ARMv7 release. Replaced all 18 FriBidi objects, observed the source change in the linked ELF, and confirmed matching dynamic exports and DT_NEEDED.",
-      "required_evidence": "Verify installation and subtitle playback on Fire TV, and publish the applicable notices and source/object/relink materials."
+      "detail": "Verified source-based LGPL relink on Linux for the exact signed ARMv7 release. Replaced all 18 FriBidi objects, observed the source change in the linked ELF, and confirmed matching dynamic exports and DT_NEEDED. A disposable-key test APK has verified signing and alignment, with libasskt.so as its only changed non-signature payload.",
+      "required_evidence": "Verify installation and subtitle playback on Fire TV, and publish the applicable notices and source/object/relink materials.",
+      "status": "blocked_device_validation_and_publication"
     },
     {
       "id": "RUST-004",
@@ -68,14 +69,14 @@
     {
       "id": "FLUTTER-007",
       "area": "Flutter engine",
-      "detail": "Upstream ELF matches after stripping. 22 source repositories pinned and archives verified. 6,242 distinct DWARF paths resolve to archived source files. All 1,496 unique sky_engine license text blocks are in the signed APK notices.",
-      "required_evidence": "Verify the historical generated outputs, toolchain inputs and full GN build graph. Preserve the source access path and notices."
+      "detail": "Upstream ELF matches after stripping. 22 source repositories pinned and archives verified. 6,242 distinct DWARF paths resolve to archived source files. All 1,496 unique sky_engine license text blocks are in the signed APK notices. All 98 recorded toolchain paths resolve, and source or generator candidates are mapped for all 150 recorded generated paths.",
+      "required_evidence": "Verify the full historical build graph and generated outputs. Include applicable original notices and verified source access in the public distribution."
     },
     {
       "id": "CRONET-008",
       "area": "Chromium Cronet",
-      "detail": "Chromium revision and upstream ARMv7 builder configuration identified. Matching symbols map 2,951 paths to source archives. The NSPR and Mozilla URL parser file terms missing from the recovered notice corpus are now retained.",
-      "required_evidence": "Verify historical generation and toolchain source, assess all applicable file-level terms, and publish the resulting notices and source."
+      "detail": "Chromium revision and upstream ARMv7 builder configuration identified. Matching symbols map 2,951 paths to source archives. The NSPR and Mozilla URL parser file terms missing from the recovered notice corpus are now retained. All 194 recorded toolchain paths resolve, and source or generator candidates are mapped for all 128 recorded generated paths.",
+      "required_evidence": "Verify the full historical build graph and generated outputs. Include applicable original notices and verified source access in the public distribution."
     },
     {
       "id": "SENTRY-009",
@@ -92,8 +93,9 @@
     {
       "id": "MAVEN-011",
       "area": "Android runtime dependencies",
-      "detail": "All 137 Maven module POMs were retrieved (133 with a license declaration). The signed APK still defines 16 recognizable Google Play Services classes and four DataTransport classes after shrinking; these are not merely absent/runtime-only Gradle dependencies. Six GMS modules declare Android SDK License terms. File-level terms, actual redistributed Java/native code and GPLv3 compatibility remain unresolved. Fifteen surviving class names match the exact Google Maven base, basement and cronet AARs. Their embedded third-party license lists do not establish terms for the Google client classes.",
-      "required_evidence": "Identify effective distribution rights for the GMS components and exact surviving code, any exceptions and GPLv3 linkage compatibility; reconcile package-level notices and all source requirements. DEX inventory artifact: GitHub Actions 42165050072."
+      "detail": "All 137 Maven module POMs were retrieved (133 with a license declaration). The signed APK still defines 16 recognizable Google Play Services classes and four DataTransport classes after shrinking; these are not merely absent/runtime-only Gradle dependencies. Six GMS modules declare Android SDK License terms. File-level terms, actual redistributed Java/native code and GPLv3 compatibility remain unresolved. Fifteen surviving class names match the exact Google Maven base, basement and cronet AARs. Their embedded third-party license lists do not establish terms for the Google client classes. Ten recognizable GMS classes contain 61 method bodies. The standard Google Maven source JAR URLs for the three matched artifacts return HTTP 404. Artifact-specific source and grant are unavailable in the reviewed public evidence.",
+      "required_evidence": "Obtain terms and source for the retained Google client code, or document a supported exception. Review GPLv3 compatibility and public Corresponding Source delivery for the exact signed APK.",
+      "status": "blocked_external_evidence"
     },
     {
       "id": "RELEASE-012",
@@ -104,8 +106,9 @@
     {
       "id": "GPL-013",
       "area": "GPLv3 distribution terms",
-      "detail": "Documented observed standalone APK download for separately acquired Fire TV hardware. No linked hardware transaction established by the release evidence.",
-      "required_evidence": "Confirm distribution facts under GPLv3 section 6, including any applicable installation information, and verify the exact source delivery path."
+      "detail": "The audited GitHub download conveys the standalone APK for separately acquired hardware. GPLv3 section 6 installation information is conditional on a transaction transferring possession or use of a User Product, which is not present in this delivery.",
+      "required_evidence": "Distribution facts assessment recorded. Complete section 6(d) public Corresponding Source delivery under RELEASE-012 and reassess installation information if distribution includes hardware.",
+      "status": "closed"
     }
   ],
   "limitations": [

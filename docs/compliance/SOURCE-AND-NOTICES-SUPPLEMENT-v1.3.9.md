@@ -1,10 +1,10 @@
 # PowerPlay v1.3.9 source and notices supplement
 
-The private review archives contain the current evidence for the signed ARMv7 APK. See the [source review](SOURCE-REVIEW-v1.3.9.md) and [signoff ledger](native-v1.3.9-signoff.json).
+The private review archives contain the current evidence for the signed ARMv7 APK. See the [source review disposition](SOURCE-REVIEW-DISPOSITION-v1.3.9.md) and [signoff ledger](native-v1.3.9-signoff.json).
 
 | Archive | SHA-256 |
 | --- | --- |
-| `PowerPlay-v1.3.9-SourceAndNotices-Supplement.zip` | `281699a5067640c09bb5d01160a9e34076040782dfa9705bcaf048993489d9ad` |
+| `PowerPlay-v1.3.9-SourceAndNotices-Supplement.zip` | `e17d6d21bb71b40f80c50d9996261d3aa48a77e40a833d3ebf5b074d4ca0f22e` |
 | `PowerPlay-v1.3.9-Flutter-and-Cronet-Source-Inputs.zip` | `d7c65c0b4e16c3cc73edcc7ebd8a5e4edd00fee4b6da373fee98a27ceeaeb699` |
 | Original signed `PowerPlay-v1.3.9.apk` | `f832a2c507f997fcb047c0ab899254d1fd111520942e88da50e61ebc82e3c764` |
 

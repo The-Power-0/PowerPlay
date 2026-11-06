@@ -1,0 +1,17 @@
+{
+  "input": [
+    "ABC \ue000 \u05d0\u05d1\u05d2 XYZ",
+    "ABC \u05d0\u05d1\u05d2 \ue000 XYZ",
+    "ABC \u05d0\u05d1\u05d2 XYZ"
+  ],
+  "reference": [
+    "ABC \ue000 \u05d2\u05d1\u05d0 XYZ",
+    "ABC \u05d2\u05d1\u05d0 \ue000 XYZ",
+    "ABC \u05d2\u05d1\u05d0 XYZ"
+  ],
+  "modified": [
+    "ABC \u05d2\u05d1\u05d0 \ue000 XYZ",
+    "ABC \ue000 \u05d2\u05d1\u05d0 XYZ",
+    "ABC \u05d2\u05d1\u05d0 XYZ"
+  ]
+}

@@ -557,5 +557,5 @@
     }
   ],
   "cronet_clang_runtime_revision": "4d4cb757f94470b95458fcbe3b88332b212feeee",
-  "unresolved": "Historical generated inputs and full build graph not reproduced. The two Chromium clang runtime source paths at the pinned revision remain to be retrieved."
+  "unresolved": "All recorded toolchain paths resolve to pinned packages or source trees. Generator/source candidates mapped for all observed generated paths. Historical build output regeneration and full GN build graph remain unverified."
 }

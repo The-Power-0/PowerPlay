@@ -16,6 +16,8 @@ FFmpeg used the release's `--enable-gpl` and `--enable-version3` configuration. 
 
 Sentry uses libunwindstack, jsmn, MPack and the NDK's static C++ runtime. Keep the original source headers, vendored notices and NDK r27 runtime notice files. The rebuilt include graph did not use stb_sprintf for these Android libraries. Use the [Sentry recipe](../../scripts/rebuild_powerplay_sentry.sh) and the [SQLite recipe](../../scripts/rebuild_powerplay_sqlite.py) to reproduce the comparisons. See the [existing ARMv7 evidence](FIRETV-ARMV7-RELINK-EVIDENCE-v1.3.9.md) for the libass/FriBidi, Dart JNI and DataStore runs.
 
+See the [latest source review disposition](SOURCE-REVIEW-DISPOSITION-v1.3.9.md) for the additional JNI rebuilds, complete observed toolchain path checks and outstanding clearance evidence.
+
 ## Evidence needed for distribution clearance
 
 - **Google Play Services client code.** The APK defines 16 recognizable GMS classes. Fifteen names map to exact Google Maven AARs for `play-services-base:18.5.0`, `play-services-basement:18.4.0` and `play-services-cronet:18.0.1`. These definitions are compiled into the APK. The Google Play Services system process is a separate component. Obtain artifact-specific redistribution and source terms, and review compatibility with the GPLv3-covered combination or document a defensible exception. The POMs refer to Android SDK terms and the AAR notices cover identified third-party code. Neither establishes the needed grant for the retained Google client implementations. See [Google's client architecture](https://developers.google.com/android/guides/overview), [Android SDK terms](https://developer.android.com/studio/terms), and [GPLv3 sections 1, 5, 6 and 12](https://www.gnu.org/licenses/gpl-3.0.html).
