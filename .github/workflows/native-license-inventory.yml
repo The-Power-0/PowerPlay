@@ -80,19 +80,25 @@ jobs:
           Path('audit-evidence/aar-extracted-binary-match.json').write_text(json.dumps(rows,indent=2)+'\n')
           print('All four AAR native library hashes match the shipping APK exactly')
           PY
-      - name: Set up Android SDK for pinned NDK verification
-        uses: android-actions/setup-android@v3
       - name: Verify libc++ provenance against pinned Android NDK 29
         shell: bash
         run: |
           set -euo pipefail
+          # Ubuntu hosted runners already provide Android SDK cmdline-tools.
+          # android-actions/setup-android@v3 requests the removed 'tools' SDK
+          # package on this runner, so do not invoke that action.
           NDK_VERSION=29.0.14206865
-          test -n "$ANDROID_HOME"
+          ANDROID_HOME="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          export ANDROID_HOME
+          test -d "$ANDROID_HOME"
           NDK_ROOT="$ANDROID_HOME/ndk/$NDK_VERSION"
           if [ ! -f "$NDK_ROOT/source.properties" ]; then
-            SDKMANAGER="$(command -v sdkmanager || true)"
-            if [ -z "$SDKMANAGER" ]; then SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"; fi
-            "$SDKMANAGER" "ndk;$NDK_VERSION"
+            SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+            if [ ! -x "$SDKMANAGER" ]; then
+              SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -path '*/bin/sdkmanager' -type f | sort -V | tail -1)"
+            fi
+            test -x "$SDKMANAGER"
+            "$SDKMANAGER" --sdk_root="$ANDROID_HOME" "ndk;$NDK_VERSION"
           fi
           test -f "$NDK_ROOT/source.properties"
           clang="$(find "$NDK_ROOT/toolchains/llvm/prebuilt" -path '*/bin/clang' -type f | head -1)"
