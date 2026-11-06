@@ -1,0 +1,118 @@
+name: Standardize PowerPlay release descriptions
+
+# Existing releases are edited in place only after reviewed note templates
+# land on main. This workflow NEVER creates a release, builds an APK, changes
+# the Latest flag, touches source assets, or edits archived Plezy tags.
+on:
+  pull_request:
+    paths:
+      - '.github/powerplay/release-notes/**'
+      - '.github/workflows/powerplay-release-notes-sync.yml'
+      - '.github/workflows/powerplay-publish.yml'
+      - '.github/workflows/powerplay-release-candidate.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/powerplay/release-notes/**'
+      - '.github/workflows/powerplay-release-notes-sync.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: powerplay-release-notes-maintenance
+  cancel-in-progress: false
+
+jobs:
+  release-notes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out reviewed release notes templates
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Validate each version has only its own changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          directory=Path('.github/powerplay/release-notes')
+          notes=sorted(directory.glob('v*.md'))
+          assert notes, 'No PowerPlay release notes'
+          for path in notes:
+              match=re.fullmatch(r'v([0-9]+\.[0-9]+\.[0-9]+)\.md',path.name)
+              assert match, path
+              version=match.group(1)
+              text=path.read_text(encoding='utf-8')
+              assert text.startswith(f'# PowerPlay v{version} — Fire TV\n'),path
+              for heading in ('## Changes in this release\n',
+                              '## Download and source\n',
+                              '## Build and attribution\n'):
+                  assert heading in text,(path,heading)
+              assert text.count('{{CANDIDATE_RUN_ID}}')==2,path
+              assert text.count('{{SOURCE_SHA}}')==1,path
+              assert f'PowerPlay-v{version}.apk' in text,path
+              assert f'powerplay-v{version}' in text,path
+              assert 'Since v1.' not in text,path
+              assert len(text) < 5500,(path,len(text))
+              print('VALIDATED',path)
+          PY
+      - name: Update only previously published PowerPlay release descriptions
+        if: github.event_name != 'pull_request'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, re, subprocess, tempfile
+          from pathlib import Path
+
+          repo=os.environ['GITHUB_REPOSITORY']
+          notes_dir=Path('.github/powerplay/release-notes')
+          changed=0
+          skipped=0
+          for path in sorted(notes_dir.glob('v*.md')):
+              tag='powerplay-'+path.stem
+              # No release means the file is for a *future* version.
+              result=subprocess.run(
+                  ['gh','api',f'repos/{repo}/releases/tags/{tag}'],
+                  capture_output=True,text=True)
+              if result.returncode!=0:
+                  if '404' in result.stderr:
+                      print('SKIPPED unpublished',tag)
+                      skipped+=1
+                      continue
+                  raise RuntimeError(f'Cannot inspect {tag}: {result.stderr}')
+              release=json.loads(result.stdout)
+              assert release['tag_name']==tag
+              assert not release['draft'] and not release['prerelease'],tag
+              # Preserve the original source commit and verified candidate
+              # from release metadata (both formats before and after the
+              # standardization contain the candidate Actions URL).
+              sha=release['target_commitish']
+              assert re.fullmatch(r'[0-9a-f]{40}',sha),tag
+              candidate=re.search(r'/actions/runs/([0-9]+)',release.get('body') or '')
+              assert candidate, f'Missing candidate provenance for {tag}'
+              run_id=candidate.group(1)
+              body=path.read_text(encoding='utf-8')
+              body=body.replace('{{CANDIDATE_RUN_ID}}',run_id)
+              body=body.replace('{{SOURCE_SHA}}',sha)
+              assert '{{' not in body and '}}' not in body,tag
+              if body==release['body']:
+                  print('UNCHANGED',tag)
+                  continue
+              with tempfile.NamedTemporaryFile(mode='w',suffix='.md',encoding='utf-8') as note:
+                  note.write(body)
+                  note.flush()
+                  subprocess.run(['gh','release','edit',tag,
+                                  '--repo',repo,'--notes-file',note.name],check=True)
+              print('UPDATED',tag)
+              changed+=1
+          print(f'PowerPlay release notes sync: {changed} updated, {skipped} unpublished skipped')
+          PY
