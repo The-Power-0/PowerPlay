@@ -1,0 +1,12 @@
+{
+  "original_sha256": "cc105bdb50343721b421ef9e4ccc309ba4aa6bc7bb7921b4265ec39b20ac562b",
+  "candidate_sha256": "cc105bdb50343721b421ef9e4ccc309ba4aa6bc7bb7921b4265ec39b20ac562b",
+  "original_bytes": 1713112,
+  "candidate_bytes": 1713112,
+  "original_build_id": null,
+  "candidate_build_id": null,
+  "elf_identity_matches": true,
+  "mode": "all-bytes-except-build-id-descriptor",
+  "differing_allocated_sections": [],
+  "matches": true
+}

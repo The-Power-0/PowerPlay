@@ -1,0 +1,48 @@
+{
+  "Lcom/google/android/gms/auth/api/signin/GoogleSignInAccount;": [
+    "play-services-base-18.5.0.aar"
+  ],
+  "Lcom/google/android/gms/common/GooglePlayServicesIncorrectManifestValueException;": [
+    "play-services-basement-18.4.0.aar"
+  ],
+  "Lcom/google/android/gms/common/GooglePlayServicesManifestException;": [
+    "play-services-basement-18.4.0.aar"
+  ],
+  "Lcom/google/android/gms/common/GooglePlayServicesMissingManifestValueException;": [
+    "play-services-basement-18.4.0.aar"
+  ],
+  "Lcom/google/android/gms/common/annotation/KeepName;": [
+    "play-services-basement-18.4.0.aar"
+  ],
+  "Lcom/google/android/gms/common/api/GoogleApiActivity;": [
+    "play-services-base-18.5.0.aar"
+  ],
+  "Lcom/google/android/gms/common/api/Scope;": [
+    "play-services-basement-18.4.0.aar"
+  ],
+  "Lcom/google/android/gms/common/api/Status;": [
+    "play-services-basement-18.4.0.aar"
+  ],
+  "Lcom/google/android/gms/common/api/internal/LifecycleCallback;": [
+    "play-services-basement-18.4.0.aar"
+  ],
+  "Lcom/google/android/gms/common/internal/ReflectedParcelable;": [
+    "play-services-basement-18.4.0.aar"
+  ],
+  "Lcom/google/android/gms/common/internal/a;": [],
+  "Lcom/google/android/gms/common/util/DynamiteApi;": [
+    "play-services-basement-18.4.0.aar"
+  ],
+  "Lcom/google/android/gms/dynamite/DynamiteModule$DynamiteLoaderClassLoader;": [
+    "play-services-basement-18.4.0.aar"
+  ],
+  "Lcom/google/android/gms/dynamite/descriptors/com/google/android/gms/cronet/dynamite/ModuleDescriptor;": [
+    "play-services-cronet-18.0.1.aar"
+  ],
+  "Lcom/google/android/gms/net/GmsCoreCronetProvider;": [
+    "play-services-cronet-18.0.1.aar"
+  ],
+  "Lcom/google/android/gms/net/PlayServicesCronetProvider;": [
+    "play-services-cronet-18.0.1.aar"
+  ]
+}
