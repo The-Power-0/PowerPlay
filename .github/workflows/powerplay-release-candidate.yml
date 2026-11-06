@@ -44,6 +44,18 @@ jobs:
           for path in ('lib/main.dart', 'lib/theme/powerplay_palette.dart',
                        'android/app/build.gradle.kts', 'assets/powerplay_splash.png'):
               assert Path(path).is_file(), path
+          # Future releases must supply their own change notes before the
+          # signed build; no inherited notes from an earlier release.
+          notes=Path(f".github/powerplay/release-notes/v{data['version']}.md")
+          assert notes.is_file(), f"Missing release notes for {data['version']}"
+          body=notes.read_text(encoding='utf-8')
+          assert body.startswith(f"# PowerPlay v{data['version']} — Fire TV\n")
+          assert "## Changes in this release\n" in body
+          assert "## Download and source\n" in body
+          assert "## Build and attribution\n" in body
+          assert body.count('{{CANDIDATE_RUN_ID}}') == 2
+          assert body.count('{{SOURCE_SHA}}') == 1
+          assert 'Since v1.' not in body
           assert 'applicationId = "com.power.powerplay"' in Path('android/app/build.gradle.kts').read_text()
           assert 'PowerPlayPalette' in Path('lib/theme/powerplay_palette.dart').read_text()
           assert Path('assets/powerplay_splash.png').read_bytes()[25] == 6
