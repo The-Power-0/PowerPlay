@@ -16,7 +16,7 @@
     "libcronet.143.0.7445.0.so": "Byte-identical Google Maven Cronet AAR; Chromium source/third-party notice closure pending",
     "libdartjni.so": "Dart native bridge; exact native source/binary provenance pending",
     "libdatastore_shared_counter.so": "Byte-identical AndroidX DataStore 1.1.7 AAR; per-file source/notice review pending",
-    "libdovi_bridge.so": "Project-owned JNI with pinned libdovi tag and 15 Cargo.lock crates; original unlocked binary provenance pending",
+    "libdovi_bridge.so": "Project JNI includes static libdovi 2.3.1 proven byte-identical from pinned Rust 1.93.1 and 15 Cargo.lock selected packages; final redistribution notice bundle remains open",
     "libffmpegJNI.so": "Project-owned Media3 FFmpeg JNI adapter; verify upstream source-attribution requirements",
     "libflutter.so": "Pinned Flutter engine; third-party/Skia/ICU source and binary mapping pending",
     "libsentry-android.so": "Byte-identical Sentry native NDK 0.16.6 AAR; native source/rebuild and notices pending",
@@ -48,8 +48,10 @@
     {
       "id": "RUST-004",
       "area": "libdovi historic Rust build",
-      "detail": "Original static archive was built without --locked and no historical build-resolution evidence was retained",
-      "required_evidence": "Reproducible build/manifest aligned with signed binary or compliant alternative including complete crate/toolchain source and scripts"
+      "detail": "Pinned dovi_tool 2.3.1 source compiled with historical Rust stable 1.93.1 and original unlocked Cargo command yields byte-identical ARMv7 libdovi.a (18,606,070 bytes; 443 identical members), checksum 9f5e4e7cbacdf26581a6c2832ececa3caa33ac805c6f808b4f02febfc76eeb39. Cargo.lock unchanged by the build, supporting exact 15-crate source provenance.",
+      "required_evidence": "Satisfied by GitHub Actions run 42165640143: PowerPlay-v1.3.9-libdovi-source-reproduction artifact",
+      "status": "closed",
+      "evidence_url": "https://github.com/The-Power-0/PowerPlay/actions/runs/42165640143"
     },
     {
       "id": "FFMPEG-005",
