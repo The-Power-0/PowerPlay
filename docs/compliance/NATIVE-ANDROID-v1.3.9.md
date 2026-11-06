@@ -118,6 +118,20 @@ The updated ELF inventory job [42161034057](https://github.com/The-Power-0/Power
 
 The **lockfile-derived** libdovi evidence artifact captures all 15 identified Rust source components. It includes checksum-verified source archives for registry packages and original legal text for each component, including `crc-catalog`'s `LICENSES/` files and the local Dolby Vision MIT license from the pinned dovi_tool tag. Those packages are not a substitute for reconstructing the exact historical `cargo build` resolution.
 
+### Resolved Maven binary-to-APK closure: verified
+
+[GitHub Actions run 42161034057](https://github.com/The-Power-0/PowerPlay/actions/runs/42161034057) completed **all three audit jobs successfully**, including the new external Maven AAR/JAR artifact exporter. The `PowerPlay-v1.3.9-Android-runtime-graph` artifact contains 230 binary artifact records from raw AAR and derived JAR views; these are **not 230 unique dependencies** (one module often appears as both an AAR and a `classes.jar`). The original dependency-tree evidence records 157 external coordinates including platforms/constraints. Only 20 artifact records had an embedded text notice matching the scanner's strict filename rules. Absence of such a file in the other 210 is **not** a conclusion about licensing or final notice obligations.
+
+Full SHA256 binary comparisons establish these byte-identical origins inside the **signed APK**:
+
+| APK ELF | Maven component and exact binary | Maven AAR SHA256 |
+| --- | --- | --- |
+| `libcronet.143.0.7445.0.so` | `org.chromium.net:cronet-embedded:143.7445.0` | `afdd7af7568e9758e3690c3a4a228f30993ac3e4ef0f94c72bb68503c0167697` |
+| `libdatastore_shared_counter.so` | `androidx.datastore:datastore-core-android:1.1.7` | `adca1d7cde73406fcca2a0eeabac63459adc9d1fe201b79ba08711fa2e331984` |
+| `libsentry-android.so`, `libsentry.so` | `io.sentry:sentry-native-ndk:0.16.6` | `07fea3e481b27a08ff235cf06ea70bc845ae973521d689442774577f20584ba9` |
+
+The other 11 libraries derive from other paths (app-built JNI, pinned FFmpeg AAR, Flutter engine/AOT, Dart JNI and SQLite native assets) and must be tied to corresponding source by their own build/distribution evidence. Source/notice closure for the **embedded code within** Cronet and sentry-native is not proven just by a byte-for-byte upstream AAR match.
+
 ### Conclusion
 
 **Corresponding application source: available. Native license and source closure: incomplete.** Until the static/embedded/Gradle/Flutter graphs and a replacement release-native-source bundle are reconciled, do not remove the incompleteness disclosure from existing releases or label v1.3.9 fully compliant.
