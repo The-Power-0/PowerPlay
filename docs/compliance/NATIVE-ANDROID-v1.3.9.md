@@ -132,6 +132,27 @@ Full SHA256 binary comparisons establish these byte-identical origins inside the
 
 The other 11 libraries derive from other paths (app-built JNI, pinned FFmpeg AAR, Flutter engine/AOT, Dart JNI and SQLite native assets) and must be tied to corresponding source by their own build/distribution evidence. Source/notice closure for the **embedded code within** Cronet and sentry-native is not proven just by a byte-for-byte upstream AAR match.
 
+### Historical WrapDB source reconstruction (July 10, 2026)
+
+The original libass v0.18.3 upstream Android job began on **2026-07-10 01:46 UTC**. The last public `mesonbuild/wrapdb` commit before that instant was [`99634f253c3f2e83295b210018d071f6570284e6`](https://github.com/mesonbuild/wrapdb/commit/99634f253c3f2e83295b210018d071f6570284e6) (2026-07-09 22:41 UTC). It is an immutable time-qualified **reconstruction**, not an archived record of what the ephemeral build runner actually fetched.
+
+| Independent static libass fallback | Historical WrapDB package | Verified upstream source SHA256 |
+| --- | --- | --- |
+| FreeType | `freetype-2.14.3` | `36bc4f1cc413335368ee656c42afca65c5a3987e8768cc28cf11ba775e785a5f` |
+| FriBidi | `fribidi-1.0.16` | `1b1cde5b235d40479e91be2f0e88a309e3214c8ab470ec8a2744d82a5a9ea05c` |
+| HarfBuzz | `harfbuzz-13.0.1` | `3553d943401c34ab9b8c75f35cdb8452ca660233b0e9d4a22395ce5245484bd7` |
+| libunibreak | `libunibreak-6.1` | `cc4de0099cf7ff05005ceabff4afed4c582a736abc38033e70fdac86335ce93f` |
+| Fontconfig | `fontconfig-2.16.2` | `165b8fd2a119864c87464b233986c4a1bc09efb09c65de1ca40cc1e85ffb77e2` |
+| Expat | `expat-2.8.2` | `3ad89b8588e6644bd4e49981480d48b21289eebbcd4f0a1a4afb1c29f99b6ab4` |
+
+A later **2026-07-10 05:43 UTC** WrapDB commit updated Fontconfig to 2.18.3, *after* the historical build began; using current WrapDB instead of this pinned snapshot silently yields wrong input versions. FriBidi, FreeType and Expat also have later updates.
+
+The `scripts/audit_libass_historical_wraps.py` workflow integration downloads all six source archives, validates the WrapDB-published SHA256 values, preserves the original `.wrap` descriptors, 6 Meson patch files in the libunibreak and Expat fallback directories, and collects original upstream legal texts. The source-only artifact also includes original libass 0.18.3 and `dovi_tool` 2.3.1 source archives anchored to their verified Git commits. In [CI run 42163576746](https://github.com/The-Power-0/PowerPlay/actions/runs/42163576746) the complete WrapDB download/source-hash stage succeeded.
+
+**Confirmed missing redistribution notice recovered:** the verified libunibreak 6.1 source includes its actual `LICENCE`, SHA256 `0c57e2ec42ece17791a75d2f9b2f8e0663181be008667a507f765b3ef22522db`. The upstream libass prebuilt ZIP omitted that file because its collector did not match UK-spelled `LICENCE`. The corrected license is now present in the *audit evidence artifact*, but the existing v1.3.9 public release attachment has **not** been amended.
+
+**Remaining limitation:** the historical libass job did not pin a WrapDB snapshot or preserve its resolved dependency manifests/compilation records. Therefore date-qualified source checksums do not by themselves prove that the compiled `libass.a` was built from these exact archives. The related static LGPL-2.1 compliance route (relinkable objects versus suitable GPL conversion under the actual license terms) must also be resolved before source-closure sign-off.
+
 ### Conclusion
 
 **Corresponding application source: available. Native license and source closure: incomplete.** Until the static/embedded/Gradle/Flutter graphs and a replacement release-native-source bundle are reconciled, do not remove the incompleteness disclosure from existing releases or label v1.3.9 fully compliant.
