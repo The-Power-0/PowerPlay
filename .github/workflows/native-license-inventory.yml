@@ -217,6 +217,27 @@ jobs:
             chmod +x gradlew
             ./gradlew :app:dependencies --configuration releaseRuntimeClasspath --console=plain
           ) > audit-dependency-graph/gradle-releaseRuntimeClasspath.txt
+      - name: Export resolved runtime AAR/JAR binaries from immutable source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd source-v1.3.9/android
+          AUDIT_RUNTIME_ARTIFACTS_OUTPUT="$GITHUB_WORKSPACE/audit-dependency-graph/gradle-release-artifacts.json" \
+            ./gradlew -I "$GITHUB_WORKSPACE/scripts/export_gradle_runtime_artifacts.init.gradle" \
+              :app:exportReleaseRuntimeArtifacts --console=plain
+      - name: Collect embedded AAR/JAR licenses and map packaged native binaries by hash
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p release-apk
+          gh release download powerplay-v1.3.9 --repo The-Power-0/PowerPlay \
+            --pattern PowerPlay-v1.3.9.apk --dir release-apk
+          python3 scripts/audit_powerplay_gradle_runtime.py \
+            --apk release-apk/PowerPlay-v1.3.9.apk \
+            --gradle-json audit-dependency-graph/gradle-release-artifacts.json \
+            --output audit-dependency-graph
       - name: Publish exact dependency resolution evidence
         if: always()
         uses: actions/upload-artifact@v4
