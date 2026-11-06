@@ -9,19 +9,19 @@
   "version_specific_complete_source_bundle_verified": false,
   "native_components": {
     "libapp.so": "PowerPlay Flutter AOT application; source release archive verified, but app-wide source closure remains pending",
-    "libasskt.so": "Project JNI uses a checksum-pinned libass 0.18.3 static archive now reproduced byte-identically from time-qualified historical WrapDB source; LGPL redistribution and notices remain open",
+    "libasskt.so": "Tagged JNI relink matches the signed ELF except for its GNU build ID. Source-built modified FriBidi relinks successfully. Device test and public distribution remain open.",
     "libavcodec.so": "GPLv3 FFmpeg core from pinned AAR; source/compiled-static closure and license exceptions need signoff",
     "libavutil.so": "GPLv3 FFmpeg core; independently validate all compiled source and notices",
-    "libc++_shared.so": "Byte-identical pinned mpv AAR, compiler-runtime source revision/notice mapping still open",
-    "libcronet.143.0.7445.0.so": "Byte-identical Google Maven Cronet AAR; Chromium source/third-party notice closure pending",
+    "libc++_shared.so": "Pinned AAR and official NDK 29.0.14206865 match the APK, with the NDK copy stripped using llvm-strip --strip-unneeded.",
+    "libcronet.143.0.7445.0.so": "Pinned Cronet AAR is byte-identical and its version-specific notice corpus was recovered. Exact build and compiled third-party closure remain open.",
     "libdartjni.so": "Dart native bridge; exact native source/binary provenance pending",
     "libdatastore_shared_counter.so": "Byte-identical AndroidX DataStore 1.1.7 AAR; per-file source/notice review pending",
     "libdovi_bridge.so": "Project JNI includes static libdovi 2.3.1 proven byte-identical from pinned Rust 1.93.1 and 15 Cargo.lock selected packages; final redistribution notice bundle remains open",
     "libffmpegJNI.so": "Project-owned Media3 FFmpeg JNI adapter; verify upstream source-attribution requirements",
-    "libflutter.so": "Pinned Flutter engine; third-party/Skia/ICU source and binary mapping pending",
+    "libflutter.so": "Pinned Flutter ARMv7 release JAR engine becomes byte-identical to the APK after stripping. Compiled third-party source and notices still need reconciliation.",
     "libsentry-android.so": "Byte-identical Sentry native NDK 0.16.6 AAR; native source/rebuild and notices pending",
     "libsentry.so": "Byte-identical Sentry native NDK 0.16.6 AAR; native source/rebuild and notices pending",
-    "libsqlite3.so": "Dart SQLite native asset; exact core/version/compiler options and source pending",
+    "libsqlite3.so": "Pinned sqlite3 3.5.0 ARMv7 asset becomes byte-identical after stripping. The ELF source ID matches the SQLite 3.53.3 amalgamation.",
     "libswresample.so": "GPLv3 FFmpeg core from pinned AAR; original source/notice mapping pending"
   },
   "open_blockers": [
@@ -36,14 +36,14 @@
     {
       "id": "NOTICE-002",
       "area": "libunibreak licence redistribution",
-      "detail": "Published v1.3.9 NativeSourceInputs attachment omitted libunibreak's UK-spelled LICENCE",
-      "required_evidence": "Attach corrected version-specific legal material and verify original notice in published source/notice distribution"
+      "detail": "The original libunibreak 6.1 LICENCE is in the SHA-verified historical source and the tested FriBidi relink kit. The existing public source attachment omitted it.",
+      "required_evidence": "Publish the verified original notice as part of the corrected version-specific distribution."
     },
     {
       "id": "LGPL-003",
       "area": "FriBidi static linkage",
-      "detail": "Determine and implement applicable LGPL-2.1 static relinking requirements or an eligible, documented GPL license election",
-      "required_evidence": "Documented license pathway, appropriate notices and corresponding source/object/relink inputs where applicable"
+      "detail": "Verified source-based LGPL relink on Linux for the exact signed ARMv7 release. Replaced all 18 FriBidi objects, observed the source change in the linked ELF, and confirmed matching dynamic exports and DT_NEEDED.",
+      "required_evidence": "Verify installation and subtitle playback on Fire TV, and publish the applicable notices and source/object/relink materials."
     },
     {
       "id": "RUST-004",
@@ -62,8 +62,8 @@
     {
       "id": "LLVM-006",
       "area": "Android libc++ runtime",
-      "detail": "Bundled libc++ is binary-matched to pinned AAR but exact LLVM/NDK source mapping not certified",
-      "required_evidence": "Toolchain revision, libc++ source and Apache-2.0 WITH LLVM-exception notices"
+      "detail": "Verified exact official NDK ARMv7 runtime origin using the pinned toolchain strip command, and captured the toolchain/sysroot notices and clang source manifest.",
+      "required_evidence": "Verify CI provenance output and include the applicable notices with the public release."
     },
     {
       "id": "FLUTTER-007",
@@ -74,8 +74,8 @@
     {
       "id": "CRONET-008",
       "area": "Chromium Cronet",
-      "detail": "AAR byte match verified; bundled Chromium third-party native code, notices and source closure not verified",
-      "required_evidence": "Exact Chromium source revision, native third-party notice mapping and corresponding build ingredients"
+      "detail": "The version-specific Chromium Cronet license corpus was recovered from the public build bucket and hashed.",
+      "required_evidence": "Reconcile the exact build revision, GN inputs and compiled third-party source and publish the applicable notices."
     },
     {
       "id": "SENTRY-009",
@@ -92,7 +92,7 @@
     {
       "id": "MAVEN-011",
       "area": "Android runtime dependencies",
-      "detail": "All 137 Maven module POMs were retrieved (133 with a license declaration). The signed APK still defines 16 recognizable Google Play Services classes and four DataTransport classes after shrinking; these are not merely absent/runtime-only Gradle dependencies. Six GMS modules declare Android SDK License terms. File-level terms, actual redistributed Java/native code and GPLv3 compatibility remain unresolved.",
+      "detail": "All 137 Maven module POMs were retrieved (133 with a license declaration). The signed APK still defines 16 recognizable Google Play Services classes and four DataTransport classes after shrinking; these are not merely absent/runtime-only Gradle dependencies. Six GMS modules declare Android SDK License terms. File-level terms, actual redistributed Java/native code and GPLv3 compatibility remain unresolved. Fifteen surviving class names match the exact Google Maven base, basement and cronet AARs. Their embedded third-party license lists do not establish terms for the Google client classes.",
       "required_evidence": "Identify effective distribution rights for the GMS components and exact surviving code, any exceptions and GPLv3 linkage compatibility; reconcile package-level notices and all source requirements. DEX inventory artifact: GitHub Actions 42165050072."
     },
     {

@@ -101,19 +101,25 @@ jobs:
             "$SDKMANAGER" --sdk_root="$ANDROID_HOME" "ndk;$NDK_VERSION"
           fi
           test -f "$NDK_ROOT/source.properties"
-          clang="$(find "$NDK_ROOT/toolchains/llvm/prebuilt" -path '*/bin/clang' -type f | head -1)"
-          test -n "$clang"
-          "$clang" --version > audit-evidence/pinned-ndk-clang-version.txt
+          toolchain="$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64"
+          test -x "$toolchain/bin/clang"
+          test -x "$toolchain/bin/llvm-strip"
+          "$toolchain/bin/clang" --version > audit-evidence/pinned-ndk-clang-version.txt
           cp "$NDK_ROOT/source.properties" audit-evidence/pinned-ndk-source.properties
           python3 - "$NDK_ROOT" <<'PY'
-          import hashlib,json,sys,zipfile
+          import hashlib,json,subprocess,sys,tempfile,zipfile
           from pathlib import Path
           ndk=Path(sys.argv[1])
           native=list((ndk/'toolchains/llvm/prebuilt').glob(
               '*/sysroot/usr/lib/arm-linux-androideabi/libc++_shared.so'))
           if len(native)!=1:
               raise SystemExit('Could not uniquely resolve NDK ARMv7 libc++ runtime: '+str(native))
-          data=native[0].read_bytes()
+          raw=native[0].read_bytes()
+          strip=native[0].parents[4]/'bin'/'llvm-strip'
+          with tempfile.TemporaryDirectory() as tmp:
+              stripped=Path(tmp)/'libc++_shared.so'
+              subprocess.run([strip,'--strip-unneeded','-o',stripped,native[0]],check=True)
+              data=stripped.read_bytes()
           with zipfile.ZipFile('release-apk/PowerPlay-v1.3.9.apk') as archive:
               shipped=archive.read('lib/armeabi-v7a/libc++_shared.so')
           result={
@@ -123,17 +129,17 @@ jobs:
               'ndk_revision':'29.0.14206865',
               'ndk_source_properties':(ndk/'source.properties').read_text().strip(),
               'toolchain_path_relative_to_ndk':str(native[0].relative_to(ndk)),
-              'ndk_armv7_libcxx_sha256':hashlib.sha256(data).hexdigest(),
+              'ndk_armv7_libcxx_sha256':hashlib.sha256(raw).hexdigest(),
+              'ndk_armv7_libcxx_stripped_sha256':hashlib.sha256(data).hexdigest(),
+              'normalization':'NDK llvm-strip --strip-unneeded',
               'shipped_libcxx_sha256':hashlib.sha256(shipped).hexdigest(),
               'byte_identical':data==shipped,
               'llvm_notice_files':[],
               'limitations':'Binary identity proves toolchain origin, not legal/source closure.',
           }
-          for notice in sorted(ndk.glob('**/LICENSE.TXT')):
-              if 'llvm' not in str(notice).lower() and 'c++' not in str(notice).lower():
-                  continue
-              if notice.stat().st_size>1048576:
-                  continue
+          toolchain=native[0].parents[4]
+          for notice in (toolchain/'NOTICE',toolchain/'sysroot'/'NOTICE',
+                         toolchain/'clang_source_info.md'):
               original=notice.read_bytes()
               dst=Path('audit-evidence/ndk-libcxx-notices')/notice.relative_to(ndk)
               dst.parent.mkdir(parents=True,exist_ok=True)
@@ -144,8 +150,8 @@ jobs:
               })
           Path('audit-evidence/ndk-libcxx-provenance.json').write_text(json.dumps(result,indent=2)+'\n')
           if data!=shipped:
-              raise SystemExit('NDK 29 ARMv7 libc++ does NOT match shipped APK')
-          print('APK libc++ runtime is byte-identical to NDK 29.0.14206865')
+              raise SystemExit('Stripped NDK 29 ARMv7 libc++ does not match shipped APK')
+          print('APK libc++ runtime matches NDK 29.0.14206865 after stripping')
           PY
       - name: Publish inspectable ELF audit
         if: always()
