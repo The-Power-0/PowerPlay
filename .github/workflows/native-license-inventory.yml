@@ -9,6 +9,7 @@ on:
       - 'scripts/audit_powerplay_gradle_runtime.py'
       - 'scripts/audit_powerplay_rust_crates.py'
       - 'scripts/audit_libass_historical_wraps.py'
+      - 'scripts/audit_powerplay_maven_poms.py'
       - 'scripts/export_gradle_runtime_artifacts.init.gradle'
       - '.github/workflows/native-license-inventory.yml'
 
@@ -281,6 +282,13 @@ jobs:
             --apk release-apk/PowerPlay-v1.3.9.apk \
             --gradle-json audit-dependency-graph/gradle-release-artifacts.json \
             --output audit-dependency-graph
+      - name: Resolve published Maven POM licenses and critical source jars
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/audit_powerplay_maven_poms.py \
+            --gradle-report audit-dependency-graph/gradle-runtime-artifacts.json \
+            --output audit-dependency-graph/maven-license-reconciliation
       - name: Publish exact dependency resolution evidence
         if: always()
         uses: actions/upload-artifact@v4
