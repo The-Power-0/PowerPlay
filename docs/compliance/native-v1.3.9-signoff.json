@@ -9,7 +9,7 @@
   "version_specific_complete_source_bundle_verified": false,
   "native_components": {
     "libapp.so": "PowerPlay Flutter AOT application; source release archive verified, but app-wide source closure remains pending",
-    "libasskt.so": "Project-owned JNI with static libass and six independent WrapDB dependencies; exact historic static build not attested",
+    "libasskt.so": "Project JNI uses a checksum-pinned libass 0.18.3 static archive now reproduced byte-identically from time-qualified historical WrapDB source; LGPL redistribution and notices remain open",
     "libavcodec.so": "GPLv3 FFmpeg core from pinned AAR; source/compiled-static closure and license exceptions need signoff",
     "libavutil.so": "GPLv3 FFmpeg core; independently validate all compiled source and notices",
     "libc++_shared.so": "Byte-identical pinned mpv AAR, compiler-runtime source revision/notice mapping still open",
@@ -28,8 +28,10 @@
     {
       "id": "SRC-001",
       "area": "libass WrapDB source",
-      "detail": "Historical runtime Meson WrapDB resolution was not archived; source snapshot as of 2026-07-10 is time-qualified but not proven to be actual compiled sources",
-      "required_evidence": "Historical build material or reproducible comparison tying libass.a to the six source archives and Meson patches"
+      "detail": "Original libass v0.18.3 ARMv7 combined archive independently reproduced byte-for-byte (182 identical members, SHA256 c5cd611c2b0ddbdf9ab863d91e5901789b1623a808081c91627b65a486fffcc3) using exact historical WrapDB source archive checksums and NDK 28.1.13356709",
+      "required_evidence": "Satisfied by GitHub Actions run 42164891689: PowerPlay-v1.3.9-libass-source-reproduction artifact",
+      "status": "closed",
+      "evidence_url": "https://github.com/The-Power-0/PowerPlay/actions/runs/42164891689"
     },
     {
       "id": "NOTICE-002",
