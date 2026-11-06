@@ -95,6 +95,12 @@ jobs:
               names=z.namelist()
               notices=[s for s in names if '/licenses/' in s.lower() and not s.endswith('/')]
               Path('audit-prebuilt/libass-license-file-list.txt').write_text('\n'.join(sorted(notices))+'\n')
+              for entry in notices:
+                  from pathlib import PurePosixPath
+                  rel = PurePosixPath(*PurePosixPath(entry).parts[2:])
+                  dest = Path('audit-prebuilt/libass-notices').joinpath(*rel.parts)
+                  dest.parent.mkdir(parents=True,exist_ok=True)
+                  dest.write_bytes(z.read(entry))
               readmes=[s for s in names if s.endswith('/README.md')]
               for s in readmes:
                   Path('audit-prebuilt/libass-package-README.md').write_bytes(z.read(s))
@@ -111,6 +117,38 @@ jobs:
           cargo tree --locked --manifest-path /tmp/dovi-tool/dolby_vision/Cargo.toml \
             --features capi --target armv7-linux-androideabi --edges normal \
             > audit-prebuilt/libdovi-android-armv7-cargo-closure.txt
+          cargo metadata --locked --format-version 1 \
+            --manifest-path /tmp/dovi-tool/dolby_vision/Cargo.toml \
+            > /tmp/libdovi-cargo-metadata.json
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          graph=Path('audit-prebuilt/libdovi-android-armv7-cargo-closure.txt').read_text()
+          active=set(re.findall(r'([A-Za-z0-9_-]+) v([0-9][A-Za-z0-9.-]*)',graph))
+          packages=json.loads(Path('/tmp/libdovi-cargo-metadata.json').read_text())['packages']
+          rows=[]
+          for pkg in packages:
+              key=(pkg['name'],pkg['version'])
+              if key in active:
+                  rows.append({
+                      'name':pkg['name'], 'version':pkg['version'],
+                      'license':pkg.get('license') or '(missing license field)',
+                      'source':pkg.get('source') or '(local source)',
+                      'checksum':pkg.get('checksum') or '(local source)',
+                      'repository':pkg.get('repository') or ''
+                  })
+          assert len(rows)==len(active),(len(rows),len(active),active)
+          rows.sort(key=lambda x:x['name'])
+          Path('audit-prebuilt/libdovi-android-armv7-license-components.json').write_text(
+              json.dumps(rows,indent=2)+'\n')
+          Path('audit-prebuilt/libdovi-android-armv7-license-components.md').write_text(
+              '# Source-lockfile-derived libdovi ARMv7 component licenses\n\n'
+              'This is NOT an attestation of the historical prebuilt Cargo resolution.\n\n'
+              '| Crate | License declared | Source/checksum |\n'
+              '| --- | --- | --- |\n'
+              +''.join('| '+r['name']+' '+r['version']+' | '+r['license']+
+                       ' | '+r['checksum']+' |\n' for r in rows))
+          PY
           echo 'CAUTION: This is tag/Cargo.lock resolution, not an attestation of the prebuilt artifact.' \
             > audit-prebuilt/PROVENANCE-LIMITATION.txt
       - name: Publish prebuilt license provenance evidence
