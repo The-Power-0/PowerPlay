@@ -175,12 +175,12 @@ class _PowerLinkHandoffPickerState extends State<PowerLinkHandoffPicker> {
     final available = devices.where((device) => device.available).toList(growable: false);
     final lastAvailableFocus = available.isEmpty ? _refreshFocus : _nodeFor(available.last);
     return AlertDialog(
-      title: const Row(
+      title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SvgPicture.asset('assets/brand/powerlink-mark.svg', width: 24, height: 24, colorFilter: ColorFilter.mode(Theme.of(context).colorScheme.primary, BlendMode.srcIn)),
-          SizedBox(width: 12),
-          Text('PowerLink · Move playback'),
+          SvgPicture.asset('assets/brand/powerlink-mark.svg', width: 24, height: 24),
+          const SizedBox(width: 12),
+          const Text('PowerLink · Move playback'),
         ],
       ),
       content: SizedBox(
