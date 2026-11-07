@@ -1,0 +1,314 @@
+import 'dart:async';
+import 'dart:math' as math;
+
+import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
+
+import '../../media/media_item.dart';
+import '../../media/play_queue.dart';
+import '../../providers/playback_state_provider.dart';
+import '../../providers/multi_server_provider.dart';
+import '../../media/ids.dart';
+import '../plex_client.dart';
+import '../powerlink/powerlink_app_client.dart';
+
+/// A single active PowerShuffle player-side session. Only a named
+/// PowerShuffle queue context may report events; ordinary Plex Shuffle and
+/// manually launched episodes are deliberately invisible to this class.
+///
+/// The Home Assistant PowerLink integration remains the authoritative store.
+class PowerShuffleSession {
+  PowerShuffleSession._();
+  static final PowerShuffleSession instance = PowerShuffleSession._();
+
+  final PowerLinkAppClient _api = const PowerLinkAppClient();
+  PowerLinkAppIdentity? _identity;
+  String _sessionId = '';
+  String _profileId = '';
+  String _showGuid = '';
+  String _serverId = '';
+  String _currentKey = '';
+  List<String> _order = [];
+  Map<String, PlexMediaItem> _items = {};
+  List<List<int>> _coverage = [];
+  int? _lastPosition;
+  DateTime? _lastSample;
+  DateTime? _lastSent;
+  bool _started = false;
+  bool _completed = false;
+  int _eventCounter = 0;
+  Future<void> _inFlight = Future<void>.value();
+
+  String get sessionId => _sessionId;
+  String get contextKey => 'powershuffle:$_sessionId';
+  bool get active => _identity != null && _sessionId.isNotEmpty;
+  bool get completedForCurrent => _completed;
+
+  static String? keyOf(MediaItem item) {
+    if (item is! PlexMediaItem || !item.isEpisode) return null;
+    if (item.parentIndex == null || item.index == null) return null;
+    return '${item.parentIndex}:${item.index}';
+  }
+
+  bool matches(MediaItem item, String? queueContextKey) =>
+      active &&
+      queueContextKey == contextKey &&
+      item.serverId == _serverId &&
+      keyOf(item) != null &&
+      (_items.isEmpty || _items.containsKey(keyOf(item)));
+
+  /// Called after HA approves a new queue. The selected episode deliberately
+  /// has its normal Plex resume offset removed.
+  void begin({
+    required PowerLinkAppIdentity identity,
+    required String profileId,
+    required String showGuid,
+    required String serverId,
+    required String sessionId,
+    required List<String> order,
+    required Map<String, PlexMediaItem> items,
+  }) {
+    _identity = identity;
+    _profileId = profileId;
+    _showGuid = showGuid;
+    _serverId = serverId;
+    _sessionId = sessionId;
+    _items = Map.of(items);
+    _order = List.of(order);
+    _resetEpisode();
+  }
+
+  void _resetEpisode() {
+    _currentKey = '';
+    _coverage = [];
+    _lastPosition = null;
+    _lastSample = null;
+    _lastSent = null;
+    _started = false;
+    _completed = false;
+  }
+
+  /// Join an existing session only after PowerLink's first-frame ACK moved
+  /// ownership to this device. The queue header carries the session ID, not
+  /// a credential. Only a paired recipient can obtain HA's session metadata.
+  Future<void> attachFromHandoff(
+    BuildContext context, String? transferredContext, MediaItem current,
+  ) async {
+    if (transferredContext == null ||
+        !transferredContext.startsWith('powershuffle:')) return;
+    final id = transferredContext.substring('powershuffle:'.length);
+    if (id.isEmpty || (active && _sessionId == id)) return;
+    final identity = await PowerLinkAppCredentials().load();
+    if (identity == null) return;
+    Map<String, dynamic>? response;
+    for (var attempt = 0; attempt < 8; attempt++) {
+      try {
+        response = await _api.attachPowerShuffle(identity, id);
+        break;
+      } catch (_) {
+        await Future<void>.delayed(const Duration(seconds: 1));
+      }
+    }
+    if (response == null || !context.mounted) return;
+    final profile = response['profile_id'];
+    final showGuid = response['show_guid'];
+    final serverId = response['server_id'];
+    final order = response['queue'];
+    if (profile is! String || showGuid is! String ||
+        serverId is! String || order is! List) return;
+
+    // Fetch only on actual receiver handoff, never as a background task.
+    final items = <String, PlexMediaItem>{};
+    if (current is PlexMediaItem && current.grandparentId != null) {
+      final plex = context.read<MultiServerProvider>()
+          .getPlexClientForServer(ServerId(serverId));
+      if (plex != null) {
+        final episodes = await plex.fetchClientSideEpisodeQueue(current.grandparentId!);
+        for (final episode in episodes ?? <MediaItem>[]) {
+          if (episode is PlexMediaItem) {
+            final key = keyOf(episode);
+            if (key != null) items.putIfAbsent(key, () => episode);
+          }
+        }
+      }
+    }
+    begin(
+      identity: identity, profileId: profile, showGuid: showGuid,
+      serverId: serverId, sessionId: id,
+      order: order.whereType<String>().toList(growable: false),
+      items: items,
+    );
+    final savedKey = response['coverage_episode'];
+    final ranges = response['coverage'];
+    if (savedKey is String && savedKey == keyOf(current) && ranges is List) {
+      _currentKey = savedKey;
+      _coverage = [
+        for (final pair in ranges)
+          if (pair is List && pair.length == 2 &&
+              pair[0] is int && pair[1] is int)
+            [pair[0] as int, pair[1] as int],
+      ];
+      _started = true; // preserve the same viewed-content attempt
+    }
+  }
+
+  int get viewedMs =>
+      _coverage.fold<int>(0, (sum, pair) => sum + pair[1] - pair[0]);
+
+  void _addRange(int start, int end) {
+    if (end <= start) return;
+    final sorted = <List<int>>[..._coverage, [start, end]]
+      ..sort((a, b) => a[0].compareTo(b[0]));
+    final merged = <List<int>>[];
+    for (final range in sorted) {
+      if (merged.isNotEmpty && range[0] <= merged.last[1]) {
+        merged.last[1] = math.max(merged.last[1], range[1]);
+      } else {
+        merged.add(List.of(range));
+      }
+    }
+    _coverage = merged.take(128).toList(growable: false);
+  }
+
+  /// Sample only while the native player really advances. Seeking across
+  /// unviewed content never fills in the gap or earns a completion.
+  void observe({
+    required MediaItem item,
+    required String? queueContextKey,
+    required bool playing,
+    required int positionMs,
+    required int durationMs,
+  }) {
+    if (!matches(item, queueContextKey) || durationMs <= 0) return;
+    final key = keyOf(item)!;
+    if (_currentKey != key) {
+      _resetEpisode();
+      _currentKey = key;
+    }
+    final now = DateTime.now();
+    if (!playing || positionMs <= 0) {
+      _lastPosition = null;
+      _lastSample = null;
+      return;
+    }
+    if (!_started) {
+      _started = true;
+      unawaited(_record('started', positionMs, durationMs).catchError((Object _) {}));
+    }
+    final before = _lastPosition;
+    final elapsed = now.difference(_lastSample ?? now).inMilliseconds;
+    if (before != null &&
+        elapsed > 0 && elapsed <= 5000 &&
+        positionMs > before && positionMs - before <= elapsed + 1000) {
+      _addRange(before, math.min(positionMs, durationMs));
+    }
+    _lastPosition = positionMs;
+    _lastSample = now;
+    if (!_completed && viewedMs * 10 >= durationMs * 9) {
+      _completed = true;
+      unawaited(_record('completed', positionMs, durationMs).catchError((Object _) {
+        _completed = false;
+      }));
+    } else if (_lastSent == null || now.difference(_lastSent!).inSeconds >= 12) {
+      _lastSent = now;
+      unawaited(_record('progress', positionMs, durationMs).catchError((Object _) {}));
+    }
+  }
+
+  Future<Map<String, dynamic>> _record(
+    String action, int positionMs, int durationMs, {String? requestedKey},
+  ) async {
+    if (!active || _currentKey.isEmpty) throw StateError('PowerShuffle is inactive');
+    final identity = _identity!;
+    final payload = <String, dynamic>{
+      'profile_id': _profileId,
+      'show_guid': _showGuid,
+      'server_id': _serverId,
+      'session_id': _sessionId,
+      'episode_key': _currentKey,
+      'event_id': '${DateTime.now().microsecondsSinceEpoch}-${++_eventCounter}',
+      'action': action,
+      'position_ms': positionMs.clamp(0, 86400000),
+      'duration_ms': durationMs.clamp(1, 86400000),
+      'viewed_ms': viewedMs,
+      'ranges': _coverage,
+      if (requestedKey != null) 'requested_episode_key': requestedKey,
+    };
+    // Keep start -> progress -> complete -> skip/EOF ordered even if the
+    // network responds out of order. An explicit skip waits for its ACK.
+    final completer = Completer<Map<String, dynamic>>();
+    _inFlight = _inFlight.catchError((Object _) {}).then((_) async {
+      try {
+        completer.complete(await _api.powerShuffleEvent(identity, payload));
+      } catch (error, stack) {
+        completer.completeError(error, stack);
+      }
+    });
+    return completer.future;
+  }
+
+  /// Advance the authoritative queue before changing the player. A failed HA
+  /// request does NOT silently invent a shuffle order or skip record.
+  Future<MediaItem?> advance(
+    BuildContext context, {
+    required bool atEnd,
+    String? skipChoice,
+    MediaItem? requested,
+  }) async {
+    if (!active || !_started) return null;
+    final selected = requested == null ? null : keyOf(requested);
+    final action = atEnd || _completed
+        ? 'ended'
+        : skipChoice == 'five_days'
+            ? 'skip_five_days'
+            : 'skip_next_cycle';
+    final result = await _record(
+      action, _lastPosition ?? 0, 1, requestedKey: selected,
+    );
+    if (!context.mounted) return null;
+    final order = result['queue'];
+    if (order is! List) return null;
+    _order = order.whereType<String>().toList(growable: false);
+    if (_order.isEmpty) {
+      _resetEpisode();
+      return null;
+    }
+    final next = _items[_order.first];
+    if (next == null) {
+      _resetEpisode();
+      return null;
+    }
+    // Rebuild the local window only after HA commits the mutation.
+    final playable = [
+      for (final key in _order)
+        if (_items[key] case final PlexMediaItem episode)
+          episode.copyWith(viewOffsetMs: 0),
+    ];
+    if (playable.isEmpty) return null;
+    final playbackState = context.read<PlaybackStateProvider>();
+    playbackState.setPlaybackFromLocalQueue(
+      LocalPlayQueue(items: playable, currentIndex: 0, shuffled: true),
+      contextKey: contextKey,
+    );
+    _resetEpisode();
+    return playable.first;
+  }
+
+  /// Early ordinary exits deliberately do not invoke either skip action.
+  Future<void> leave() async {
+    if (!active || !_started || _currentKey.isEmpty) return;
+    try {
+      await _record('exited', _lastPosition ?? 0, 1);
+    } catch (_) {
+      // The last acknowledged progress still preserves any completed state.
+    }
+  }
+
+  void deactivate() {
+    _identity = null;
+    _sessionId = '';
+    _resetEpisode();
+    _items = {};
+    _order = [];
+  }
+}
