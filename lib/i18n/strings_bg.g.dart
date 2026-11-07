@@ -1177,7 +1177,7 @@ class _Translations$profiles$bg extends Translations$profiles$en {
 	final TranslationsBg _root; // ignore: unused_field
 
 	// Translations
-	@override String get addPowerPlayProfile => 'Добави PowerPlay профил';
+	@override String get addPlezyProfile => 'Добави PowerPlay профил';
 	@override String get switchingProfile => 'Смяна на профил…';
 	@override String get deleteThisProfileTitle => 'Да се изтрие ли този профил?';
 	@override String deleteThisProfileMessage({required Object displayName}) => 'Премахване на ${displayName}. Връзките не се засягат.';
@@ -1507,7 +1507,7 @@ class _Translations$startup$bg extends Translations$startup$en {
 	@override String get repairSucceeded => 'Хранилището е ремонтирано';
 	@override String get repairNeedsRestart => 'Хранилището е ремонтирано — изисква се рестартиране';
 	@override String get restartRequiredBody => 'Данните ви бяха ремонтирани, но PowerPlay трябва да стартира наново, преди да ги използва. Затворете PowerPlay и го отворете отново.';
-	@override String get quitPowerPlay => 'Изход от PowerPlay';
+	@override String get quitPlezy => 'Изход от PowerPlay';
 	@override String get repairFailed => 'Ремонтът се провали';
 	@override String get repairKeptSignIns => 'Сървърите и профилите ви са все още вписани.';
 	@override String get repairLostSignIns => 'Ключът, защитаващ запазените ви вписвания, не можа да бъде възстановен. Ще трябва да се впишете отново във всеки сървър и профил.';
@@ -4354,7 +4354,7 @@ extension on TranslationsBg {
 			'mpvConfig.removeLine' => 'Премахни ред',
 			'mpvConfig.embeddedVoHint' => 'vo, gpu-context и gpu-api се игнорират на Linux: вграденото видео винаги се рендерира през vo=libmpv върху видео равнината, а gpu-next (който е нужен за compute шейдъри като ArtCNN) не може да работи вградено.',
 			'dialog.confirmAction' => 'Потвърждение на действие',
-			'profiles.addPowerPlayProfile' => 'Добави PowerPlay профил',
+			'profiles.addPlezyProfile' => 'Добави PowerPlay профил',
 			'profiles.switchingProfile' => 'Смяна на профил…',
 			'profiles.deleteThisProfileTitle' => 'Да се изтрие ли този профил?',
 			'profiles.deleteThisProfileMessage' => ({required Object displayName}) => 'Премахване на ${displayName}. Връзките не се засягат.',
@@ -4686,7 +4686,7 @@ extension on TranslationsBg {
 			'startup.repairSucceeded' => 'Хранилището е ремонтирано',
 			'startup.repairNeedsRestart' => 'Хранилището е ремонтирано — изисква се рестартиране',
 			'startup.restartRequiredBody' => 'Данните ви бяха ремонтирани, но PowerPlay трябва да стартира наново, преди да ги използва. Затворете PowerPlay и го отворете отново.',
-			'startup.quitPowerPlay' => 'Изход от PowerPlay',
+			'startup.quitPlezy' => 'Изход от PowerPlay',
 			'startup.repairFailed' => 'Ремонтът се провали',
 			'startup.repairKeptSignIns' => 'Сървърите и профилите ви са все още вписани.',
 			'startup.repairLostSignIns' => 'Ключът, защитаващ запазените ви вписвания, не можа да бъде възстановен. Ще трябва да се впишете отново във всеки сървър и профил.',

@@ -1030,7 +1030,7 @@
     "confirmAction": "Əməliyyatı təsdiqlə"
   },
   "profiles": {
-    "addPowerPlayProfile": "PowerPlay profili əlavə et",
+    "addPlezyProfile": "PowerPlay profili əlavə et",
     "switchingProfile": "Profil dəyişdirilir…",
     "deleteThisProfileTitle": "Bu profil silinsin?",
     "deleteThisProfileMessage": "${displayName} silinəcək. Qoşulmalar təsirlənmir.",
@@ -1407,7 +1407,7 @@
     "repairSucceeded": "Yaddaş təmir edildi",
     "repairNeedsRestart": "Yaddaş təmir edildi — yenidən başlatma tələb olunur",
     "restartRequiredBody": "Məlumatlarınız təmir edildi, lakin PowerPlay ondan istifadə etmək üçün yenidən başlamalıdır. PowerPlay-ni bağlayın və yenidən açın.",
-    "quitPowerPlay": "PowerPlay-dən çıx",
+    "quitPlezy": "PowerPlay-dən çıx",
     "repairFailed": "Təmir uğursuz oldu",
     "repairKeptSignIns": "Serverləriniz və profilləriniz hələ də daxil olub.",
     "repairLostSignIns": "Saxlanmış daxil olmalarınızı qoruyan açar bərpa edilə bilmədi. Hər serverə və profilə yenidən daxil olmalı olacaqsınız.",

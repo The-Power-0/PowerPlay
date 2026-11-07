@@ -1030,7 +1030,7 @@
     "confirmAction": "Bekræft handling"
   },
   "profiles": {
-    "addPowerPlayProfile": "Tilføj PowerPlay-profil",
+    "addPlezyProfile": "Tilføj PowerPlay-profil",
     "switchingProfile": "Skifter profil…",
     "deleteThisProfileTitle": "Slet denne profil?",
     "deleteThisProfileMessage": "Fjern ${displayName}. Forbindelser påvirkes ikke.",
@@ -1407,7 +1407,7 @@
     "repairSucceeded": "Lager repareret",
     "repairNeedsRestart": "Lager repareret — genstart påkrævet",
     "restartRequiredBody": "Dine data er blevet repareret, men PowerPlay skal starte på ny, før det kan bruge dem. Luk PowerPlay, og åbn det igen.",
-    "quitPowerPlay": "Afslut PowerPlay",
+    "quitPlezy": "Afslut PowerPlay",
     "repairFailed": "Reparation mislykkedes",
     "repairKeptSignIns": "Dine servere og profiler er stadig logget ind.",
     "repairLostSignIns": "Nøglen, der beskytter dine gemte loginoplysninger, kunne ikke gendannes. Du skal logge ind på alle servere og profiler igen.",

@@ -1177,7 +1177,7 @@ class _Translations$profiles$hu extends Translations$profiles$en {
 	final TranslationsHu _root; // ignore: unused_field
 
 	// Translations
-	@override String get addPowerPlayProfile => 'PowerPlay profil hozzáadása';
+	@override String get addPlezyProfile => 'PowerPlay profil hozzáadása';
 	@override String get switchingProfile => 'Profilváltás…';
 	@override String get deleteThisProfileTitle => 'Törlöd ezt a profilt?';
 	@override String deleteThisProfileMessage({required Object displayName}) => '${displayName} eltávolítása. A kapcsolatokat nem érinti.';
@@ -1507,7 +1507,7 @@ class _Translations$startup$hu extends Translations$startup$en {
 	@override String get repairSucceeded => 'A tárhely javítva';
 	@override String get repairNeedsRestart => 'A tárhely javítva – újraindítás szükséges';
 	@override String get restartRequiredBody => 'Az adatait kijavítottuk, de a PowerPlay-nek frissen kell elindulnia, mielőtt használhatná. Zárja be a PowerPlay-t, és nyissa meg újra.';
-	@override String get quitPowerPlay => 'Kilépés a PowerPlay-ből';
+	@override String get quitPlezy => 'Kilépés a PowerPlay-ből';
 	@override String get repairFailed => 'A javítás nem sikerült';
 	@override String get repairKeptSignIns => 'A szerverei és profiljai továbbra is be vannak jelentkezve.';
 	@override String get repairLostSignIns => 'A mentett bejelentkezéseket védő kulcs nem volt visszanyerhető. Minden szerverre és profilba újra be kell jelentkeznie.';
@@ -4354,7 +4354,7 @@ extension on TranslationsHu {
 			'mpvConfig.removeLine' => 'Sor eltávolítása',
 			'mpvConfig.embeddedVoHint' => 'A vo, gpu-context és gpu-api beállítások Linuxon figyelmen kívül maradnak: a beágyazott videó mindig a vo=libmpv-n keresztül jelenik meg a videósíkon, a gpu-next (amelyre az ArtCNN-hez hasonló compute shadereknek szükségük van) pedig nem futhat beágyazva.',
 			'dialog.confirmAction' => 'Művelet megerősítése',
-			'profiles.addPowerPlayProfile' => 'PowerPlay profil hozzáadása',
+			'profiles.addPlezyProfile' => 'PowerPlay profil hozzáadása',
 			'profiles.switchingProfile' => 'Profilváltás…',
 			'profiles.deleteThisProfileTitle' => 'Törlöd ezt a profilt?',
 			'profiles.deleteThisProfileMessage' => ({required Object displayName}) => '${displayName} eltávolítása. A kapcsolatokat nem érinti.',
@@ -4686,7 +4686,7 @@ extension on TranslationsHu {
 			'startup.repairSucceeded' => 'A tárhely javítva',
 			'startup.repairNeedsRestart' => 'A tárhely javítva – újraindítás szükséges',
 			'startup.restartRequiredBody' => 'Az adatait kijavítottuk, de a PowerPlay-nek frissen kell elindulnia, mielőtt használhatná. Zárja be a PowerPlay-t, és nyissa meg újra.',
-			'startup.quitPowerPlay' => 'Kilépés a PowerPlay-ből',
+			'startup.quitPlezy' => 'Kilépés a PowerPlay-ből',
 			'startup.repairFailed' => 'A javítás nem sikerült',
 			'startup.repairKeptSignIns' => 'A szerverei és profiljai továbbra is be vannak jelentkezve.',
 			'startup.repairLostSignIns' => 'A mentett bejelentkezéseket védő kulcs nem volt visszanyerhető. Minden szerverre és profilba újra be kell jelentkeznie.',

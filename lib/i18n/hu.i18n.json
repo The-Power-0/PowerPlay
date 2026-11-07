@@ -1030,7 +1030,7 @@
     "confirmAction": "Művelet megerősítése"
   },
   "profiles": {
-    "addPowerPlayProfile": "PowerPlay profil hozzáadása",
+    "addPlezyProfile": "PowerPlay profil hozzáadása",
     "switchingProfile": "Profilváltás…",
     "deleteThisProfileTitle": "Törlöd ezt a profilt?",
     "deleteThisProfileMessage": "${displayName} eltávolítása. A kapcsolatokat nem érinti.",
@@ -1407,7 +1407,7 @@
     "repairSucceeded": "A tárhely javítva",
     "repairNeedsRestart": "A tárhely javítva – újraindítás szükséges",
     "restartRequiredBody": "Az adatait kijavítottuk, de a PowerPlay-nek frissen kell elindulnia, mielőtt használhatná. Zárja be a PowerPlay-t, és nyissa meg újra.",
-    "quitPowerPlay": "Kilépés a PowerPlay-ből",
+    "quitPlezy": "Kilépés a PowerPlay-ből",
     "repairFailed": "A javítás nem sikerült",
     "repairKeptSignIns": "A szerverei és profiljai továbbra is be vannak jelentkezve.",
     "repairLostSignIns": "A mentett bejelentkezéseket védő kulcs nem volt visszanyerhető. Minden szerverre és profilba újra be kell jelentkeznie.",
