@@ -13,6 +13,7 @@ import '../../utils/video_player_navigation.dart';
 import '../deep_links/deep_link.dart';
 import '../powerlink/powerlink_app_client.dart';
 import 'powershuffle_session.dart';
+import 'powershuffle_event_journal.dart';
 
 /// Opt-in single-show PowerShuffle launch. Plex's ordinary shuffled and
 /// watched/unwatched state remain untouched.
@@ -93,6 +94,10 @@ class PowerShuffleLauncher {
         showMainSnackBar('No playable regular episodes were found.');
         return;
       }
+      // Commit any events saved before a previous Fire TV suspend or crash.
+      // A new session must not discard earlier progress on HA.
+      await const PowerShuffleEventJournal().flush(identity);
+      if (!context.mounted) return;
       final profileId = linkProfileRef(profile);
       final result = await const PowerLinkAppClient().startPowerShuffle(identity, {
         'profile_id': profileId,
