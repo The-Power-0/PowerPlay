@@ -24,6 +24,13 @@ class PowerShuffleSkipDialog extends StatefulWidget {
 class _PowerShuffleSkipDialogState extends State<PowerShuffleSkipDialog> {
   final _fiveDays = FocusNode(debugLabel: 'PowerShuffle Skip 5 Days');
   final _nextCycle = FocusNode(debugLabel: 'PowerShuffle Skip Next Cycle');
+  bool _handled = false;
+
+  void _finish([String? choice]) {
+    if (_handled || !mounted) return;
+    _handled = true;
+    Navigator.of(context).pop(choice);
+  }
 
   @override
   void initState() {
@@ -58,8 +65,8 @@ class _PowerShuffleSkipDialogState extends State<PowerShuffleSkipDialog> {
       useBackgroundFocus: true,
       onNavigateUp: moveUp,
       onNavigateDown: moveDown,
-      onBack: () => Navigator.of(context).pop(),
-      onPressed: () => Navigator.of(context).pop(value),
+      onBack: () => _finish(),
+      onPressed: () => _finish(value),
       child: Semantics(
         button: true,
         label: title,
