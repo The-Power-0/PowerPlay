@@ -5,6 +5,65 @@ import 'package:plezy/screens/video_player/wakelock_controller.dart';
 
 void main() {
   group('WakelockController', () {
+    test('PowerLink hold keeps screen on through pre-player buffering', () async {
+      final states = <bool>[];
+      final controller = WakelockController(platformToggle: (value) async {
+        states.add(value);
+      });
+
+      final handoff = await controller.acquireTemporaryHold();
+      expect(states, [true]);
+
+      // Video startup briefly reports not playing while the media opens.
+      // That is not permission for Fire TV to enter ambient/screensaver mode.
+      await controller.setEnabled(false);
+      await controller.setEnabled(false);
+      expect(states, [true]);
+
+      // Once the first frame is playing, normal playback assumes the flag.
+      await controller.setEnabled(true);
+      await handoff.release();
+      expect(states, [true]);
+      await controller.setEnabled(false);
+      expect(states, [true, false]);
+    });
+
+    test('superseded handoffs release only their own wake leases', () async {
+      final states = <bool>[];
+      final controller = WakelockController(platformToggle: (value) async {
+        states.add(value);
+      });
+      final first = await controller.acquireTemporaryHold();
+      final second = await controller.acquireTemporaryHold();
+      expect(states, [true]);
+      await first.release();
+      await first.release(); // idempotent cancellation / stale callback
+      expect(states, [true]);
+      await second.release();
+      expect(states, [true, false]);
+    });
+
+    test('PowerLink startup wakelock failure is bounded and cleans up', () async {
+      final states = <bool>[];
+      var failFirst = true;
+      final controller = WakelockController(platformToggle: (value) async {
+        states.add(value);
+        if (failFirst) {
+          failFirst = false;
+          throw StateError('Activity is not yet attached');
+        }
+      });
+      final hold = await controller.acquireTemporaryHold();
+      expect(states, [true]);
+      await hold.release();
+      // A failed enable never claims the flag and a bounded release does not
+      // loop or retain a stale lease.
+      expect(states, [true, false]);
+      final retry = await controller.acquireTemporaryHold();
+      await retry.release();
+      expect(states, [true, false, true, false]);
+    });
+
     test('drains enable then disable without overlapping platform work', () async {
       final platform = _ControlledPlatformToggle();
       final controller = WakelockController(platformToggle: platform.call);

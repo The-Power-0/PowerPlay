@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/widgets.dart';
@@ -11,6 +12,8 @@ import '../../providers/multi_server_provider.dart';
 import '../../providers/playback_state_provider.dart';
 import '../../services/playback_launch_observer.dart';
 import '../../services/playback_coordinator.dart';
+import '../../screens/video_player/wakelock_controller.dart';
+import '../../utils/platform_detector.dart';
 import '../../utils/app_logger.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../utils/video_player_navigation.dart';
@@ -35,7 +38,17 @@ class PowerLinkReceiver {
   static Future<void> launch(BuildContext context, PowerLinkResumeLink link) async {
     final generation = ++_generation;
     final bridge = PowerLinkTransferClient(link.request);
+    WakelockLease? startupWakeLease;
     try {
+      // Acquire the foreground activity's KEEP_SCREEN_ON flag *before* Plex
+      // requests and player creation. A Fire Stick Lite may otherwise enter
+      // its screensaver while the exact queue is still resolving, and then
+      // defer video initialization until a remote key wakes the activity.
+      // The lease is bounded by the existing 30-second launch watcher and
+      // cannot override later intentional player pauses after it is released.
+      if (Platform.isAndroid && PlatformDetector.isTV()) {
+        startupWakeLease = await powerplayVideoWakelock.acquireTemporaryHold();
+      }
       // Get queue header (tiny one-item response), then the window centered
       // around the actual playing slot. Never fetch a 5000-entry manifest.
       final header = await bridge.fetch(0, count: 1);
@@ -133,9 +146,17 @@ class PowerLinkReceiver {
         observer.mark('failed', failure: 'navigationFailed');
         return null;
       }));
+      // Transfer wakelock ownership to this short-lived completion watcher:
+      // the launch method returns while the route/player are still opening.
+      // The shared WakelockController prevents an early buffering 'paused'
+      // state from releasing the flag until startup has finished or timed out.
+      final completionLease = startupWakeLease;
+      startupWakeLease = null;
       unawaited(_acknowledgeWhenPlaying(
         bridge, observer, selected, initial.positionMs, generation,
-      ));
+      ).whenComplete(() async {
+        await completionLease?.release();
+      }));
     } catch (error, stack) {
       // No access credential or capability token is logged.
       appLogger.w('PowerLink could not safely resume the selected queue item',
@@ -144,6 +165,10 @@ class PowerLinkReceiver {
         showMainSnackBar('PowerLink could not resume this queue. Original device was not stopped.');
       }
       unawaited(_safeAck(bridge, 'failed'));
+    } finally {
+      // Includes malformed links, unavailable Plex media, a route cancelled
+      // by a newer transfer, and errors before the watcher takes ownership.
+      await startupWakeLease?.release();
     }
   }
 

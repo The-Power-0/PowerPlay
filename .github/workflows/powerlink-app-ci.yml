@@ -10,6 +10,8 @@ on:
       - 'lib/services/playback_coordinator.dart'
       - 'lib/screens/video_player_screen.dart'
       - 'lib/screens/video_player/parts/**'
+      - 'lib/screens/video_player/wakelock_controller.dart'
+      - 'test/screens/video_player/wakelock_controller_test.dart'
       - 'lib/screens/settings/powerlink_settings_screen.dart'
       - 'lib/screens/settings/settings_screen.dart'
       - 'lib/widgets/video_controls/**'
@@ -25,6 +27,8 @@ on:
       - 'lib/services/playback_coordinator.dart'
       - 'lib/screens/video_player_screen.dart'
       - 'lib/screens/video_player/parts/**'
+      - 'lib/screens/video_player/wakelock_controller.dart'
+      - 'test/screens/video_player/wakelock_controller_test.dart'
       - 'lib/screens/settings/powerlink_settings_screen.dart'
       - 'lib/screens/settings/settings_screen.dart'
       - 'lib/widgets/video_controls/**'
@@ -56,6 +60,8 @@ jobs:
         run: flutter test test/services/powerlink/powerlink_transfer_test.dart test/services/powerlink/powerlink_destination_takeover_test.dart test/services/deep_links/deep_link_test.dart test/services/playback_coordinator_test.dart test/services/powerlink/powerlink_app_client_test.dart
       - name: Check native Fire TV keyboard and D-pad pairing navigation
         run: flutter test test/screens/settings/powerlink_settings_screen_test.dart
+      - name: Keep destination awake during PowerLink startup
+        run: flutter test test/screens/video_player/wakelock_controller_test.dart
       - name: Verify PowerLink picker TV focus and destination selection
         run: flutter test test/services/powerlink/powerlink_handoff_picker_test.dart
       - name: Protect existing playback queue and video-start logic
@@ -69,6 +75,8 @@ jobs:
             lib/services/playback_coordinator.dart \
             lib/providers/playback_state_provider.dart \
             lib/screens/video_player_screen.dart \
+            lib/screens/video_player/wakelock_controller.dart \
+            test/screens/video_player/wakelock_controller_test.dart \
             lib/screens/video_player/parts/episode_navigation.dart \
             lib/screens/settings/powerlink_settings_screen.dart \
             lib/screens/settings/settings_screen.dart \
