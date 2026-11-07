@@ -60,64 +60,74 @@ extension _VideoPlayerEpisodeNavigationMethods on VideoPlayerScreenState {
       _currentMetadata, context.read<PlaybackStateProvider>().shuffleContextKey,
     );
     if (_episode.next == null && !psActive) return;
-    final wasAtCompletion = _episode.completionLatch.triggered;
-    MediaItem? target = _episode.next;
-
-    if (psActive) {
-      // An earlier skip may already have been committed by HA while the
-      // new stream failed to initialize. Retry that same target without a
-      // second skip decision or a second history mutation.
-      if (ps.pendingNavigationTarget case final pending?) {
-        target = pending;
-      } else {
-        if (!ps.hasStarted) {
-          showMainSnackBar('An episode must begin playing before it can be skipped.');
-          return;
-        }
-        final finished = wasAtCompletion || ps.completedForCurrent;
-        final choice = finished ? null : await _choosePowerShuffleSkipOption();
-        if (!mounted || (!finished && choice == null)) return;
-        try {
-          target = await ps.advance(
-            context, atEnd: finished, skipChoice: choice,
-          );
-        } catch (_) {
-          if (mounted) {
-            showMainSnackBar('Home Assistant could not save the PowerShuffle skip.');
+    if (psActive && _powerShuffleActionInFlight) return;
+    if (psActive) _powerShuffleActionInFlight = true;
+    try {
+      // The first frame can arrive between periodic samples and a Next
+      // button press. Capture it before deciding a started episode cannot
+      // be skipped.
+      if (psActive && !ps.hasStarted) _tickPowerShuffle();
+      final wasAtCompletion = _episode.completionLatch.triggered;
+      MediaItem? target = _episode.next;
+  
+      if (psActive) {
+        // An earlier skip may already have been committed by HA while the
+        // new stream failed to initialize. Retry that same target without a
+        // second skip decision or a second history mutation.
+        if (ps.pendingNavigationTarget case final pending?) {
+          target = pending;
+        } else {
+          if (!ps.hasStarted) {
+            showMainSnackBar('An episode must begin playing before it can be skipped.');
+            return;
           }
-          return;
-        }
-        if (!mounted) return;
-        if (target == null) {
-          showMainSnackBar('No eligible episodes remain. Check PowerShuffle cooldowns in Home Assistant.');
-          await _stopVideoAndExit();
-          return;
+          final finished = wasAtCompletion || ps.completedForCurrent;
+          final choice = finished ? null : await _choosePowerShuffleSkipOption();
+          if (!mounted || (!finished && choice == null)) return;
+          try {
+            target = await ps.advance(
+              context, atEnd: finished, skipChoice: choice,
+            );
+          } catch (_) {
+            if (mounted) {
+              showMainSnackBar('Home Assistant could not save the PowerShuffle skip.');
+            }
+            return;
+          }
+          if (!mounted) return;
+          if (target == null) {
+            showMainSnackBar('No eligible episodes remain. Check PowerShuffle cooldowns in Home Assistant.');
+            await _stopVideoAndExit();
+            return;
+          }
         }
       }
-    }
-
-    _episode.autoPlayTimer?.cancel();
-    _unfocusPlayNextPrompt();
-    _dismissStillWatching();
-    _setPlayerState(() {
-      _episode.isLoadingNext = true;
-      _episode.showPlayNextDialog = false;
-    });
-
-    _powerShuffleNavigationApproved = psActive;
-    try {
-      final outcome = await _navigateToEpisode(target!);
-      if (outcome == MediaReloadOutcome.failed) {
-        if (psActive) {
-          _clearEpisodeLoadingFlags();
-          _showChromeForSwappedItem();
-          showMainSnackBar('Next PowerShuffle episode did not load. Press Next to retry.');
-        } else {
-          _presentPlayNextRetryPrompt(wasAtCompletion: wasAtCompletion);
+  
+      _episode.autoPlayTimer?.cancel();
+      _unfocusPlayNextPrompt();
+      _dismissStillWatching();
+      _setPlayerState(() {
+        _episode.isLoadingNext = true;
+        _episode.showPlayNextDialog = false;
+      });
+  
+      _powerShuffleNavigationApproved = psActive;
+      try {
+        final outcome = await _navigateToEpisode(target!);
+        if (outcome == MediaReloadOutcome.failed) {
+          if (psActive) {
+            _clearEpisodeLoadingFlags();
+            _showChromeForSwappedItem();
+            showMainSnackBar('Next PowerShuffle episode did not load. Press Next to retry.');
+          } else {
+            _presentPlayNextRetryPrompt(wasAtCompletion: wasAtCompletion);
+          }
         }
+      } finally {
+        _powerShuffleNavigationApproved = false;
       }
     } finally {
-      _powerShuffleNavigationApproved = false;
+      if (psActive) _powerShuffleActionInFlight = false;
     }
   }
 
