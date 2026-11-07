@@ -5,6 +5,9 @@ on:
       - 'feature/powerlink-v1.3.0-app'
     paths:
       - 'lib/services/powerlink/**'
+      - 'lib/services/powershuffle/**'
+      - 'lib/screens/media_detail/**'
+      - 'lib/screens/media_detail_screen.dart'
       - 'lib/services/deep_links/**'
       - 'lib/providers/playback_state_provider.dart'
       - 'lib/services/playback_coordinator.dart'
@@ -15,6 +18,7 @@ on:
       - 'lib/screens/settings/powerlink_settings_screen.dart'
       - 'lib/screens/settings/settings_screen.dart'
       - 'lib/widgets/video_controls/**'
+      - 'test/services/powershuffle/**'
       - 'pubspec.yaml'
       - 'test/services/powerlink/**'
       - 'test/screens/settings/powerlink_settings_screen_test.dart'
@@ -22,6 +26,9 @@ on:
   pull_request:
     paths:
       - 'lib/services/powerlink/**'
+      - 'lib/services/powershuffle/**'
+      - 'lib/screens/media_detail/**'
+      - 'lib/screens/media_detail_screen.dart'
       - 'lib/services/deep_links/**'
       - 'lib/providers/playback_state_provider.dart'
       - 'lib/services/playback_coordinator.dart'
@@ -32,6 +39,7 @@ on:
       - 'lib/screens/settings/powerlink_settings_screen.dart'
       - 'lib/screens/settings/settings_screen.dart'
       - 'lib/widgets/video_controls/**'
+      - 'test/services/powershuffle/**'
       - 'pubspec.yaml'
       - 'test/services/powerlink/**'
       - 'test/screens/settings/powerlink_settings_screen_test.dart'
@@ -66,10 +74,17 @@ jobs:
         run: flutter test test/services/powerlink/powerlink_handoff_picker_test.dart
       - name: Protect existing playback queue and video-start logic
         run: flutter test test/providers/playback_state_provider_test.dart
+      - name: Verify PowerShuffle Fire TV D-pad focus, Back behavior and narrow-screen layout
+        run: flutter test test/services/powershuffle/powershuffle_skip_dialog_test.dart test/services/powershuffle/powershuffle_event_journal_test.dart
+
       - name: Analyze PowerLink, source capture and player integration
         run: |
           flutter analyze --no-pub \
             lib/services/powerlink \
+            lib/services/powershuffle \
+            test/services/powershuffle \
+            lib/screens/media_detail_screen.dart \
+            lib/screens/media_detail/action_buttons.dart \
             lib/services/deep_links/deep_link.dart \
             lib/services/deep_links/deep_link_launcher.dart \
             lib/services/playback_coordinator.dart \

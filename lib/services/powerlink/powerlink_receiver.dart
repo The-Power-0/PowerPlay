@@ -122,7 +122,7 @@ class PowerLinkReceiver {
         }
         return page.toPlaybackWindow();
       });
-      await queue.setPlaybackFromPlayQueue(initial.toPlaybackWindow(), 'powerlink');
+      await queue.setPlaybackFromPlayQueue(initial.toPlaybackWindow(), initial.contextKey ?? 'powerlink');
       if (!context.mounted || _generation != generation) return;
       activeManifestToken = link.request.token;
 

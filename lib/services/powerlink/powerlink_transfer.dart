@@ -195,6 +195,7 @@ class PowerLinkQueueWindow {
     required this.start,
     required this.items,
     this.profileId,
+    this.contextKey,
   });
 
   final int total;
@@ -203,6 +204,7 @@ class PowerLinkQueueWindow {
   final bool shuffled;
   final int start;
   final String? profileId;
+  final String? contextKey;
   final List<PowerLinkQueueSlot> items;
 
   PowerLinkQueueSlot? get selected {
@@ -236,10 +238,16 @@ class PowerLinkQueueWindow {
     }
     final profile = value['profile_id'];
     if (profile != null && profile is! String) throw const FormatException('Invalid PowerLink profile');
+    final queueContext = value['context_key'];
+    if (queueContext != null &&
+        (queueContext is! String || queueContext.length > 300)) {
+      throw const FormatException('Invalid PowerLink queue context');
+    }
     return PowerLinkQueueWindow(
       total: total, currentIndex: index, positionMs: position,
       shuffled: shuffled, start: start, items: List.unmodifiable(items),
       profileId: profile as String?,
+      contextKey: queueContext as String?,
     );
   }
 

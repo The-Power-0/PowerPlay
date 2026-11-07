@@ -292,6 +292,22 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
           )
         : null;
 
+    // PowerShuffle is separate from both Plex Shuffle and normal Play.
+    // It is offered for complete Plex shows, never for individual seasons.
+    final powerShuffleAction = metadata is PlexMediaItem &&
+            metadata.isShow && !widget.isOffline
+        ? FocusableAction(
+            debugLabel: 'detail_powershuffle',
+            onPressed: () => unawaited(PowerShuffleLauncher.start(context, metadata)),
+            builder: (context, state) => iconActionButton(
+              state,
+              onPressed: () => unawaited(PowerShuffleLauncher.start(context, metadata)),
+              icon: const AppIcon(Symbols.auto_awesome_rounded, fill: 1),
+              tooltip: 'PowerShuffle — smart episode rotation',
+            ),
+          )
+        : null;
+
     final downloadAction = !widget.isOffline && !PlatformDetector.isAppleTV()
         ? FocusableAction(
             debugLabel: 'detail_download',
@@ -362,6 +378,7 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
       ?versionAction,
       ?trailerAction,
       ?shuffleAction,
+      ?powerShuffleAction,
       ?downloadAction,
       watchedAction,
       ?watchlistAction,
@@ -400,13 +417,27 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
         return compact;
       }
 
-      final medium = <FocusableAction>[playAction, ?versionAction, ?downloadAction, watchedAction, ?moreActionsAction];
-      if (!maxWidth.isFinite || estimatedRowWidth(medium) <= maxWidth) return medium;
+      // Preserve PowerShuffle on the show page at every resolution.
+      // Prioritize playback, Shuffle and PowerShuffle over secondary actions
+      // so a narrow TV hero cannot overflow or hide the newly added button.
+      final medium = <FocusableAction>[
+        playAction, ?versionAction, ?shuffleAction, ?powerShuffleAction,
+        watchedAction, ?moreActionsAction,
+      ];
+      if (!maxWidth.isFinite || estimatedRowWidth(medium) <= maxWidth) {
+        return medium;
+      }
 
-      final compact = <FocusableAction>[playAction, ?versionAction, watchedAction, ?moreActionsAction];
+      final compact = <FocusableAction>[
+        playAction, ?shuffleAction, ?powerShuffleAction, ?moreActionsAction,
+      ];
       if (estimatedRowWidth(compact) <= maxWidth) return compact;
 
-      return [playAction, ?versionAction, ?moreActionsAction];
+      final minimum = <FocusableAction>[
+        playAction, ?powerShuffleAction, ?moreActionsAction,
+      ];
+      if (estimatedRowWidth(minimum) <= maxWidth) return minimum;
+      return [playAction, ?powerShuffleAction];
     }
 
     Widget actionBar(List<FocusableAction> actions) {
@@ -436,7 +467,7 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
         final maxWidth = constraints.maxWidth;
         // TV screens are wide and D-pad focus should see every direct action.
         // On smaller online screens, hidden actions remain available from ⋮.
-        final actions = isTv || !maxWidth.isFinite || estimatedRowWidth(allActions) <= maxWidth
+        final actions = !maxWidth.isFinite || estimatedRowWidth(allActions) <= maxWidth
             ? allActions
             : compactActionsFor(maxWidth);
         final status = tracksStatusFor(actions, maxWidth);

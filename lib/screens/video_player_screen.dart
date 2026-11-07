@@ -57,6 +57,8 @@ import '../services/media_controls_manager.dart';
 import '../services/playback_coordinator.dart';
 import '../services/powerlink/powerlink_handoff_picker.dart';
 import '../services/powerlink/powerlink_receiver.dart';
+import '../services/powershuffle/powershuffle_session.dart';
+import '../services/powershuffle/powershuffle_skip_dialog.dart';
 import '../services/music/music_playback_service.dart';
 import '../services/playback_initialization_service.dart';
 import '../services/playback_context.dart';
@@ -982,6 +984,45 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
     recordLifecycle: (state, {action}) => _recordLifecycleState(state, action: action),
   );
   ({bool canControlPlayback, bool canNavigateMediaItems})? _lastMediaControlAuthority;
+  Timer? _powerShuffleTimer;
+  bool _powerShuffleAttachInFlight = false;
+  bool _powerShuffleNavigationApproved = false;
+  bool _powerShuffleActionInFlight = false;
+
+  void _tickPowerShuffle() {
+    if (!mounted || _shuttingDown || widget.isLive) return;
+    final currentPlayer = player;
+    if (currentPlayer == null) return;
+    final queueState = context.read<PlaybackStateProvider>();
+    final queueContext = queueState.shuffleContextKey;
+    final manifest = PowerLinkReceiver.activeManifestToken;
+    final isTransferredQueue = queueState.playQueueId == -2 && manifest != null;
+    final tracked = PowerShuffleSession.instance;
+    if (queueContext?.startsWith('powershuffle:') == true &&
+        (!tracked.active ||
+         tracked.contextKey != queueContext ||
+         (isTransferredQueue && tracked.attachedManifestToken != manifest)) &&
+        !_powerShuffleAttachInFlight) {
+      _powerShuffleAttachInFlight = true;
+      unawaited(tracked.attachFromHandoff(
+        context, queueContext, _currentMetadata,
+        manifestToken: isTransferredQueue ? manifest : null,
+      ).catchError((Object _) {}).whenComplete(() {
+        _powerShuffleAttachInFlight = false;
+      }));
+    }
+    final state = currentPlayer.state;
+    PowerShuffleSession.instance.observe(
+      item: _currentMetadata,
+      queueContextKey: queueContext,
+      // A loading/buffering native core can claim "playing" before
+      // rendering a frame; skips must only count real started playback.
+      playing: state.playing && _firstFrame.rendered,
+      positionMs: state.position.inMilliseconds,
+      durationMs: state.duration.inMilliseconds,
+    );
+  }
+
   PlaybackProgressTracker? _progressTracker;
   VideoFilterManager? _videoFilterManager;
   bool _pipInitialized = false;
@@ -1506,6 +1547,13 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
     );
 
     _currentMetadata = widget.metadata;
+    // No extra periodic work during ordinary Plex playback.
+    if (context.read<PlaybackStateProvider>()
+        .shuffleContextKey?.startsWith('powershuffle:') ?? false) {
+      _powerShuffleTimer = Timer.periodic(
+        const Duration(seconds: 2), (_) => _tickPowerShuffle(),
+      );
+    }
     widget.launchObserver?.attach(_launchSnapshot, ownsPlayback: _ownsLaunchPlayback);
     _activeRouteGuard.activate(
       this,
@@ -2507,6 +2555,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
 
   @override
   void dispose() {
+    _powerShuffleTimer?.cancel();
     PlaybackCoordinator.instance.unregisterVideoSession(
       _shutdownVideo,
       retirement: () async {
@@ -3030,6 +3079,11 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
     _live.resumeTimelineOnResume = false;
     _stopLiveTimelineUpdates();
     _progressTracker?.stopTracking();
+    if (PowerShuffleSession.instance.matches(
+      _currentMetadata, context.read<PlaybackStateProvider>().shuffleContextKey,
+    )) {
+      unawaited(PowerShuffleSession.instance.leave());
+    }
     _companionRemote.unbind();
     unawaited(_releaseWatchTogether(continuing: false));
     _detachPipStateListener();

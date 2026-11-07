@@ -10,6 +10,7 @@ import '../../profiles/active_profile_provider.dart';
 import '../deep_links/deep_link.dart';
 import '../../services/playback_coordinator.dart';
 import 'powerlink_app_client.dart';
+import '../powershuffle/powershuffle_session.dart';
 
 /// Fire TV D-pad dialog: only queries HA when opened, never in background.
 class PowerLinkHandoffPicker extends StatefulWidget {
@@ -134,6 +135,10 @@ class _PowerLinkHandoffPickerState extends State<PowerLinkHandoffPicker> {
       _error = null;
     });
     try {
+      // The native capture above carries the exact playhead. Flush the
+      // separate PowerShuffle coverage ledger before ownership changes.
+      // This is a no-op for ordinary Plex or normal Shuffle handoffs.
+      await PowerShuffleSession.instance.flushBeforeHandoff();
       await _api.initiateHandoff(identity, destination: device.entityId, snapshot: {
         ...snapshot,
         'source_device': identity.sourceDevice,

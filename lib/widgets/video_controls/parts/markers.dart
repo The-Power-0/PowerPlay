@@ -112,6 +112,18 @@ extension _PlexVideoControlsMarkerMethods on _PlexVideoControlsState {
     final isAtEnd = duration > Duration.zero && (duration - endTime).inMilliseconds <= 1000;
 
     final handsOffToCompletion = marker.isCredits && isAtEnd;
+    // The existing player has explicitly verified this marker is configured
+    // for AUTO skipping. Credit that omitted intro/credits range, but never
+    // arbitrary seeking or the viewer's ordinary manual skip command.
+    final shuffle = PowerShuffleSession.instance;
+    if (skipAutoPlayCountdown &&
+        context.read<PlaybackStateProvider>().shuffleContextKey == shuffle.contextKey) {
+      shuffle.creditAutomaticSkip(
+        marker.startTime.inMilliseconds,
+        marker.endTime.inMilliseconds,
+        duration.inMilliseconds,
+      );
+    }
     if (handsOffToCompletion) {
       if (!skipAutoPlayCountdown && widget.onNext != null) {
         _abandoningBurst(widget.onNext)!.call();

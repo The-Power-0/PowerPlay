@@ -59,6 +59,22 @@ extension _VideoPlayerPlaybackPromptMethods on VideoPlayerScreenState {
       sleepTimerService.notifyVideoCompleted();
       return;
     }
+    // PowerShuffle is a continuous, HA-owned rotation rather than Plex's
+    // season adjacency. An episode at the end of the season must not exit or
+    // open the normal Plex "next episode" prompt. Respect the sleep timer
+    // above, then acknowledge EOF and fetch the next eligible logical item.
+    final shuffle = PowerShuffleSession.instance;
+    if (shuffle.matches(
+      _currentMetadata,
+      context.read<PlaybackStateProvider>().shuffleContextKey,
+    )) {
+      if (!_episode.completionLatch.triggered) {
+        _episode.completionLatch.latch();
+        _logVideoCompleted('powershuffle automatic next');
+        unawaited(_playNext());
+      }
+      return;
+    }
     if (!_canNavigateMediaItems()) {
       _logVideoCompleted('cannotNavigate');
       if (!_episode.completionLatch.triggered) _episode.completionLatch.latch();

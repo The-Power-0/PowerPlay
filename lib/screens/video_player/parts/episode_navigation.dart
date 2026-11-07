@@ -30,7 +30,12 @@ extension _VideoPlayerEpisodeNavigationMethods on VideoPlayerScreenState {
   /// a loaded next item, while `previous` always has a target:
   /// [_restartOrPlayPrevious] restarts the current item — a movie as much as
   /// an episode — when nothing earlier is loaded.
-  bool get _hasNextItem => widget.isLive ? _hasNextChannel : _episode.next != null;
+  bool get _hasNextItem => widget.isLive
+      ? _hasNextChannel
+      : _episode.next != null ||
+          PowerShuffleSession.instance.matches(
+            _currentMetadata, context.read<PlaybackStateProvider>().shuffleContextKey,
+          );
 
   bool get _hasPreviousItem => !widget.isLive || _hasPreviousChannel;
 
@@ -44,30 +49,85 @@ extension _VideoPlayerEpisodeNavigationMethods on VideoPlayerScreenState {
   /// the VOD fallback is unreachable here by construction.
   Future<void> _navigateToPreviousItem() => widget.isLive ? _switchLiveChannel(-1) : _restartOrPlayPrevious();
 
+  /// Only explicit Next/direct episode selection offers a skip. Back cancels,
+  /// pauses/exits are never interpreted as skips.
+  Future<String?> _choosePowerShuffleSkipOption() => PowerShuffleSkipDialog.show(context);
+
   Future<void> _playNext() async {
-    if (!_canNavigateMediaItems()) return;
-    if (!mounted) return;
-    if (_episode.next == null || _episode.isLoadingNext) return;
-
-    // EOF-driven advances (prompt confirm, auto-play countdown, PiP) run with
-    // the completion latch set; a mid-episode Next press does not. Captured
-    // before the prompt state below is cleared — a transiently failed advance
-    // from EOF re-presents the Play Next prompt instead of parking on the
-    // finished episode's last frame (#1867).
-    final wasAtCompletion = _episode.completionLatch.triggered;
-
-    _episode.autoPlayTimer?.cancel();
-    _unfocusPlayNextPrompt();
-    _dismissStillWatching();
-
-    _setPlayerState(() {
-      _episode.isLoadingNext = true;
-      _episode.showPlayNextDialog = false;
-    });
-
-    final outcome = await _navigateToEpisode(_episode.next!);
-    if (outcome == MediaReloadOutcome.failed) {
-      _presentPlayNextRetryPrompt(wasAtCompletion: wasAtCompletion);
+    if (!_canNavigateMediaItems() || !mounted || _episode.isLoadingNext) return;
+    final ps = PowerShuffleSession.instance;
+    final psActive = ps.matches(
+      _currentMetadata, context.read<PlaybackStateProvider>().shuffleContextKey,
+    );
+    if (_episode.next == null && !psActive) return;
+    if (psActive && _powerShuffleActionInFlight) return;
+    if (psActive) _powerShuffleActionInFlight = true;
+    try {
+      // The first frame can arrive between periodic samples and a Next
+      // button press. Capture it before deciding a started episode cannot
+      // be skipped.
+      if (psActive && !ps.hasStarted) _tickPowerShuffle();
+      final wasAtCompletion = _episode.completionLatch.triggered;
+      MediaItem? target = _episode.next;
+  
+      if (psActive) {
+        // An earlier skip may already have been committed by HA while the
+        // new stream failed to initialize. Retry that same target without a
+        // second skip decision or a second history mutation.
+        if (ps.pendingNavigationTarget case final pending?) {
+          target = pending;
+        } else {
+          if (!ps.hasStarted) {
+            showMainSnackBar('An episode must begin playing before it can be skipped.');
+            return;
+          }
+          final finished = wasAtCompletion || ps.completedForCurrent;
+          final choice = finished ? null : await _choosePowerShuffleSkipOption();
+          if (!mounted || (!finished && choice == null)) return;
+          try {
+            target = await ps.advance(
+              context, atEnd: finished, skipChoice: choice,
+            );
+          } catch (_) {
+            if (mounted) {
+              showMainSnackBar('Home Assistant could not save the PowerShuffle skip.');
+            }
+            return;
+          }
+          if (!mounted) return;
+          if (target == null) {
+            showMainSnackBar('No eligible episodes remain. Check PowerShuffle cooldowns in Home Assistant.');
+            await _stopVideoAndExit();
+            return;
+          }
+        }
+      }
+  
+      _episode.autoPlayTimer?.cancel();
+      _unfocusPlayNextPrompt();
+      _dismissStillWatching();
+      _setPlayerState(() {
+        _episode.isLoadingNext = true;
+        _episode.showPlayNextDialog = false;
+      });
+  
+      _powerShuffleNavigationApproved = psActive;
+      try {
+        final outcome = await _navigateToEpisode(target!);
+        if (outcome == MediaReloadOutcome.failed) {
+          if (psActive) {
+            _clearEpisodeLoadingFlags();
+            _showChromeForSwappedItem();
+            showMainSnackBar('Next PowerShuffle episode did not load. Press Next to retry.');
+          } else {
+            _presentPlayNextRetryPrompt(wasAtCompletion: wasAtCompletion);
+          }
+        }
+      } finally {
+        _powerShuffleNavigationApproved = false;
+      }
+    } finally {
+      if (psActive) _powerShuffleActionInFlight = false;
     }
   }
 
@@ -141,6 +201,30 @@ extension _VideoPlayerEpisodeNavigationMethods on VideoPlayerScreenState {
   /// superseded attempts. The screen-replacement fallback reports
   /// [MediaReloadOutcome.rejected]: no in-place reload ran.
   Future<MediaReloadOutcome> _navigateToEpisode(MediaItem episodeMetadata) async {
+    // Queue-sheet selections and Previous are also explicit item changes.
+    // They may not silently evade PowerShuffle's two skip decisions.
+    final ps = PowerShuffleSession.instance;
+    if (!_powerShuffleNavigationApproved &&
+        ps.matches(
+          _currentMetadata, context.read<PlaybackStateProvider>().shuffleContextKey,
+        ) &&
+        PowerShuffleSession.keyOf(episodeMetadata) !=
+            PowerShuffleSession.keyOf(_currentMetadata)) {
+      if (!ps.hasStarted) return MediaReloadOutcome.rejected;
+      final finished = _episode.completionLatch.triggered || ps.completedForCurrent;
+      final choice = finished ? null : await _choosePowerShuffleSkipOption();
+      if (!mounted || (!finished && choice == null)) return MediaReloadOutcome.rejected;
+      try {
+        final chosen = await ps.advance(
+          context, atEnd: finished, skipChoice: choice, requested: episodeMetadata,
+        );
+        if (chosen == null) return MediaReloadOutcome.rejected;
+        episodeMetadata = chosen;
+      } catch (_) {
+        if (mounted) showMainSnackBar('Home Assistant could not save the PowerShuffle change.');
+        return MediaReloadOutcome.rejected;
+      }
+    }
     _episode.lastReloadFailureReason = null;
     final currentPlayer = player;
     if (currentPlayer == null) {

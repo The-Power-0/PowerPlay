@@ -51,6 +51,7 @@ import '../utils/media_quality_labels.dart';
 import '../services/plex_client.dart';
 import '../media/media_server_client.dart';
 import '../services/media_list_playback_launcher.dart';
+import '../services/powershuffle/powershuffle_launcher.dart';
 import '../utils/content_utils.dart';
 import '../models/download_models.dart';
 import '../services/download_storage_service.dart';
