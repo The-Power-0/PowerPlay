@@ -22,7 +22,7 @@ class _Server extends PowerLinkAppClient {
 }
 
 void main() {
-  const identity = PowerLinkAppIdentity(
+  final identity = PowerLinkAppIdentity(
     base: _unusedBase, sourceDevice: 'media_player.bedroom',
     sourceName: 'Bedroom', token: 'not-a-real-test-credential',
   );
@@ -77,4 +77,4 @@ void main() {
   });
 }
 
-const _unusedBase = Uri(scheme: 'http', host: '10.0.0.10', port: 8123);
+final _unusedBase = Uri(scheme: 'http', host: '10.0.0.10', port: 8123);
