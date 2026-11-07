@@ -11,7 +11,7 @@
 
 <main class="site-shell">
   <div class="hero">
-    <img class="hero-art" src="/og/plezy-social.png" alt="PowerPlay blue-purple logo and play glyph" />
+    <img class="hero-art" src="/og/powerplay-social.png" alt="PowerPlay blue-purple logo and play glyph" />
     <p class="eyebrow">POWERPLAY 2.0 · VISUAL REBRAND CANDIDATE</p>
     <h1>Your Plex library, powered for Fire TV.</h1>
     <p class="intro">Designed for responsive playback, simple D-pad navigation, intelligent PowerShuffle rotations, and seamless transfers between paired rooms.</p>

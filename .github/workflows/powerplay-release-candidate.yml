@@ -82,6 +82,8 @@ jobs:
               env.write(f"RELEASE_VERSION={data['version']}\n")
               env.write(f"BUILD_NUMBER={data['build_number']}\n")
           PY
+      - name: Verify customer-facing branding and all icon variants
+        run: python scripts/branding/audit_public_branding.py
       - name: Set up Java and Flutter
         uses: actions/setup-java@v4
         with:

@@ -1,5 +1,5 @@
 <script lang="ts">
-  const image = 'https://raw.githubusercontent.com/The-Power-0/PowerPlay/main/website/static/og/plezy-social.png';
+  const image = 'https://raw.githubusercontent.com/The-Power-0/PowerPlay/main/website/static/og/powerplay-social.png';
 
   let {
     title,

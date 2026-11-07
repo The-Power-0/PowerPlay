@@ -16,7 +16,7 @@
 		"@type": "Organization",
 		"name": "PowerPlay",
 		"url": "https://github.com/The-Power-0/PowerPlay",
-		"logo": "https://raw.githubusercontent.com/The-Power-0/PowerPlay/main/website/static/og/plezy-social.png",
+		"logo": "https://raw.githubusercontent.com/The-Power-0/PowerPlay/main/website/static/og/powerplay-social.png",
 		"sameAs": ["https://github.com/The-Power-0/PowerPlay"]
 	};
 </script>
