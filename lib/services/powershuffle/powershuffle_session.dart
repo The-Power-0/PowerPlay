@@ -10,7 +10,6 @@ import '../../media/play_queue.dart';
 import '../../providers/playback_state_provider.dart';
 import '../../providers/multi_server_provider.dart';
 import '../../media/ids.dart';
-import '../plex_client.dart';
 import '../powerlink/powerlink_app_client.dart';
 
 /// A single active PowerShuffle player-side session. Only a named
@@ -201,7 +200,7 @@ class PowerShuffleSession {
     }
     if (!_started) {
       _started = true;
-      unawaited(_record('started', positionMs, durationMs).catchError((Object _) {}));
+      unawaited(_record('started', positionMs, durationMs).then<void>((_) {}, onError: (Object _) {}));
     }
     final before = _lastPosition;
     final elapsed = now.difference(_lastSample ?? now).inMilliseconds;
@@ -214,12 +213,10 @@ class PowerShuffleSession {
     _lastSample = now;
     if (!_completed && viewedMs * 10 >= durationMs * 9) {
       _completed = true;
-      unawaited(_record('completed', positionMs, durationMs).catchError((Object _) {
-        _completed = false;
-      }));
+      unawaited(_record('completed', positionMs, durationMs).then<void>((_) {}, onError: (Object _) { _completed = false; }));
     } else if (_lastSent == null || now.difference(_lastSent!).inSeconds >= 12) {
       _lastSent = now;
-      unawaited(_record('progress', positionMs, durationMs).catchError((Object _) {}));
+      unawaited(_record('progress', positionMs, durationMs).then<void>((_) {}, onError: (Object _) {}));
     }
   }
 
@@ -233,9 +230,7 @@ class PowerShuffleSession {
     _addRange(startMs, endMs);
     if (!_completed && viewedMs * 10 >= durationMs * 9) {
       _completed = true;
-      unawaited(_record('completed', endMs, durationMs).catchError((Object _) {
-        _completed = false;
-      }));
+      unawaited(_record('completed', endMs, durationMs).then<void>((_) {}, onError: (Object _) { _completed = false; }));
     }
   }
 
