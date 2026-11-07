@@ -58,11 +58,32 @@ jobs:
           assert 'Since v1.' not in body
           assert 'applicationId = "com.power.powerplay"' in Path('android/app/build.gradle.kts').read_text()
           assert 'PowerPlayPalette' in Path('lib/theme/powerplay_palette.dart').read_text()
+          assert Path('assets/brand/powerplay-mark.svg').is_file()
+          assert Path('assets/brand/powerlink-mark.svg').is_file()
+          # Preserve inherited translation *keys* such as addPlezyProfile/quitPlezy:
+          # only their displayed text is rebranded, never the API identifiers.
+          def human_strings(node):
+              if isinstance(node, dict):
+                  for value in node.values():
+                      yield from human_strings(value)
+              elif isinstance(node, list):
+                  for value in node:
+                      yield from human_strings(value)
+              elif isinstance(node, str):
+                  yield node
+          source_messages=json.loads(Path('lib/i18n/en.i18n.json').read_text())
+          assert all('Plezy' not in message for message in human_strings(source_messages))
+          generated=Path('lib/i18n/strings_en.g.dart').read_text()
+          assert "'Add Plezy profile'" not in generated
+          assert "'Quit Plezy'" not in generated
+          assert Path('docs/artwork/powerplay-icon.webp').stat().st_size > 3000
           assert Path('assets/powerplay_splash.png').read_bytes()[25] == 6
           with open(os.environ['GITHUB_ENV'],'a') as env:
               env.write(f"RELEASE_VERSION={data['version']}\n")
               env.write(f"BUILD_NUMBER={data['build_number']}\n")
           PY
+      - name: Verify customer-facing branding and all icon variants
+        run: python scripts/branding/audit_public_branding.py
       - name: Set up Java and Flutter
         uses: actions/setup-java@v4
         with:
@@ -196,7 +217,7 @@ jobs:
             "powerplay-release/PowerPlay-v$RELEASE_VERSION-rc1-NativeSourceInputs.zip"
           # No build-time source patching: this archive comes from the exact
           # commit checked out for the Android compilation above.
-          git archive --format=tar --prefix=plezy-custom-source/ HEAD | gzip -n -9 \
+          git archive --format=tar --prefix=powerplay-source/ HEAD | gzip -n -9 \
             > "powerplay-release/PowerPlay-v$RELEASE_VERSION-rc1-Source.tar.gz"
           ( cd powerplay-release && sha256sum \
               "PowerPlay-v$RELEASE_VERSION-rc1-Source.tar.gz" \
@@ -210,7 +231,7 @@ jobs:
           PY
           printf '%s\n' 'PowerPlay Release Candidate' \
             'Built directly from the GitHub commit; no archived app source or patch replay' \
-            "PowerPlay $RELEASE_VERSION: PowerLink source capture and destination receiver (experimental); device validation pending." \
+            "PowerPlay $RELEASE_VERSION: official PowerPlay/PowerLink identity refresh; device validation pending." \
             'NOT A PUBLIC RELEASE YET.' > powerplay-release/BUILD-STATUS.txt
       - name: Upload signed candidate (not a stable release)
         uses: actions/upload-artifact@v4

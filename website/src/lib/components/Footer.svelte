@@ -6,11 +6,11 @@
   <div class="footer-content">
     <div class="footer-brand">
       <span class="footer-logo"><Logo /></span>
-      <span>Plezy</span>
+      <span>PowerPlay</span>
     </div>
 
     <nav class="footer-nav" aria-label="Footer navigation">
-      <a href="https://github.com/edde746/plezy" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://github.com/The-Power-0/PowerPlay" target="_blank" rel="noopener noreferrer">GitHub</a>
       <a href="/privacy">Privacy</a>
       <a href="#home">Back to top</a>
     </nav>

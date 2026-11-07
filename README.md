@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/artwork/powerplay-banner.webp" alt="PowerPlay purple play-button artwork" width="640" />
+<img src="docs/artwork/powerplay-banner.webp" alt="PowerPlay blue-purple equilateral play-button artwork" width="640" />
 
 # PowerPlay
 
@@ -33,7 +33,7 @@ adb install -r PowerPlay-vX.Y.Z.apk
 
 A matching signing certificate permits an update in place. If Android reports `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, the existing app was signed with a different key. Reinstallation may require uninstalling the previous package, **which deletes its local app data**; back up what you need first.
 
-**Current milestone:** [PowerPlay 1.4.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.4.0) introduces PowerShuffle and works with [PowerLink 0.3.0](https://github.com/The-Power-0/PowerLink/releases/tag/v0.3.0).
+**Current milestone:** [PowerPlay 2.0.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v2.0.0) and [PowerLink 1.0.0](https://github.com/The-Power-0/PowerLink/releases/tag/v1.0.0) share a refreshed visual identity while preserving PowerShuffle, paired devices, and queue compatibility.
 
 ## Why PowerPlay exists
 
@@ -99,7 +99,7 @@ Every Plex profile has its own progress. Starting the **same active show's** Pow
 **Play in one room. Continue in another.**
 
 [![PowerLink HACS](https://img.shields.io/badge/Companion-PowerLink%20HACS-7C3AED?style=flat-square)](https://github.com/The-Power-0/PowerLink)
-[![PowerLink 0.3.0](https://img.shields.io/badge/Compatible-PowerLink%200.3.0%2B-373047?style=flat-square)](https://github.com/The-Power-0/PowerLink/releases/latest)
+[![PowerLink 0.3.0+](https://img.shields.io/badge/Compatible-PowerLink%200.3.0%2B-373047?style=flat-square)](https://github.com/The-Power-0/PowerLink/releases/latest)
 
 </div>
 
@@ -147,7 +147,8 @@ PowerPlay versions begin with the independent 1.0.0 rebrand. Pre-1.0 Plezy-based
 
 | Version | Milestone |
 | --- | --- |
-| **[1.4.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.4.0)** | **PowerShuffle**: per-profile show rotations, two skip durations, completion tracking, automatic cycle rollover, Home Assistant management and handoff continuity. Companion: PowerLink 0.3.0. |
+| **[2.0.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v2.0.0)** | **Visual rebrand:** blue-purple equilateral play glyph, fresh Fire TV launcher/splash and 23 updated alternate icons, localized PowerPlay labels and companion PowerLink identity. |
+| [1.4.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.4.0) | **PowerShuffle**: per-profile show rotations, two skip durations, completion tracking, automatic cycle rollover, Home Assistant management and handoff continuity. Companion: PowerLink 0.3.0. |
 | [1.3.10](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.10) | Holds the destination screen awake while a PowerLink queue and first video frame initialize. |
 | [1.3.9](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.9) | Repairs destination-picker focus and D-pad navigation. |
 | [1.3.8](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.8) | Repairs the Fire TV pairing keyboard, field and button navigation. |

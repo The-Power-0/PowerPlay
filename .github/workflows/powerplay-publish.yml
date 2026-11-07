@@ -104,12 +104,12 @@ jobs:
           with tarfile.open(f"PowerPlay-v{data['version']}-rc1-Source.tar.gz") as archive:
               names=set(archive.getnames())
               for path in ['LICENSE', 'POWERPLAY-RELEASE-NOTICE.md', 'assets/powerplay.png']:
-                  assert f'plezy-custom-source/{path}' in names, path
-              pubspec=archive.extractfile('plezy-custom-source/pubspec.yaml').read().decode()
+                  assert f'powerplay-source/{path}' in names, path
+              pubspec=archive.extractfile('powerplay-source/pubspec.yaml').read().decode()
               assert f"version: {data['version']}+{data['build_number']}\n" in pubspec
               # Release notes are version-scoped and part of the exact
               # source commit used to compile the signed candidate.
-              notes_name=f"plezy-custom-source/.github/powerplay/release-notes/v{data['version']}.md"
+              notes_name=f"powerplay-source/.github/powerplay/release-notes/v{data['version']}.md"
               assert notes_name in names, 'missing release-specific notes'
               notes=archive.extractfile(notes_name).read().decode('utf-8')
               assert notes.startswith(f"# PowerPlay v{data['version']} — Fire TV\n")

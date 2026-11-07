@@ -7,17 +7,17 @@
 	const siteSchema = {
 		"@context": "https://schema.org",
 		"@type": "WebSite",
-		"name": "Plezy",
-		"url": "https://plezy.app"
+		"name": "PowerPlay",
+		"url": "https://github.com/The-Power-0/PowerPlay"
 	};
 
 	const orgSchema = {
 		"@context": "https://schema.org",
 		"@type": "Organization",
-		"name": "Plezy",
-		"url": "https://plezy.app",
-		"logo": "https://plezy.app/og/plezy-social.png",
-		"sameAs": ["https://github.com/edde746/plezy"]
+		"name": "PowerPlay",
+		"url": "https://github.com/The-Power-0/PowerPlay",
+		"logo": "https://raw.githubusercontent.com/The-Power-0/PowerPlay/main/website/static/og/powerplay-social.png",
+		"sameAs": ["https://github.com/The-Power-0/PowerPlay"]
 	};
 </script>
 
