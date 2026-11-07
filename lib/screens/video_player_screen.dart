@@ -993,14 +993,20 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
     if (!mounted || _shuttingDown || widget.isLive) return;
     final currentPlayer = player;
     if (currentPlayer == null) return;
-    final queueContext = context.read<PlaybackStateProvider>().shuffleContextKey;
+    final queueState = context.read<PlaybackStateProvider>();
+    final queueContext = queueState.shuffleContextKey;
+    final manifest = PowerLinkReceiver.activeManifestToken;
+    final isTransferredQueue = queueState.playQueueId == -2 && manifest != null;
+    final tracked = PowerShuffleSession.instance;
     if (queueContext?.startsWith('powershuffle:') == true &&
-        (!PowerShuffleSession.instance.active ||
-         PowerShuffleSession.instance.contextKey != queueContext) &&
+        (!tracked.active ||
+         tracked.contextKey != queueContext ||
+         (isTransferredQueue && tracked.attachedManifestToken != manifest)) &&
         !_powerShuffleAttachInFlight) {
       _powerShuffleAttachInFlight = true;
-      unawaited(PowerShuffleSession.instance.attachFromHandoff(
+      unawaited(tracked.attachFromHandoff(
         context, queueContext, _currentMetadata,
+        manifestToken: isTransferredQueue ? manifest : null,
       ).catchError((Object _) {}).whenComplete(() {
         _powerShuffleAttachInFlight = false;
       }));
