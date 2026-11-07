@@ -1007,7 +1007,9 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
     PowerShuffleSession.instance.observe(
       item: _currentMetadata,
       queueContextKey: queueContext,
-      playing: state.playing,
+      // A loading/buffering native core can claim "playing" before
+      // rendering a frame; skips must only count real started playback.
+      playing: state.playing && _firstFrame.rendered,
       positionMs: state.position.inMilliseconds,
       durationMs: state.duration.inMilliseconds,
     );
