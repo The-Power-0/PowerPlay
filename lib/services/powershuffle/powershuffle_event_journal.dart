@@ -46,7 +46,7 @@ class PowerShuffleEventJournal {
     }
   }
 
-  Future<Map<String, dynamic>?> flush(PowerLinkAppIdentity identity) async {
+  Future<Map<String, dynamic>?> flush(PowerLinkAppIdentity identity, {String? requiredEventId}) async {
     final prefs = await SharedPreferences.getInstance();
     final name = identity.sourceDevice;
     final pending = await _read(prefs, name);
@@ -55,6 +55,12 @@ class PowerShuffleEventJournal {
       try {
         latest = await _client.powerShuffleEvent(identity, pending.first);
       } on FormatException catch (e) {
+        if (e.message.toString().contains('HTTP 409') &&
+            pending.first['event_id'] == requiredEventId) {
+          pending.removeAt(0);
+          await _write(prefs, name, pending);
+          rethrow; // The current explicit Next must not falsely succeed.
+        }
         // The source can cease to own a session after an acknowledged
         // PowerLink handoff. Those stale events must not block future ones.
         // Only definitive HA conflicts are discarded; transport errors
@@ -78,6 +84,10 @@ class PowerShuffleEventJournal {
     }
     pending.add(Map<String, dynamic>.of(event));
     await _write(prefs, name, pending);
-    return await flush(identity) ?? <String, dynamic>{'accepted': false};
+    final reply = await flush(identity, requiredEventId: event['event_id'] as String?);
+    if (reply == null || reply['accepted'] != true) {
+      throw const FormatException('PowerShuffle event was not acknowledged');
+    }
+    return reply;
   }
 }
