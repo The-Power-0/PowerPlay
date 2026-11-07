@@ -101,7 +101,9 @@ class PowerShuffleSession {
     BuildContext context, String? transferredContext, MediaItem current,
   ) async {
     if (transferredContext == null ||
-        !transferredContext.startsWith('powershuffle:')) return;
+        !transferredContext.startsWith('powershuffle:')) {
+      return;
+    }
     final id = transferredContext.substring('powershuffle:'.length);
     if (id.isEmpty || (active && _sessionId == id)) return;
     final identity = await PowerLinkAppCredentials().load();
@@ -121,7 +123,9 @@ class PowerShuffleSession {
     final serverId = response['server_id'];
     final order = response['queue'];
     if (profile is! String || showGuid is! String ||
-        serverId is! String || order is! List) return;
+        serverId is! String || order is! List) {
+      return;
+    }
 
     // Fetch only on actual receiver handoff, never as a background task.
     final items = <String, PlexMediaItem>{};
@@ -232,7 +236,9 @@ class PowerShuffleSession {
   void creditAutomaticSkip(int startMs, int endMs, int durationMs) {
     if (!active || !_started || _currentKey.isEmpty ||
         durationMs <= 0 || startMs < 0 || endMs > durationMs ||
-        endMs <= startMs) return;
+        endMs <= startMs) {
+      return;
+    }
     _addRange(startMs, endMs);
     if (!_completed && viewedMs * 10 >= durationMs * 9) {
       _completed = true;
@@ -257,8 +263,10 @@ class PowerShuffleSession {
       'duration_ms': durationMs.clamp(1, 86400000),
       'viewed_ms': viewedMs,
       'ranges': _coverage,
-      if (requestedKey != null) 'requested_episode_key': requestedKey,
     };
+    if (requestedKey != null) {
+      payload['requested_episode_key'] = requestedKey;
+    }
     // Keep start -> progress -> complete -> skip/EOF ordered even if the
     // network responds out of order. An explicit skip waits for its ACK.
     final completer = Completer<Map<String, dynamic>>();
