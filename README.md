@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/artwork/powerplay-banner.webp" alt="PowerPlay purple play-button artwork" width="640" />
+<img src="docs/artwork/powerplay-banner.webp" alt="PowerPlay blue-purple equilateral play-button artwork" width="640" />
 
 # PowerPlay
 
@@ -33,7 +33,7 @@ adb install -r PowerPlay-vX.Y.Z.apk
 
 A matching signing certificate permits an update in place. If Android reports `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, the existing app was signed with a different key. Reinstallation may require uninstalling the previous package, **which deletes its local app data**; back up what you need first.
 
-**Current milestone:** [PowerPlay 1.4.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.4.0) introduces PowerShuffle and works with [PowerLink 0.3.0](https://github.com/The-Power-0/PowerLink/releases/tag/v0.3.0).
+**Upcoming reviewed milestone:** PowerPlay **2.0.0** and PowerLink **1.0.0** unite their visual identity while preserving compatibility with existing PowerShuffle, paired devices, and queues. These versions are not yet published; [1.4.0 remains the latest published PowerPlay release](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.4.0).
 
 ## Why PowerPlay exists
 
@@ -99,7 +99,7 @@ Every Plex profile has its own progress. Starting the **same active show's** Pow
 **Play in one room. Continue in another.**
 
 [![PowerLink HACS](https://img.shields.io/badge/Companion-PowerLink%20HACS-7C3AED?style=flat-square)](https://github.com/The-Power-0/PowerLink)
-[![PowerLink 0.3.0](https://img.shields.io/badge/Compatible-PowerLink%200.3.0%2B-373047?style=flat-square)](https://github.com/The-Power-0/PowerLink/releases/latest)
+[![PowerLink 0.3.0+](https://img.shields.io/badge/Compatible-PowerLink%200.3.0%2B-373047?style=flat-square)](https://github.com/The-Power-0/PowerLink/releases/latest)
 
 </div>
 
