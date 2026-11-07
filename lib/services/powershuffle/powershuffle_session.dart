@@ -138,8 +138,18 @@ class PowerShuffleSession {
       return;
     }
 
-    // Fetch only on actual receiver handoff, never as a background task.
+    // The receiving PowerLink window already contains destination-matched
+    // HD/4K copies. Prefer those verified entries even if fetching the full
+    // show's local Plex inventory later fails or is still incomplete.
     final items = <String, PlexMediaItem>{};
+    for (final item in context.read<PlaybackStateProvider>().loadedItems) {
+      if (item is! PlexMediaItem || item.serverId != serverId) continue;
+      final key = keyOf(item);
+      if (key != null && order.contains(key)) {
+        items.putIfAbsent(key, () => item);
+      }
+    }
+    // Fetch only on actual receiver handoff, never as a background task.
     if (current is PlexMediaItem && current.grandparentId != null) {
       final plex = context.read<MultiServerProvider>()
           .getPlexClientForServer(ServerId(serverId));
