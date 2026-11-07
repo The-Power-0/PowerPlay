@@ -63,7 +63,7 @@ class PowerShuffleSession {
       queueContextKey == contextKey &&
       item.serverId == _serverId &&
       keyOf(item) != null &&
-      (_items.isEmpty || _items.containsKey(keyOf(item)));
+      _items.containsKey(keyOf(item));
 
   /// Called after HA approves a new queue. The selected episode deliberately
   /// has its normal Plex resume offset removed.
@@ -153,6 +153,15 @@ class PowerShuffleSession {
         }
       }
     }
+    final activeKey = keyOf(current);
+    if (current is! PlexMediaItem || current.serverId != serverId ||
+        activeKey == null || !order.contains(activeKey)) {
+      return; // Never attach to unrelated Plex media or another profile.
+    }
+    // A handoff can be ready before the destination has fetched the rest
+    // of the series. Preserve tracking of its verified current episode even
+    // if that follow-up inventory request is unavailable.
+    items.putIfAbsent(activeKey, () => current);
     begin(
       identity: identity, profileId: profile, showGuid: showGuid,
       serverId: serverId, sessionId: id,
