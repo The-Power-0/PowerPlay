@@ -19,7 +19,21 @@ import 'powershuffle_session.dart';
 class PowerShuffleLauncher {
   const PowerShuffleLauncher._();
 
+  static bool _launchInFlight = false;
+
+  /// Fire TV Select can repeat; only one queue request/player launch may own
+  /// the show detail action at once. Never publish competing HA sessions.
   static Future<void> start(BuildContext context, MediaItem show) async {
+    if (_launchInFlight) return;
+    _launchInFlight = true;
+    try {
+      await _launch(context, show);
+    } finally {
+      _launchInFlight = false;
+    }
+  }
+
+  static Future<void> _launch(BuildContext context, MediaItem show) async {
     if (show is! PlexMediaItem || !show.isShow ||
         show.serverId == null || show.guid == null || show.guid!.isEmpty) {
       showMainSnackBar('PowerShuffle needs a Plex TV show with a stable GUID.');
@@ -40,6 +54,7 @@ class PowerShuffleLauncher {
     }
 
     try {
+      showMainSnackBar('Preparing PowerShuffle episode rotation…');
       // Fetch the show's real Plex episodes once at launch. There is no
       // continuous library scan or background polling on the Fire Stick.
       final fetched = await plex.fetchClientSideEpisodeQueue(show.id);
