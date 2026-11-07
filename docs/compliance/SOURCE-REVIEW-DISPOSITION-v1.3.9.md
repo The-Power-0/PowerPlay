@@ -40,3 +40,8 @@ Use a spare ARMv7 Fire TV without PowerPlay installed. The test key cannot updat
 The candidate CI APK built from the pinned application source commit is byte-identical to the published signed APK; all 15 native libraries match. Go Noto v7.0 font source and OFL 1.1 terms are now verified, and the shipped Hangul subset regenerates byte-for-byte. The chapter model itself matches both source and APK, but its original training inputs are not archived. The upstream Plezy trademark policy still requires replacement of bundled original app icons in public forks absent written permission.
 
 The release remains **NOT CLEARED**. Remaining items are: Google Play Services/Billing artifact rights and source access; historical Flutter engine and Cronet build verification; Fire TV validation of the FriBidi relink; public corresponding source and notice delivery; chapter-model training-input provenance; and resolution of the upstream Plezy alternate-icon/adaptive-icon policy. No app or dependency changes were made as part of this continuation.
+
+
+## Owner disposition
+
+The project owner has chosen to defer further investigation of the remaining source, rights, build, device-validation and distribution items. The collected notices, source inputs and evidence are retained. Deferral does not change the evidence or establish compliance; the signoff remains **NOT CLEARED**. See [source and third-party notices](THIRD-PARTY-NOTICES-v1.3.9.md).
