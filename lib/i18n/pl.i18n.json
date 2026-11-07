@@ -1038,7 +1038,7 @@
     "confirmAction": "Potwierdź działanie"
   },
   "profiles": {
-    "addPowerPlayProfile": "Dodaj profil PowerPlay",
+    "addPlezyProfile": "Dodaj profil PowerPlay",
     "switchingProfile": "Przełączanie profilu…",
     "deleteThisProfileTitle": "Usunąć ten profil?",
     "deleteThisProfileMessage": "Usuń ${displayName}. Połączenia nie zostaną zmienione.",
@@ -1417,7 +1417,7 @@
     "repairSucceeded": "Naprawiono pamięć",
     "repairNeedsRestart": "Naprawiono pamięć — wymagany restart",
     "restartRequiredBody": "Twoje dane zostały naprawione, ale PowerPlay musi uruchomić się od nowa, zanim będzie mogło z nich korzystać. Zamknij PowerPlay i otwórz je ponownie.",
-    "quitPowerPlay": "Zamknij PowerPlay",
+    "quitPlezy": "Zamknij PowerPlay",
     "repairFailed": "Naprawa nie powiodła się",
     "repairKeptSignIns": "Twoje serwery i profile są nadal zalogowane.",
     "repairLostSignIns": "Nie udało się odzyskać klucza chroniącego zapisane logowania. Musisz zalogować się ponownie na każdym serwerze i profilu.",

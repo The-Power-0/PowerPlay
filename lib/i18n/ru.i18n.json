@@ -1038,7 +1038,7 @@
     "confirmAction": "Подтвердить действие"
   },
   "profiles": {
-    "addPowerPlayProfile": "Добавить профиль PowerPlay",
+    "addPlezyProfile": "Добавить профиль PowerPlay",
     "switchingProfile": "Переключение профиля…",
     "deleteThisProfileTitle": "Удалить этот профиль?",
     "deleteThisProfileMessage": "Удалить ${displayName}. Подключения не изменятся.",
@@ -1417,7 +1417,7 @@
     "repairSucceeded": "Хранилище восстановлено",
     "repairNeedsRestart": "Хранилище восстановлено — требуется перезапуск",
     "restartRequiredBody": "Ваши данные были восстановлены, но PowerPlay должен запуститься заново, чтобы использовать их. Закройте PowerPlay и откройте его снова.",
-    "quitPowerPlay": "Выйти из PowerPlay",
+    "quitPlezy": "Выйти из PowerPlay",
     "repairFailed": "Не удалось восстановить",
     "repairKeptSignIns": "Ваши серверы и профили по-прежнему в системе.",
     "repairLostSignIns": "Ключ, защищающий сохранённые входы, не удалось восстановить. Вам придётся снова войти на каждый сервер и в каждый профиль.",

@@ -1185,7 +1185,7 @@ class _Translations$profiles$ru extends Translations$profiles$en {
 	final TranslationsRu _root; // ignore: unused_field
 
 	// Translations
-	@override String get addPowerPlayProfile => 'Добавить профиль PowerPlay';
+	@override String get addPlezyProfile => 'Добавить профиль PowerPlay';
 	@override String get switchingProfile => 'Переключение профиля…';
 	@override String get deleteThisProfileTitle => 'Удалить этот профиль?';
 	@override String deleteThisProfileMessage({required Object displayName}) => 'Удалить ${displayName}. Подключения не изменятся.';
@@ -1517,7 +1517,7 @@ class _Translations$startup$ru extends Translations$startup$en {
 	@override String get repairSucceeded => 'Хранилище восстановлено';
 	@override String get repairNeedsRestart => 'Хранилище восстановлено — требуется перезапуск';
 	@override String get restartRequiredBody => 'Ваши данные были восстановлены, но PowerPlay должен запуститься заново, чтобы использовать их. Закройте PowerPlay и откройте его снова.';
-	@override String get quitPowerPlay => 'Выйти из PowerPlay';
+	@override String get quitPlezy => 'Выйти из PowerPlay';
 	@override String get repairFailed => 'Не удалось восстановить';
 	@override String get repairKeptSignIns => 'Ваши серверы и профили по-прежнему в системе.';
 	@override String get repairLostSignIns => 'Ключ, защищающий сохранённые входы, не удалось восстановить. Вам придётся снова войти на каждый сервер и в каждый профиль.';
@@ -4378,7 +4378,7 @@ extension on TranslationsRu {
 			'mpvConfig.removeLine' => 'Удалить строку',
 			'mpvConfig.embeddedVoHint' => 'vo, gpu-context и gpu-api игнорируются в Linux: встроенное видео всегда отображается через vo=libmpv на видеоплоскости, а gpu-next (нужный для compute-шейдеров вроде ArtCNN) не может работать во встроенном режиме.',
 			'dialog.confirmAction' => 'Подтвердить действие',
-			'profiles.addPowerPlayProfile' => 'Добавить профиль PowerPlay',
+			'profiles.addPlezyProfile' => 'Добавить профиль PowerPlay',
 			'profiles.switchingProfile' => 'Переключение профиля…',
 			'profiles.deleteThisProfileTitle' => 'Удалить этот профиль?',
 			'profiles.deleteThisProfileMessage' => ({required Object displayName}) => 'Удалить ${displayName}. Подключения не изменятся.',
@@ -4710,7 +4710,7 @@ extension on TranslationsRu {
 			'startup.repairSucceeded' => 'Хранилище восстановлено',
 			'startup.repairNeedsRestart' => 'Хранилище восстановлено — требуется перезапуск',
 			'startup.restartRequiredBody' => 'Ваши данные были восстановлены, но PowerPlay должен запуститься заново, чтобы использовать их. Закройте PowerPlay и откройте его снова.',
-			'startup.quitPowerPlay' => 'Выйти из PowerPlay',
+			'startup.quitPlezy' => 'Выйти из PowerPlay',
 			'startup.repairFailed' => 'Не удалось восстановить',
 			'startup.repairKeptSignIns' => 'Ваши серверы и профили по-прежнему в системе.',
 			'startup.repairLostSignIns' => 'Ключ, защищающий сохранённые входы, не удалось восстановить. Вам придётся снова войти на каждый сервер и в каждый профиль.',
