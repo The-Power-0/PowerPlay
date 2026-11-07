@@ -81,6 +81,8 @@ jobs:
           flutter test test/providers/fire_tv_library_defaults_test.dart test/providers/hidden_libraries_provider_test.dart test/providers/libraries_provider_test.dart test/utils/platform_detector_test.dart test/widgets/library_management_sheet_test.dart test/navigation/profile_session_screen_test.dart test/services/storage_service_test.dart
           flutter test test/services/powerplay_defaults_test.dart test/services/settings_service_test.dart test/services/settings_export_service_test.dart
           flutter test test/theme/powerplay_curated_palette_test.dart test/theme/mono_theme_test.dart test/providers/theme_provider_test.dart test/startup_bootstrap_test.dart
+          # 1.3.10: Fire TV handoff must hold the screen awake before the first frame.
+          flutter test test/screens/video_player/wakelock_controller_test.dart
           flutter test test/focus/focusable_wrapper_test.dart
           flutter test test/services/deep_links/legacy_shuffle_link_test.dart test/services/deep_links/deep_link_test.dart
           # 1.3.9 Fire TV modal destination picker focus/selection regression.
@@ -97,6 +99,8 @@ jobs:
             lib/services/playback_coordinator.dart \
             lib/providers/playback_state_provider.dart \
             lib/screens/video_player_screen.dart \
+            lib/screens/video_player/wakelock_controller.dart \
+            test/screens/video_player/wakelock_controller_test.dart \
             lib/screens/video_player/parts/episode_navigation.dart \
             lib/screens/video_player/parts/build.dart \
             lib/screens/settings/powerlink_settings_screen.dart \
