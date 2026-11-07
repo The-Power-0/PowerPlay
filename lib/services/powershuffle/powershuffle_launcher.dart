@@ -64,7 +64,7 @@ class PowerShuffleLauncher {
       for (final row in fetched ?? <MediaItem>[]) {
         if (row is! PlexMediaItem || !row.isEpisode ||
             row.parentIndex == null || row.index == null ||
-            row.parentIndex == 0 || row.serverId != show.serverId) {
+            row.serverId != show.serverId) {
           continue;
         }
         final key = PowerShuffleSession.keyOf(row)!;
