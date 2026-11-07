@@ -64,26 +64,35 @@ extension _VideoPlayerEpisodeNavigationMethods on VideoPlayerScreenState {
     MediaItem? target = _episode.next;
 
     if (psActive) {
-      if (!ps.hasStarted) {
-        showMainSnackBar('An episode must begin playing before it can be skipped.');
-        return;
-      }
-      final finished = wasAtCompletion || ps.completedForCurrent;
-      final choice = finished ? null : await _choosePowerShuffleSkipOption();
-      if (!mounted || (!finished && choice == null)) return;
-      try {
-        target = await ps.advance(
-          context, atEnd: finished, skipChoice: choice,
-        );
-      } catch (_) {
-        if (mounted) showMainSnackBar('Home Assistant could not save the PowerShuffle skip.');
-        return;
-      }
-      if (!mounted) return;
-      if (target == null) {
-        showMainSnackBar('No eligible episodes remain. Check PowerShuffle cooldowns in Home Assistant.');
-        await _stopVideoAndExit();
-        return;
+      // An earlier skip may already have been committed by HA while the
+      // new stream failed to initialize. Retry that same target without a
+      // second skip decision or a second history mutation.
+      if (ps.pendingNavigationTarget case final pending?) {
+        target = pending;
+      } else {
+        if (!ps.hasStarted) {
+          showMainSnackBar('An episode must begin playing before it can be skipped.');
+          return;
+        }
+        final finished = wasAtCompletion || ps.completedForCurrent;
+        final choice = finished ? null : await _choosePowerShuffleSkipOption();
+        if (!mounted || (!finished && choice == null)) return;
+        try {
+          target = await ps.advance(
+            context, atEnd: finished, skipChoice: choice,
+          );
+        } catch (_) {
+          if (mounted) {
+            showMainSnackBar('Home Assistant could not save the PowerShuffle skip.');
+          }
+          return;
+        }
+        if (!mounted) return;
+        if (target == null) {
+          showMainSnackBar('No eligible episodes remain. Check PowerShuffle cooldowns in Home Assistant.');
+          await _stopVideoAndExit();
+          return;
+        }
       }
     }
 
@@ -99,7 +108,13 @@ extension _VideoPlayerEpisodeNavigationMethods on VideoPlayerScreenState {
     try {
       final outcome = await _navigateToEpisode(target!);
       if (outcome == MediaReloadOutcome.failed) {
-        _presentPlayNextRetryPrompt(wasAtCompletion: wasAtCompletion);
+        if (psActive) {
+          _clearEpisodeLoadingFlags();
+          _showChromeForSwappedItem();
+          showMainSnackBar('Next PowerShuffle episode did not load. Press Next to retry.');
+        } else {
+          _presentPlayNextRetryPrompt(wasAtCompletion: wasAtCompletion);
+        }
       }
     } finally {
       _powerShuffleNavigationApproved = false;
