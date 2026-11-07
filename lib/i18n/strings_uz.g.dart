@@ -1177,7 +1177,7 @@ class _Translations$profiles$uz extends Translations$profiles$en {
 	final TranslationsUz _root; // ignore: unused_field
 
 	// Translations
-	@override String get addPowerPlayProfile => 'PowerPlay profilini qoʻshish';
+	@override String get addPlezyProfile => 'PowerPlay profilini qoʻshish';
 	@override String get switchingProfile => 'Profil almashtirilmoqda…';
 	@override String get deleteThisProfileTitle => 'Ushbu profil oʻchirilsinmi?';
 	@override String deleteThisProfileMessage({required Object displayName}) => '${displayName} oʻchiriladi. Ulanishlarga taʼsir qilmaydi.';
@@ -1507,7 +1507,7 @@ class _Translations$startup$uz extends Translations$startup$en {
 	@override String get repairSucceeded => 'Saqlash tiklandi';
 	@override String get repairNeedsRestart => 'Saqlash tiklandi — qayta ishga tushirish kerak';
 	@override String get restartRequiredBody => 'Maʼlumotlaringiz tiklandi, lekin PowerPlay ulardan foydalanishi uchun yangidan ishga tushishi kerak. PowerPlay-ni yoping va qayta oching.';
-	@override String get quitPowerPlay => 'PowerPlay-dan chiqish';
+	@override String get quitPlezy => 'PowerPlay-dan chiqish';
 	@override String get repairFailed => 'Tiklash amalga oshmadi';
 	@override String get repairKeptSignIns => 'Serverlaringiz va profillaringiz hali ham tizimga kirgan.';
 	@override String get repairLostSignIns => 'Saqlangan kirish maʼlumotlaringizni himoya qiluvchi kalitni tiklab boʻlmadi. Har bir server va profilga qaytadan kirishingiz kerak boʻladi.';
@@ -4354,7 +4354,7 @@ extension on TranslationsUz {
 			'mpvConfig.removeLine' => 'Qatorni oʻchirish',
 			'mpvConfig.embeddedVoHint' => 'Linux-da vo, gpu-context va gpu-api e\'tiborga olinmaydi: ichki video har doim video tekisligida vo=libmpv orqali ko\'rsatiladi va gpu-next (ArtCNN kabi compute shaderlar uchun zarur) ichki rejimda ishlay olmaydi.',
 			'dialog.confirmAction' => 'Harakatni tasdiqlash',
-			'profiles.addPowerPlayProfile' => 'PowerPlay profilini qoʻshish',
+			'profiles.addPlezyProfile' => 'PowerPlay profilini qoʻshish',
 			'profiles.switchingProfile' => 'Profil almashtirilmoqda…',
 			'profiles.deleteThisProfileTitle' => 'Ushbu profil oʻchirilsinmi?',
 			'profiles.deleteThisProfileMessage' => ({required Object displayName}) => '${displayName} oʻchiriladi. Ulanishlarga taʼsir qilmaydi.',
@@ -4686,7 +4686,7 @@ extension on TranslationsUz {
 			'startup.repairSucceeded' => 'Saqlash tiklandi',
 			'startup.repairNeedsRestart' => 'Saqlash tiklandi — qayta ishga tushirish kerak',
 			'startup.restartRequiredBody' => 'Maʼlumotlaringiz tiklandi, lekin PowerPlay ulardan foydalanishi uchun yangidan ishga tushishi kerak. PowerPlay-ni yoping va qayta oching.',
-			'startup.quitPowerPlay' => 'PowerPlay-dan chiqish',
+			'startup.quitPlezy' => 'PowerPlay-dan chiqish',
 			'startup.repairFailed' => 'Tiklash amalga oshmadi',
 			'startup.repairKeptSignIns' => 'Serverlaringiz va profillaringiz hali ham tizimga kirgan.',
 			'startup.repairLostSignIns' => 'Saqlangan kirish maʼlumotlaringizni himoya qiluvchi kalitni tiklab boʻlmadi. Har bir server va profilga qaytadan kirishingiz kerak boʻladi.',
