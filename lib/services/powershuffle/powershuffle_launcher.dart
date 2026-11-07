@@ -8,7 +8,6 @@ import '../../media/play_queue.dart';
 import '../../profiles/active_profile_provider.dart';
 import '../../providers/multi_server_provider.dart';
 import '../../providers/playback_state_provider.dart';
-import '../../services/plex_client.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../utils/video_player_navigation.dart';
 import '../deep_links/deep_link.dart';
