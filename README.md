@@ -1,18 +1,19 @@
 <div align="center">
 
-<img src="docs/artwork/powerplay-banner.webp" alt="PowerPlay — purple Play artwork" width="640" />
+<img src="docs/artwork/powerplay-banner.webp" alt="PowerPlay purple play-button artwork" width="640" />
 
 # PowerPlay
 
-**A lean, Plex-first media player for Amazon Fire TV — built for the remote, optimized for the hardware, and ready for Home Assistant.**
+**Plex on Fire TV, built around the remote — with smart shuffle, seamless handoffs, and Home Assistant control.**
 
-[![Download latest release](https://img.shields.io/badge/Download-Latest%20Release-7C3AED?style=for-the-badge&logo=github&logoColor=white)](https://github.com/The-Power-0/PowerPlay/releases/latest)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-5B21B6?style=for-the-badge)](LICENSE)
-[![Fire TV](https://img.shields.io/badge/Platform-Fire%20OS%207%20%2F%208-333?style=for-the-badge)](#compatibility)
+[![Latest release](https://img.shields.io/badge/Download-Latest%20APK-7C3AED?style=for-the-badge&logo=github&logoColor=white)](https://github.com/The-Power-0/PowerPlay/releases/latest)
+[![PowerShuffle](https://img.shields.io/badge/Feature-PowerShuffle-6D28D9?style=for-the-badge)](#powershuffle)
+[![Fire OS](https://img.shields.io/badge/Fire%20OS-7%20%2F%208-30303B?style=for-the-badge)](#compatibility)
+[![GPLv3](https://img.shields.io/badge/License-GPLv3-5930A5?style=for-the-badge)](LICENSE)
 
-*An independent, GPL-3.0-licensed derivative of [Plezy](https://github.com/edde746/plezy); not affiliated with or endorsed by Plex, Plezy, or Amazon.*
+*An independently maintained, GPL-3.0-licensed fork of [Plezy](https://github.com/edde746/plezy). Not affiliated with Plex, Plezy, or Amazon.*
 
-[Download](#download) · [Why PowerPlay?](#the-story) · [Features](#what-makes-powerplay-different) · [Home Assistant](#smart-home-integration) · [Version history](#version-history) · [Source & license](#source-releases-and-license)
+[Get PowerPlay](#download) · [Features](#features) · [PowerShuffle](#powershuffle) · [PowerLink](#powerlink--room-to-room-playback) · [Home Assistant](#home-assistant--automations) · [History](#version-history)
 
 </div>
 
@@ -20,127 +21,162 @@
 
 ## Download
 
-### [**Get the latest PowerPlay release →**](https://github.com/The-Power-0/PowerPlay/releases/latest)
+### [Get the latest stable PowerPlay release](https://github.com/The-Power-0/PowerPlay/releases/latest)
 
-**This link always opens the current stable release.** Under **Assets**, choose the **`PowerPlay-*.apk`** file to install on a Fire TV Stick; the source archive, native-source inputs, and checksums are provided alongside it. This page intentionally does not hard-code an APK version, so new releases do not leave the download section behind.
+The link always points to the **current stable release**. Under **Assets**, download the `PowerPlay-vX.Y.Z.apk` file for Fire TV. The same release includes version-matched source archives and SHA-256 checksums.
 
-> **Installation:** Install the signed APK using ADB or your preferred Fire TV sideloading tool. If you already have PowerPlay installed, a signed update can install in place when the signing certificate matches. If Android reports `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, the installed copy uses a different signing key: uninstalling it is required before installing that build, and **uninstalling removes its local app data**.
+**Install:** Sideload the APK using ADB or another Fire TV sideloading tool. With Android platform tools installed:
 
-Example from a computer with Android platform tools, after downloading the APK:
-
-```bash
+~~~bash
 adb install -r PowerPlay-vX.Y.Z.apk
-```
+~~~
 
-Browse all historical builds in [Releases](https://github.com/The-Power-0/PowerPlay/releases). For the exact source of any particular APK, download that release's **`-Source.tar.gz`** and **`-NativeSourceInputs.zip`** assets rather than assuming GitHub's automatically generated source archive matches the built APK.
+A matching signing certificate permits an update in place. If Android reports `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, the existing app was signed with a different key. Reinstallation may require uninstalling the previous package, **which deletes its local app data**; back up what you need first.
 
-## The story
+**Current milestone:** [PowerPlay 1.4.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.4.0) introduces PowerShuffle and works with [PowerLink 0.3.0](https://github.com/The-Power-0/PowerLink/releases/tag/v0.3.0).
 
-PowerPlay began as a small practical problem: **make a Fire TV launch a Plex show's continuous shuffle from Home Assistant**, without navigating through a streaming-app interface every time. The first experiments added a `plezy://shuffle` intent to a custom build of [Plezy](https://github.com/edde746/plezy), so a household automation could start a show directly.
+## Why PowerPlay exists
 
-That useful little deep link grew into a dedicated Fire TV optimization project. As the fork evolved, the focus shifted to *only what our Fire Sticks actually need*: Plex movies and TV shows, responsive D-pad navigation, efficient artwork loading, reliable playback, and external control. The work included stripping out unused integrations and features, tuning startup, network activity and memory, and moving video playback to **ExoPlayer/Media3** instead of shipping MPV.
+PowerPlay started with a simple goal: let Home Assistant start a Plex show's **continuous shuffle on a Fire Stick** without navigating the app by hand.
 
-Once the optimized test build was working, it deserved an identity of its own. **PowerPlay** introduced the purple artwork shown above, an independent Android package (`com.power.powerplay`), its own `powerplay://` URI scheme, separate app data, and release workflows. It can coexist with the original Plezy app.
+That experiment grew into an independent Fire TV client. The original Plezy fork was refined for movies and television, responsive D-pad controls, predictable startup and playback, and lighter background work. The Fire TV edition uses **ExoPlayer / Media3** rather than the former MPV runtime, and keeps its own application ID (`com.power.powerplay`) and `powerplay://` deep links so it can coexist with Plezy.
 
-Today the focus is still the same: **a fast, comfortable Plex experience on Fire TV, with the ability to make playback part of a smart home.** PowerPlay is independently maintained; new upstream Plezy changes are considered selectively rather than automatically merged.
+Today PowerPlay brings together three things: a focused Plex viewing experience, **PowerShuffle** for episode rotation without unwanted repeats, and **PowerLink** for moving a playing queue between rooms. Upstream Plezy fixes are evaluated selectively rather than incorporated automatically.
 
-## What makes PowerPlay different
+## Features
 
 | | |
 | --- | --- |
-| 🎬 **Plex-first** | Focused on movies and TV shows; removes unnecessary Jellyfin support, music workflows, Discover/requests, Watch Together, companion-remote functionality and third-party scrobbling integrations from the Fire TV edition. |
-| ⚡ **Fire TV performance** | Startup, artwork prioritization, Plex request handling, navigation responsiveness and memory budgets tailored for Fire OS hardware. |
-| ▶️ **Media3 playback** | ExoPlayer/Media3 video with FFmpeg codec libraries; no MPV player runtime in the distributed build. |
-| 🏠 **Automation-ready** | Android deep links let Home Assistant open the app or start continuous shuffled-show playback. |
-| 🔗 **PowerLink (1.3.7 / HACS 0.2.0)** | Pair each Fire Stick in Settings → PowerLink, then use the in-player PowerLink button for room-to-room handoff. The optional [PowerLink HACS companion](https://github.com/The-Power-0/PowerLink/releases/tag/v0.2.0) handles wake routines, exact queue/order/playhead continuity, source pausing after confirmed playback, and HD/4K matching. Requires real-device validation before production use. |
-| 📺 **Hardware-aware libraries** | Known 1080p-only Fire Sticks start with libraries named `[4K]` hidden; 4K-capable models keep them visible even if HDMI output is currently 1080p. |
-| 🎨 **Customizable appearance** | Ten curated color themes (including Aurora and Synthwave dual-tone palettes) with independent Light, Dark, System, and OLED modes; PowerPlay artwork, startup screens and About page remain branded. |
+| **Plex-first playback** | Movies and TV shows with Fire TV-focused navigation and ExoPlayer / Media3 playback. |
+| **PowerShuffle** | Per-show intelligent randomization with completion history, two skip choices, and automatic cycle rollover. |
+| **PowerLink** | Transfer the active episode, position and queue between paired Fire Sticks, with compatible HD/4K matching. |
+| **Fire TV performance** | Tuning for startup, artwork loading, network activity, memory use and D-pad responsiveness. |
+| **Hardware-aware libraries** | Recognized 1080p-only devices hide libraries ending in `[4K]` by default; 4K-capable devices keep them visible even in a 1080p HDMI mode. |
+| **Ten themes** | Curated palettes, including multicolor Aurora and Synthwave, with Light, Dark, System and OLED appearance options. |
+| **Home Assistant ready** | Deep links, room-specific launch actions, and an optional HACS integration that owns PowerLink/PowerShuffle state. |
 
-Library hiding is a **default, not a restriction**: users can manually show a hidden library. Explicit Show/Hide selections persist per device profile. Unknown hardware keeps libraries visible by default.
+The `[4K]` library behavior is a **user-adjustable default**, not an access restriction. Manual library visibility choices are preserved.
 
-### Compatibility
+## PowerShuffle
 
-PowerPlay's published builds target **Amazon Fire OS 7 and 8**, with a signed **32-bit ARM (`armeabi-v7a`) APK**, and are designed primarily for Fire TV Stick hardware. The published build workflow performs APK, signing, version-code, deep-link and playback-runtime checks. Those automated checks **do not replace physical-device playback testing**; review each release's notes for validation details.
+**Shuffle one show without losing track of what you've already seen through PowerShuffle.**
 
-## Smart home integration
+On a TV show's detail page, choose **PowerShuffle** instead of ordinary Shuffle. Home Assistant keeps an independent, per-Plex-profile episode history and builds a randomized rotation from eligible episodes. Normal Plex watched status, ordinary playback, and the existing Shuffle action do **not** change PowerShuffle history.
 
-PowerPlay is designed to work with external automation systems, including **Home Assistant**. It listens for Android **VIEW intents** using its own `powerplay://` URI scheme, allowing another app or controller to open PowerPlay and request supported Plex playback actions.
+### Two deliberate skip choices
 
-### What PowerPlay understands
-
-| Capability | How it works |
+| Action | What happens |
 | --- | --- |
-| **Launch from another system** | Android can deliver a PowerPlay deep link to the app. |
-| **Target a Plex server and show** | A link can specify a Plex server ID and a show's rating key, so there is no need to navigate the library manually. |
-| **Continuous TV-show shuffle** | A shuffle link starts randomized episode playback of the selected show. |
-| **Control individual Fire TVs** | Send the intent to whichever Fire Stick should play; each device runs its own PowerPlay instance. |
+| **Skip for 5 days** | The episode stays out of PowerShuffle for **120 elapsed hours**, including across a cycle change. |
+| **Skip until next cycle** | The episode is deferred for the rest of the current rotation; it returns when the next rotation begins. |
 
-For example, this link requests shuffled playback of a particular show:
+Press **Next** during an unfinished PowerShuffle episode to choose. The Fire TV dialog has two selectable options, D-pad navigation, and **Back to cancel**. Normal pause, exit, shutdown, or handoff does not count as a skip.
 
-```text
-powerplay://shuffle?server=SERVER_ID&show=SHOW_RATING_KEY
-```
+### How a rotation works
 
-The equivalent native-style playback link is:
+1. PowerShuffle randomizes episodes that haven't been completed in the current rotation and aren't excluded by a skip.
+2. Completion is based on **unique viewed content** (90% by default), not simply seeking to the end. Verified automatic intro/credits skips are taken into account.
+3. Incomplete episodes remain available and restart from the beginning if chosen again. An active PowerLink handoff preserves the in-progress playhead instead.
+4. When the rotation is fully completed, the next one begins. If every remaining episode has been deferred **until next cycle**, PowerShuffle records a **partial rotation** and advances without treating those episodes as watched.
+5. Recently completed episodes get soft repeat protection (seven days by default). A five-day skip remains a hard exclusion; if none are eligible, playback waits rather than ignoring that skip.
 
-```text
-powerplay://play?server=SERVER_ID&id=SHOW_RATING_KEY&mode=shuffle
-```
+**Recent queues resume:** PowerShuffle keeps the same randomized order during a recent session. After 12 hours of inactivity by default, it builds a new order from the currently eligible pool **without resetting watched progress or skips**. Home Assistant retains the complete logical rotation; the Fire Stick uses a small rolling window.
 
-Replace the placeholders with the **Plex server ID** and the show's **rating key**, not their display names. The Android package is `com.power.powerplay`; its links and app data are independent of the original Plezy app.
+### Getting started
 
-### Using it with Home Assistant
+PowerShuffle requires **PowerPlay 1.4.0+** and the **[PowerLink HACS integration 0.3.0+](https://github.com/The-Power-0/PowerLink)** on a reachable Home Assistant instance.
 
-Home Assistant can use its **Android TV integration and ADB commands** to send these deep links to a Fire Stick. This makes it possible to start a favorite show's shuffle from a dashboard button, a scene, a schedule, or a presence-based automation—without manually navigating the PowerPlay interface.
+1. Install and configure PowerLink in Home Assistant, then register and pair your Fire Stick in **PowerPlay → Settings → PowerLink**.
+2. Open a Plex TV show and select **PowerShuffle**.
+3. Use Home Assistant's **PowerLink → Configure → Manage PowerShuffle shows** to view tracked shows, reset a cycle or clear five-day skips. **PowerShuffle global settings** controls the completion threshold, queue inactivity, recent-repeat protection, queue window and specials.
 
-Home Assistant can still handle turning on the television, waiting for the Fire Stick and targeting a room using existing automations. **PowerPlay handles the incoming playback request.** PowerPlay 1.3.0 introduced HA-initiated PowerLink handoff; 1.3.6 improved destination takeover and source pausing after playback confirmation. **PowerPlay 1.3.7** and the independently released [PowerLink HACS 0.2.0 integration](https://github.com/The-Power-0/PowerLink/releases/tag/v0.2.0) additionally allow a Fire Stick to pair through Settings → PowerLink and initiate handoff directly from its Plex player controls. PowerLink is **experimental** until complete source/destination playback, shuffle and 4K↔1080p transitions are verified on real Fire Sticks. Existing playback and shuffle deep links continue to work without it.
+Every Plex profile has its own progress. Starting the **same active show's** PowerShuffle on another paired Fire Stick can automatically request a PowerLink transfer.
+
+## PowerLink — room-to-room playback
+
+<div align="center">
+
+**Play in one room. Continue in another.**
+
+[![PowerLink HACS](https://img.shields.io/badge/Companion-PowerLink%20HACS-7C3AED?style=flat-square)](https://github.com/The-Power-0/PowerLink)
+[![PowerLink 0.3.0](https://img.shields.io/badge/Compatible-PowerLink%200.3.0%2B-373047?style=flat-square)](https://github.com/The-Power-0/PowerLink/releases/latest)
+
+</div>
+
+PowerLink uses Home Assistant to discover **already-integrated** Fire Sticks, handle power-on routines, prepare the correct Plex media versions and transfer an ordered queue. From the player, select the **PowerLink** icon and choose a registered destination. The source is paused **only after** the destination confirms playback started.
+
+- Preserves shuffled or sequential queue order and the current playback position.
+- Supports HD/4K alternatives when matching versions of the same media can be verified.
+- Uses scoped, per-device pairing credentials rather than a Home Assistant administrator token in the app.
+- Supports custom Home Assistant wake routines and eligible routed networks; it does **not** automatically create a tunnel or discover unknown LAN devices.
+
+PowerShuffle sessions also travel through PowerLink, preserving their cycle and completion history. See the [PowerLink setup guide](https://github.com/The-Power-0/PowerLink#setup) for installation, device registration and pairing.
+
+## Home Assistant & automations
+
+PowerPlay responds to Android VIEW intents using its own URI scheme. A controller can target the Fire Stick that should receive a normal Plex playback request.
+
+| Action | Example |
+| --- | --- |
+| **Shuffle one Plex show** | `powerplay://shuffle?server=SERVER_ID&show=SHOW_RATING_KEY` |
+| **Open a Plex item in shuffle mode** | `powerplay://play?server=SERVER_ID&id=SHOW_RATING_KEY&mode=shuffle` |
+| **Open PowerPlay on a registered TV** | `powerlink.open_device` in Home Assistant |
+| **Transfer current playback** | In-player PowerLink control or `powerlink.capture_handoff` |
+
+`SERVER_ID` and `SHOW_RATING_KEY` are Plex identifiers, **not show names**. The examples above are the existing **standard Shuffle** links, not PowerShuffle commands. PowerShuffle starts from its dedicated show-detail action and requires the PowerLink companion.
+
+Home Assistant can combine these actions with its existing ADB entities, dashboards, scenes, wake scripts and presence automations. PowerPlay handles the media request; Home Assistant determines **which TV** to use and **how to turn it on**.
+
+## Compatibility
+
+| Item | Support |
+| --- | --- |
+| Target hardware | Amazon Fire TV / Fire TV Stick |
+| Fire OS | 7 and 8 |
+| Release APK | Signed `armeabi-v7a` (32-bit ARM) |
+| Video | ExoPlayer / Media3 with bundled codec support |
+| App ID | `com.power.powerplay` |
+| Deep link scheme | `powerplay://` |
+| PowerShuffle companion | PowerLink 0.3.0 or later in Home Assistant |
+
+Published release workflows verify the APK identity, signature, architecture and source artifacts. Automated CI **does not replace** testing controls, playback and quality mapping on actual Fire Sticks.
 
 ## Version history
 
-PowerPlay's version numbers began with the standalone rebrand. Earlier releases used **Plezy**'s version numbers and are kept in a [legacy archive](docs/archive/README.md).
+PowerPlay versions begin with the independent 1.0.0 rebrand. Pre-1.0 Plezy-based builds are documented in the [legacy archive](docs/archive/README.md).
 
-| Release | Milestone |
+| Version | Milestone |
 | --- | --- |
-| **[1.3.10](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.10)** | Prevent destination Fire TV screensavers from interrupting PowerLink playback startup: hold the screen awake while receiving the queue and opening the video. Paired with PowerLink HACS 0.2.1, which wakes/dismisses the destination ambient display before the deep link without force-closing PowerPlay. |\n| **[1.3.9](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.9)** | Repair the in-player PowerLink destination dialog: automatically focus the first available Fire Stick after discovery; navigate rooms with Up/Down, skip unavailable targets, reach Refresh/Cancel, and select a room to start handoff. No changes to PowerLink HACS v0.2.0, queue order, or HD/4K selection. |
-| **[1.3.8](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.8)** | Fire TV PowerLink pairing UI repair: both Home Assistant URL and numeric code can open their own keyboard reliably; Next/Done and D-pad Up/Down reach the focusable Pair button. Refresh/Disconnect are also remote-selectable. No changes to Plex handoff, shuffle order or PowerLink HACS 0.2.0. |
-| **[1.3.7](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.7)** | New Fire TV PowerLink button and destination picker for player-initiated transfers. Pair each Fire Stick using scoped, encrypted credentials and one-time HA pairing codes; supports exact re-handoff of a retained queue, long protected wake routines and HD/4K policies. Requires [PowerLink HACS v0.2.0](https://github.com/The-Power-0/PowerLink/releases/tag/v0.2.0). |
-| **[1.3.6](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.6)** | Ensures incoming transfers retire any existing destination playback before launching the requested episode; source pauses only after a verified successful handoff. |
-| **[1.3.1](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.1)** | Restores episode labels and thumbnails in transferred PowerLink queues. |
-| **[1.3.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.0)** | Adds experimental PowerLink queue capture and remote resume, preserving shuffle/normal queue order, duplicate episodes, playback position and explicit Plex 1080p/4K media-version selection. Uses the separate [PowerLink Home Assistant integration](https://github.com/The-Power-0/PowerLink). |
-| **[1.2.4](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.2.4)** | Transparent splash-only artwork that works across theme backgrounds; four new themes (Aurora, Synthwave, Midnight Gold, Ocean Depths), bringing the total to ten. Existing launcher artwork remains unchanged. |
-| **[1.2.1](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.2.1)** | Prevent unnecessary D-pad focus scroll animations from collapsing or bouncing the floating library header. Retains existing performance work and curated themes. |
-| **[1.2.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.2.0)** | Six curated color themes (Signature Purple, Moonlight Blue, Ember, Evergreen, Rosé, Monochrome), each compatible with Light, Dark, System, and true-black OLED. Live changes persist per Fire TV. |
-| **[1.1.2](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.1.2)** | Splash backgrounds now match the approved logo canvas throughout Fire TV light, dark, OLED and Android 12 launch paths. |
-| **[1.1.1](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.1.1)** | Hardware-aware `[4K]` library defaults: hide on recognized 1080p-only sticks, show on 4K-capable sticks regardless of current output resolution; preserve manual overrides. |
-| **[1.1.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.1.0)** | Improved Fire TV defaults: Continue Watching/Episode Action open details, content-frame-rate matching on, automatic intro skip after three seconds; extended startup and About branding. |
-| **[1.0.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.0.0)** | First standalone PowerPlay release: purple branding, `com.power.powerplay`, `powerplay://` intents, and the frozen Plex-only Fire TV optimization stack based on Plezy 2.25.0. |
-| **Pre-1.0 · October 2026** | Custom Plezy 2.22–2.25 builds established Home Assistant shuffle links; subsequent performance work consolidated the Fire TV feature set, removed unused integrations and MPV, and produced the tested candidate later rebranded as PowerPlay. |
+| **[1.4.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.4.0)** | **PowerShuffle**: per-profile show rotations, two skip durations, completion tracking, automatic cycle rollover, Home Assistant management and handoff continuity. Companion: PowerLink 0.3.0. |
+| [1.3.10](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.10) | Holds the destination screen awake while a PowerLink queue and first video frame initialize. |
+| [1.3.9](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.9) | Repairs destination-picker focus and D-pad navigation. |
+| [1.3.8](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.8) | Repairs the Fire TV pairing keyboard, field and button navigation. |
+| [1.3.7](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.7) | Adds the in-player PowerLink picker and per-device pairing. |
+| [1.3.6](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.6) | Improves destination playback takeover and source pause confirmation. |
+| [1.3.1](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.1) | Restores episode labels and thumbnails in imported queues. |
+| [1.3.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.0) | Introduces PowerLink queue transfer, exact positions and 1080p/4K matching. |
+| [1.2.4](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.2.4) | Transparent splash artwork and four additional themes. |
+| [1.2.1](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.2.1) | D-pad focus scrolling stability. |
+| [1.2.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.2.0) | Six curated themes and OLED appearance. |
+| [1.1.2](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.1.2) | Splash-screen background and branding alignment. |
+| [1.1.1](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.1.1) | Hardware-aware `[4K]` library defaults. |
+| [1.1.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.1.0) | Fire TV playback defaults and startup refinements. |
+| [1.0.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.0.0) | First independent PowerPlay package, purple branding and Plex-only Fire TV build, based on **Plezy 2.25.0**. |
 
-**Upstream baseline clarification:** PowerPlay 1.0.0 was derived from Plezy **2.25.0**; subsequent PowerPlay releases reuse that pinned source and selectively adopt fixes. A historical reference to Plezy **2.24.0** in release descriptions is outdated and should not be treated as a code downgrade. The APK's embedded About-screen text, if it shows an incorrect version, requires a separate source change and rebuild; documentation updates alone cannot alter an installed APK.
+For full changes and older versions, see [all releases](https://github.com/The-Power-0/PowerPlay/releases). The original Plezy baseline is **2.25.0**, not the outdated 2.24.0 reference found in some historical descriptions.
 
-For a future release that is not yet listed here, use [Latest](https://github.com/The-Power-0/PowerPlay/releases/latest). Full per-version changes and downloadable artifacts are recorded on each GitHub release page.
+## Builds, source & license
 
-### Release notes and archive policy
+PowerPlay is an independent derivative of [Plezy by edde746](https://github.com/edde746/plezy), distributed under the [GNU GPL v3](LICENSE). Original attribution and applicable third-party notices are retained; [the upstream README](UPSTREAM-README.md) remains available for background.
 
-Every published PowerPlay release uses consistent sections: **What's new**, **Install and sources**, and **Build provenance and attribution**. The original Plezy 2.25.0 baseline is identified separately from selectively backported upstream fixes. Archived pre-PowerPlay Plezy 2.22.0–2.25.0 builds are historical prereleases listed below stable PowerPlay releases; Plezy 2.25.0 remains available as a rollback asset. Historical APKs and tags are preserved unchanged.
+Each recent release includes the signed APK, a **version-matched source archive**, bundled native-source inputs and a checksum manifest. Use those attachments, **not GitHub's automatic source ZIP**, to locate the source corresponding to a published APK. The signing key is not distributed. Release production uses a [candidate workflow](.github/workflows/powerplay-release-candidate.yml), a separate [publish workflow](.github/workflows/powerplay-publish.yml) and [release metadata](.github/powerplay/release.json).
 
-### Release approach
-
-Small individual features typically increment the patch version (`1.1.0 → 1.1.1`), while a feature batch can increment the minor version. Stable publications are explicitly marked **Latest**. Release candidates are built and checked before a separate, manually approved publishing step. Starting with the canonical-source migration, the tracked PowerPlay application at repository root is **the source compiled into each APK**. The release workflow checks out the reviewed commit directly, runs automated checks, and attaches a matching source archive with the APK. Releases through v1.2.4 retain their own archived, version-specific build sources for reproducibility. See [the release candidate workflow](.github/workflows/powerplay-release-candidate.yml), [publication workflow](.github/workflows/powerplay-publish.yml) and [release metadata](.github/powerplay/release.json).
-
-## Artwork
+The project does not claim that every transitive native-dependency licensing, source-supply or trademark question has been fully audited or cleared. Check applicable obligations before redistributing.
 
 <div align="center">
-  <img src="docs/artwork/powerplay-icon.webp" width="160" alt="Official PowerPlay purple app icon" />
-  <p><i>The original approved PowerPlay logo and Fire TV banner are preserved under <a href="docs/artwork">docs/artwork</a>.</i></p>
+
+<img src="docs/artwork/powerplay-icon.webp" width="120" alt="PowerPlay icon" />
+
+*Pick a show. Press play. Let PowerPlay handle the rest.*
+
 </div>
-
-## Source releases and license
-
-PowerPlay is based on **[Plezy by edde746](https://github.com/edde746/plezy)** and is distributed under the **[GNU General Public License v3](LICENSE)**. The [upstream README](UPSTREAM-README.md) is retained for background and attribution; original copyright and applicable third-party notices are preserved. PowerPlay is unofficial and independent of Plex, Plezy and Amazon.
-
-**To reproduce a released APK, use its matching `PowerPlay-…-Source.tar.gz` attachment and pinned native-source inputs**, along with its checksums and included build instructions. GitHub's automatically generated source-code downloads may not represent the exact compiled build. The signing key is not included in source releases.
-
-A full audit of **transitive native-dependency licensing/source obligations** has not yet been completed; the project does not claim comprehensive dependency-license or trademark clearance. Review those obligations before further redistribution.
-
-<sub>Built around one simple idea: press a button, pick a show, and let PowerPlay handle the rest.</sub>
