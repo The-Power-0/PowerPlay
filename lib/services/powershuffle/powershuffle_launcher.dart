@@ -64,7 +64,9 @@ class PowerShuffleLauncher {
       for (final row in fetched ?? <MediaItem>[]) {
         if (row is! PlexMediaItem || !row.isEpisode ||
             row.parentIndex == null || row.index == null ||
-            row.parentIndex == 0 || row.serverId != show.serverId) continue;
+            row.parentIndex == 0 || row.serverId != show.serverId) {
+          continue;
+        }
         final key = PowerShuffleSession.keyOf(row)!;
         if (items.containsKey(key)) continue; // HD/4K is one logical episode
         items[key] = row;
