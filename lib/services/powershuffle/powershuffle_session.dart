@@ -34,6 +34,7 @@ class PowerShuffleSession {
   Map<String, PlexMediaItem> _items = {};
   List<List<int>> _coverage = [];
   int? _lastPosition;
+  int? _lastDuration;
   DateTime? _lastSample;
   DateTime? _lastSent;
   bool _started = false;
@@ -88,6 +89,7 @@ class PowerShuffleSession {
     _currentKey = '';
     _coverage = [];
     _lastPosition = null;
+    _lastDuration = null;
     _lastSample = null;
     _lastSent = null;
     _started = false;
@@ -203,6 +205,7 @@ class PowerShuffleSession {
       _currentKey = key;
     }
     final now = DateTime.now();
+    _lastDuration = durationMs;
     if (!playing || positionMs <= 0) {
       _lastPosition = null;
       _lastSample = null;
@@ -282,6 +285,14 @@ class PowerShuffleSession {
 
   /// Advance the authoritative queue before changing the player. A failed HA
   /// request does NOT silently invent a shuffle order or skip record.
+  /// Flush observed viewing ranges before user-requested PowerLink handoff.
+  /// The handoff itself still captures the exact live player position from
+  /// the native player, and neither changes skip state nor resets the queue.
+  Future<void> flushBeforeHandoff() async {
+    if (!active || !_started || _currentKey.isEmpty) return;
+    await _record('progress', _lastPosition ?? 0, _lastDuration ?? 1);
+  }
+
   Future<MediaItem?> advance(
     BuildContext context, {
     required bool atEnd,
