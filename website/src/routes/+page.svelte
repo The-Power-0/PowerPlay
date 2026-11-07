@@ -12,14 +12,14 @@
 <main class="site-shell">
   <div class="hero">
     <img class="hero-art" src="/og/powerplay-social.png" alt="PowerPlay blue-purple logo and play glyph" />
-    <p class="eyebrow">POWERPLAY 2.0 · VISUAL REBRAND CANDIDATE</p>
+    <p class="eyebrow">POWERPLAY 2.0 · REIMAGINED</p>
     <h1>Your Plex library, powered for Fire TV.</h1>
     <p class="intro">Designed for responsive playback, simple D-pad navigation, intelligent PowerShuffle rotations, and seamless transfers between paired rooms.</p>
     <div class="actions">
       <a class="primary" href="https://github.com/The-Power-0/PowerPlay/releases/latest" target="_blank" rel="noopener noreferrer">Get the latest stable APK</a>
       <a class="secondary" href="https://github.com/The-Power-0/PowerLink" target="_blank" rel="noopener noreferrer">Explore PowerLink</a>
     </div>
-    <p class="availability">Official downloads are provided through GitHub Releases. The visual 2.0.0 release is under review and is not published yet. We do not claim ownership of upstream mobile or desktop store listings.</p>
+    <p class="availability">Official downloads are provided through GitHub Releases. Download the current stable PowerPlay APK from GitHub Releases. PowerPlay is an independent Fire TV-focused fork, not an upstream mobile or desktop store listing.</p>
   </div>
   <section class="details" aria-label="PowerPlay features">
     <article><h2>PowerShuffle</h2><p>Smarter, separately tracked Plex episode rotation with Home Assistant managing the logical queue.</p></article>
