@@ -34,4 +34,5 @@ assert "bugs.plezy.app" not in entry,"Inherited crash-reporting destination must
 assert "'Plezy v" not in entry,"Legacy diagnostic label must not ship"
 assert "applicationId = \"com.power.powerplay\"" in (ROOT/"android/app/build.gradle.kts").read_text(encoding="utf-8")
 assert "Plezy" in (ROOT/"UPSTREAM-README.md").read_text(encoding="utf-8"),"Retain upstream attribution"
+assert "plezy-custom-source/" not in (ROOT/".github/workflows/powerplay-release-candidate.yml").read_text(encoding="utf-8")
 print(f"Brand audit passed: {len(locales)} locales, 23 alternate icons, website and native labels")

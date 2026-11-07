@@ -217,7 +217,7 @@ jobs:
             "powerplay-release/PowerPlay-v$RELEASE_VERSION-rc1-NativeSourceInputs.zip"
           # No build-time source patching: this archive comes from the exact
           # commit checked out for the Android compilation above.
-          git archive --format=tar --prefix=plezy-custom-source/ HEAD | gzip -n -9 \
+          git archive --format=tar --prefix=powerplay-source/ HEAD | gzip -n -9 \
             > "powerplay-release/PowerPlay-v$RELEASE_VERSION-rc1-Source.tar.gz"
           ( cd powerplay-release && sha256sum \
               "PowerPlay-v$RELEASE_VERSION-rc1-Source.tar.gz" \
