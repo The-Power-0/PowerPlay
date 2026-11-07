@@ -4,7 +4,7 @@
 </script>
 
 <svelte:head>
-  <title>{page.status} - Plezy</title>
+  <title>{page.status} - PowerPlay</title>
   <meta name="robots" content="noindex" />
 </svelte:head>
 
