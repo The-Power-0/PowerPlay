@@ -1539,9 +1539,13 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
     );
 
     _currentMetadata = widget.metadata;
-    _powerShuffleTimer = Timer.periodic(
-      const Duration(seconds: 2), (_) => _tickPowerShuffle(),
-    );
+    // No extra periodic work during ordinary Plex playback.
+    if (context.read<PlaybackStateProvider>()
+        .shuffleContextKey?.startsWith('powershuffle:') ?? false) {
+      _powerShuffleTimer = Timer.periodic(
+        const Duration(seconds: 2), (_) => _tickPowerShuffle(),
+      );
+    }
     widget.launchObserver?.attach(_launchSnapshot, ownsPlayback: _ownsLaunchPlayback);
     _activeRouteGuard.activate(
       this,
