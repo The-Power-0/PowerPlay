@@ -131,6 +131,8 @@ class PowerShuffleLauncher {
         identity: identity, profileId: profileId, showGuid: show.guid!,
         serverId: show.serverId!, sessionId: sessionId,
         order: ids.whereType<String>().toList(growable: false), items: items,
+        settings: result['settings'] is Map<String, dynamic>
+            ? result['settings'] as Map<String, dynamic> : null,
       );
       context.read<PlaybackStateProvider>().setPlaybackFromLocalQueue(
         LocalPlayQueue(items: ordered, currentIndex: 0, shuffled: true),
