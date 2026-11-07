@@ -179,6 +179,33 @@ class PowerLinkAppClient {
     }
   }
 
+  /// PowerShuffle uses the existing paired PowerLink identity. Never
+  /// distribute a Home Assistant administrator or Plex API token to the TV.
+  Future<Map<String, dynamic>> startPowerShuffle(
+    PowerLinkAppIdentity identity,
+    Map<String, dynamic> inventory,
+  ) => _request(
+    _api(identity.base, '/api/powerlink/v1/app/powershuffle/start'),
+    identity: identity, method: 'POST', payload: inventory,
+    timeout: handoffRequestTimeout,
+  );
+
+  Future<Map<String, dynamic>> powerShuffleEvent(
+    PowerLinkAppIdentity identity,
+    Map<String, dynamic> event,
+  ) => _request(
+    _api(identity.base, '/api/powerlink/v1/app/powershuffle/event'),
+    identity: identity, method: 'POST', payload: event,
+  );
+
+  Future<Map<String, dynamic>> attachPowerShuffle(
+    PowerLinkAppIdentity identity,
+    String sessionId,
+  ) => _request(
+    _api(identity.base, '/api/powerlink/v1/app/powershuffle/attach'),
+    identity: identity, method: 'POST', payload: {'session_id': sessionId},
+  );
+
   Future<Map<String, dynamic>> _request(
     Uri url, {
     PowerLinkAppIdentity? identity,
