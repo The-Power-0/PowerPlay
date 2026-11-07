@@ -12,7 +12,7 @@ import '../powerlink/powerlink_app_client.dart';
 /// event may invent or advance a queue without an HA acknowledgment.
 class PowerShuffleEventJournal {
   const PowerShuffleEventJournal({PowerLinkAppClient client = const PowerLinkAppClient()})
-      : _client = client;
+      : _client = client; // ignore: prefer_initializing_formals — public injected name stays stable
 
   final PowerLinkAppClient _client;
   static const _prefix = 'powershuffle.pending.v1.';
