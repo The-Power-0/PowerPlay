@@ -1,0 +1,108 @@
+{
+  "schema": "powerplay-v1.3.9-continuation-source-review-v1",
+  "release": "powerplay-v1.3.9",
+  "candidate_artifact": {
+    "workflow_run_id": 42131147294,
+    "artifact_id": 13464805992,
+    "name": "powerplay-v1.3.9-candidate-artifact"
+  },
+  "candidate_apk_sha256": "f832a2c507f997fcb047c0ab899254d1fd111520942e88da50e61ebc82e3c764",
+  "candidate_ci_run": 42131147294,
+  "application_source_commit": "dfab0f7ae979c0edee617f9f50a6c72efac51aa4",
+  "candidate_apk_matches_published_apk": true,
+  "candidate_contains_byte_exact_native_libraries": 15,
+  "fonts": {
+    "release": "powerplay-v1.3.9",
+    "signed_apk_sha256": "f832a2c507f997fcb047c0ab899254d1fd111520942e88da50e61ebc82e3c764",
+    "upstream": {
+      "repository": "https://github.com/satbyy/go-noto-universal",
+      "release_tag": "v7.0",
+      "annotated_tag_object": "3f3c1187ae11b5d3b389ed37c8d8e146ff2045e4",
+      "commit": "0f4be64616e29390e3063970ed7f6afe77356d39"
+    },
+    "upstream_terms": {
+      "generated_fonts": "SIL Open Font License 1.1",
+      "build_scripts": "The Unlicense",
+      "license_file": "external-terms/fonts/UNLICENSE-v7.0.txt",
+      "license_sha256": "93b59296492209e4b1a1e573d302eef2f85ac830644c1482f9f80a7c75b0a8ec",
+      "readme": "external-terms/fonts/README-v7.0.md",
+      "readme_sha256": "e1567db20136b7d8f20de4a23ce3dad2e471942ceb355a121eaf7517fac95c0b",
+      "font_build_script_sha256": "04699aecd28160d9342607b40422b3aa62cc97251873875e749622ed82f6e75a",
+      "repo_notice": "The upstream OFL text has no Reserved Font Name specified after its copyright statement."
+    },
+    "shipped_fonts": [
+      {
+        "file": "go-noto-current-regular.ttf",
+        "source_path": "assets/go-noto-current-regular.ttf",
+        "source_bytes": 14700060,
+        "source_sha256": "882afbab965608c2d2bc627fd8016b962aa5a6be2d358f9de24a7b5967c5632e",
+        "apk_entry": "assets/flutter_assets/assets/go-noto-current-regular.ttf",
+        "apk_bytes": 14700060,
+        "apk_sha256": "882afbab965608c2d2bc627fd8016b962aa5a6be2d358f9de24a7b5967c5632e",
+        "source_equals_apk": true
+      },
+      {
+        "file": "go-noto-kurrent-hangul.ttf",
+        "source_path": "assets/go-noto-kurrent-hangul.ttf",
+        "source_bytes": 1976696,
+        "source_sha256": "1eb9901df47c22443e93526b14efb949757b40d024a0eb19146eee3c40ea83c5",
+        "apk_entry": "assets/flutter_assets/assets/go-noto-kurrent-hangul.ttf",
+        "apk_bytes": 1976696,
+        "apk_sha256": "1eb9901df47c22443e93526b14efb949757b40d024a0eb19146eee3c40ea83c5",
+        "source_equals_apk": true
+      }
+    ],
+    "modified_font": {
+      "source_path": "scripts/codegen/generate_hangul_subtitle_font.py",
+      "description": "Rebuilds the shipped 11,172-Hangul glyph subset from the pinned GoNotoKurrent-Regular v7.0 input; source archive includes the generator and full upstream Kurrent source input. The reconstructed output is byte-identical to the shipped font. The generated font preserves the OFL metadata and license."
+    },
+    "notices": {
+      "release_notice_path": "notices/application/Noto-Latin-Greek-Cyrillic-OFL.txt",
+      "included_in_existing_private_supplement": true,
+      "additional_upstream_bundle_added": [
+        "external-terms/fonts/README-v7.0.md",
+        "external-terms/fonts/UNLICENSE-v7.0.txt",
+        "external-terms/fonts/temporal_fonts-v7.0.sh",
+        "external-terms/fonts/categories-v7.0.sh"
+      ]
+    },
+    "disposition": "CLOSED_FONT_LICENSE_AND_SOURCE_INPUTS",
+    "limitations": [
+      "This closes direct Go Noto font license/source provenance only. Other app artwork and the chapter classifier training-input provenance remain separately open."
+    ]
+  },
+  "chapter_model": {
+    "source_path": "assets/chapter_marker_model.bin",
+    "source_bytes": 164321,
+    "source_sha256": "37378f7e1214cc7db49adcf39ba3a27327a9c9071e7e5c51595e011445342bc2",
+    "apk_entry": "assets/flutter_assets/assets/chapter_marker_model.bin",
+    "apk_bytes": 164321,
+    "apk_sha256": "37378f7e1214cc7db49adcf39ba3a27327a9c9071e7e5c51595e011445342bc2",
+    "source_equals_apk": true,
+    "upstream_repository": "https://github.com/edde746/plezy",
+    "introducing_commit": "eb42723ee8500ba02b153bb6779b37a7a87b6334",
+    "introducing_git_blob": "faff500359e4bf209779684a008bd661af4317ef",
+    "training_script": "scripts/codegen/train_chapter_marker_model.py",
+    "training_script_sha256": "839325401863c2b8a2d4a7a5096c3c618f73e3da00afbc516fc6406a895e6770",
+    "training_inputs": "Not included in the release source archive; upstream training script uses chapter metadata collected from Plex/Jellyfin media libraries.",
+    "disposition": "OPEN_ORIGINAL_TRAINING_INPUT_PROVENANCE",
+    "scope_note": "Exact model/source identity is verified. This open item records provenance/reproducibility of training inputs and does not assert a third-party copyright violation or an established GPL source obligation."
+  },
+  "artwork": {
+    "status": "OPEN_UPSTREAM_TRADEMARK_POLICY_AND_PERMISSIONS",
+    "upstream_repository": "https://github.com/edde746/plezy",
+    "policy_commit": "9b514179d34970496eb557f3fb425a034a9e6e17",
+    "policy_file": "TRADEMARKS.md",
+    "summary": "Public forks must replace Plezy logo and app icons, including alternate icons, absent written permission. The app APK includes 25 upstream-identical app-icon previews and the original adaptive foreground. No written permission was found. The PowerPlay-specific main logo is distinct.",
+    "detailed_inventory": "evidence/plezy-artwork-review.json"
+  },
+  "overall_disposition": "NOT_CLEARED",
+  "open_items": [
+    "MAVEN-011: retained Google Play Services and Play Billing implementations have unresolved artifact-specific terms/source access; exact Google Maven POMs cite Android SDK terms and standard source JAR URLs return 404.",
+    "FLUTTER-007/CRONET-008: source and build inputs are mapped; full historical engine/Cronet build graph and generated outputs remain unverified.",
+    "LGPL-003: Fire TV subtitle relink validation and public delivery remain.",
+    "RELEASE-012 and related NOTICE/FFMPEG/LLVM/SENTRY/NATIVE items: recipient-accessible source and notices are not yet fully published and verified.",
+    "ASSET-014: chapter-model training-input provenance and upstream Plezy artwork/trademark policy remain."
+  ],
+  "dependency_changes_made": false
+}

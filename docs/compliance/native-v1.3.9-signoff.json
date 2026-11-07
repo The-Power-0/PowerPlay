@@ -8,7 +8,7 @@
   "human_license_review_approved": false,
   "version_specific_complete_source_bundle_verified": false,
   "native_components": {
-    "libapp.so": "The application source archive is verified. All 180 lockfile-hosted Dart inputs have verified source archives and all seven Git inputs were retrieved. Exact AOT reproduction, original training inputs for the shipped chapter model and other app-wide rights remain unverified.",
+    "libapp.so": "The source commit dfab0f7ae979c0edee617f9f50a6c72efac51aa4 was rebuilt by the candidate CI workflow. Its signed candidate APK is byte-identical to the published APK (SHA-256 f832a2c507f997fcb047c0ab899254d1fd111520942e88da50e61ebc82e3c764); libapp.so and all 79 Flutter assets therefore match. The Flutter engine source build, original chapter-model training inputs and other app-wide rights are tracked separately.",
     "libasskt.so": "Tagged JNI relink matches the signed ELF except for its GNU build ID. Source-built modified FriBidi relinks successfully. Device test and public distribution remain open.",
     "libavcodec.so": "Rebuilt from pinned patched FFmpeg, dav1d and Dolby Vision Rust sources. All bytes match except the GNU build-ID descriptor.",
     "libavutil.so": "Rebuilt from pinned patched FFmpeg. All bytes match except the GNU build-ID descriptor.",
@@ -37,7 +37,8 @@
       "id": "NOTICE-002",
       "area": "libunibreak licence redistribution",
       "detail": "The original libunibreak 6.1 LICENCE is in the SHA-verified historical source and the tested FriBidi relink kit. The existing public source attachment omitted it.",
-      "required_evidence": "Publish the verified original notice as part of the corrected version-specific distribution."
+      "required_evidence": "Include the verified original notice in the corrected version-specific public source/notices distribution and verify recipient access.",
+      "status": "pending_public_distribution"
     },
     {
       "id": "LGPL-003",
@@ -57,7 +58,7 @@
     {
       "id": "FFMPEG-005",
       "area": "FFmpeg GPLv3 and static libraries",
-      "detail": "All three shipped ARMv7 FFmpeg libraries independently rebuilt and matched except the GNU build-ID descriptor. Pinned source, locked Rust crates, patches, configuration, IJG terms and build instructions captured. Reviewed headers for 1,675 FFmpeg source paths in the matching rebuilds and retained 31 with additional or distinct terms. This includes ISC-style grants, BSD notices, the IJG terms and Mark Adler\u2019s zlib-derived Adler-32 notice.",
+      "detail": "All three shipped ARMv7 FFmpeg libraries independently rebuilt and matched except the GNU build-ID descriptor. Pinned source, locked Rust crates, patches, configuration, IJG terms and build instructions captured. Reviewed headers for 1,675 FFmpeg source paths in the matching rebuilds and retained 31 with additional or distinct terms. This includes ISC-style grants, BSD notices, the IJG terms and Mark Adler’s zlib-derived Adler-32 notice.",
       "required_evidence": "Include the corresponding source, exact build recipes, and original FFmpeg file-specific attribution with RELEASE-012.",
       "status": "awaiting_publication"
     },
@@ -65,31 +66,36 @@
       "id": "LLVM-006",
       "area": "Android libc++ runtime",
       "detail": "The exact official NDK 29 ARMv7 runtime matched after stripping. Original toolchain and sysroot notices were retained and the signed APK inspection job passed.",
-      "required_evidence": "Include the applicable notices with RELEASE-012."
+      "required_evidence": "Include the applicable notices with RELEASE-012.",
+      "status": "awaiting_publication"
     },
     {
       "id": "FLUTTER-007",
       "area": "Flutter engine",
-      "detail": "Upstream ELF matches after stripping. 22 source repositories pinned and archives verified. 6,242 distinct DWARF paths resolve to archived source files. All 1,496 unique sky_engine license text blocks are in the signed APK notices. All 98 recorded toolchain paths resolve, and source or generator candidates are mapped for all 150 recorded generated paths.",
-      "required_evidence": "Verify the full historical build graph and generated outputs. Include applicable original notices and verified source access in the public distribution."
+      "detail": "The candidate CI build from the exact application source commit produces the byte-identical signed release APK, including libapp.so and all 79 Flutter assets. The Flutter engine ELF matches upstream after stripping; 22 source repositories are pinned, 6,242 DWARF paths resolve, 1,496 sky_engine license text blocks are present, 98 toolchain paths resolve, and 150 generated paths are mapped.",
+      "required_evidence": "Complete historical Flutter engine build graph/generated-output verification and include applicable source/notices in recipient-accessible public corresponding-source distribution.",
+      "status": "open_historical_engine_build_and_publication"
     },
     {
       "id": "CRONET-008",
       "area": "Chromium Cronet",
       "detail": "Chromium revision and upstream ARMv7 builder configuration identified. Matching symbols map 2,951 paths to source archives. The NSPR and Mozilla URL parser file terms missing from the recovered notice corpus are now retained. All 194 recorded toolchain paths resolve, and source or generator candidates are mapped for all 128 recorded generated paths.",
-      "required_evidence": "Verify the full historical build graph and generated outputs. Include applicable original notices and verified source access in the public distribution."
+      "required_evidence": "Verify the full historical build graph and generated outputs. Include applicable original notices and verified source access in the public distribution.",
+      "status": "open_historical_cronet_build_and_publication"
     },
     {
       "id": "SENTRY-009",
       "area": "Sentry native",
       "detail": "Both Sentry native ELFs source-rebuilt with exact unwindstack submodule and NDK r27. Only the GNU build-ID descriptors differ. The original vendor and NDK runtime notices are retained.",
-      "required_evidence": "Include source, rebuild configuration and notices with RELEASE-012."
+      "required_evidence": "Include source, rebuild configuration and notices with RELEASE-012.",
+      "status": "awaiting_publication"
     },
     {
       "id": "NATIVE-010",
       "area": "Dart JNI and SQLite",
       "detail": "Dart JNI and AndroidX DataStore source rebuilds match after build-ID normalization. SQLite 3.53.3 now independently rebuilt byte-for-byte from the amalgamation and sqlite3 3.5.0 configuration.",
-      "required_evidence": "Include the verified source, recipes and original notices with RELEASE-012."
+      "required_evidence": "Include the verified source, recipes and original notices with RELEASE-012.",
+      "status": "awaiting_publication"
     },
     {
       "id": "MAVEN-011",
@@ -114,9 +120,9 @@
     {
       "id": "ASSET-014",
       "area": "Application assets and generated payloads",
-      "status": "open_external_provenance",
-      "detail": "Verified 506 APK entries, exact archived asset matches, six Material/Flutter generated payloads and the reconstructed Hangul font. The chapter classifier has shipped weights and a training script, but its exact original data is absent. Third-party logo terms and constituent Go Noto font notices require provenance.",
-      "required_evidence": "Confirm original chapter model input provenance and applicable source obligations, terms for bundled logos and constituent font notices, and include original notices in the public distribution."
+      "status": "open_model_training_provenance_and_upstream_icon_policy",
+      "detail": "The source-built chapter model (SHA-256 37378f7e1214cc7db49adcf39ba3a27327a9c9071e7e5c51595e011445342bc2) matches the APK and was introduced in upstream commit eb42723ee8500ba02b153bb6779b37a7a87b6334, but its original training inputs are absent. Go Noto source/license review is closed: both shipped font assets match source/APK, the v7.0 upstream release and OFL 1.1 terms are pinned, and the Hangul subset regenerates byte-for-byte. The APK still contains upstream Plezy app-icon preview assets and adaptive foreground covered by the upstream fork trademark policy; no written permission was found. Full details are in continuation-source-review-v1.3.9.json.",
+      "required_evidence": "Resolve training-input provenance for the model and the upstream Plezy alternate-icon/adaptive-icon policy (permission or future app-asset change), then include applicable evidence and notices in the recipient-accessible source distribution."
     }
   ],
   "limitations": [
@@ -129,5 +135,14 @@
     "recognizable_gms": 16,
     "google_datatransport": 4,
     "scan_sha256": "4207d148ea269632ca55507d6bdbb2fee23724b194c22ededdc917ce6b5b0a1e"
+  },
+  "continuation_evidence": {
+    "candidate_workflow_run": 42131147294,
+    "candidate_artifact_id": 13464805992,
+    "source_commit": "dfab0f7ae979c0edee617f9f50a6c72efac51aa4",
+    "candidate_apk_sha256": "f832a2c507f997fcb047c0ab899254d1fd111520942e88da50e61ebc82e3c764",
+    "font_and_model_review": "font-and-model-review-v1.3.9.json",
+    "candidate_native_libraries_byte_exact": 15,
+    "dependency_changes": false
   }
 }

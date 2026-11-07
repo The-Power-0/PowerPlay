@@ -33,3 +33,10 @@ zipalign -c -P 16 4 relink-test.apk
 ```
 
 Use a spare ARMv7 Fire TV without PowerPlay installed. The test key cannot update an installation signed with the release key. Confirm the connected test device explicitly before running `adb -s SERIAL install relink-test.apk`. Mux the included `evidence/fribidi-playback.ass` into a short MKV and play it as an ASS track. The first two cues move the U+E000 glyph or its fallback box from one side of the Hebrew run to the other. The final cue serves as a control. Confirm the subtitle renderer starts, the test build displays ASS subtitles and the expected bidi change appears against the baseline. Record device model, Fire OS version, APK/ELF SHA-256, subtitle output, and any renderer errors. Do not use the test-signed APK as a public release.
+
+
+## Continuation review update
+
+The candidate CI APK built from the pinned application source commit is byte-identical to the published signed APK; all 15 native libraries match. Go Noto v7.0 font source and OFL 1.1 terms are now verified, and the shipped Hangul subset regenerates byte-for-byte. The chapter model itself matches both source and APK, but its original training inputs are not archived. The upstream Plezy trademark policy still requires replacement of bundled original app icons in public forks absent written permission.
+
+The release remains **NOT CLEARED**. Remaining items are: Google Play Services/Billing artifact rights and source access; historical Flutter engine and Cronet build verification; Fire TV validation of the FriBidi relink; public corresponding source and notice delivery; chapter-model training-input provenance; and resolution of the upstream Plezy alternate-icon/adaptive-icon policy. No app or dependency changes were made as part of this continuation.
