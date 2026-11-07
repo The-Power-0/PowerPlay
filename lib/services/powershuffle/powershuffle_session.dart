@@ -235,7 +235,7 @@ class PowerShuffleSession {
   }
 
   Future<Map<String, dynamic>> _record(
-    String action, int positionMs, int durationMs, {String? requestedKey},
+    String action, int positionMs, int durationMs, {String? requestedKey}
   ) async {
     if (!active || _currentKey.isEmpty) throw StateError('PowerShuffle is inactive');
     final identity = _identity!;
