@@ -217,6 +217,22 @@ class PowerShuffleSession {
     }
   }
 
+  /// Auto-skipped Plex intro/credits markers represent intentionally
+  /// omitted non-story content, not a seek chosen to fake completion.
+  /// Manual seeks never use this path.
+  void creditAutomaticSkip(int startMs, int endMs, int durationMs) {
+    if (!active || !_started || _currentKey.isEmpty ||
+        durationMs <= 0 || startMs < 0 || endMs > durationMs ||
+        endMs <= startMs) return;
+    _addRange(startMs, endMs);
+    if (!_completed && viewedMs * 10 >= durationMs * 9) {
+      _completed = true;
+      unawaited(_record('completed', endMs, durationMs).catchError((Object _) {
+        _completed = false;
+      }));
+    }
+  }
+
   Future<Map<String, dynamic>> _record(
     String action, int positionMs, int durationMs, {String? requestedKey},
   ) async {
