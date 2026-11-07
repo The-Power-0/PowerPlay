@@ -121,7 +121,9 @@ class PowerShuffleSession {
     }
     final id = transferredContext.substring('powershuffle:'.length);
     if (id.isEmpty || (active && _sessionId == id &&
-        _attachedManifestToken == manifestToken)) return;
+        _attachedManifestToken == manifestToken)) {
+      return;
+    }
     final identity = await PowerLinkAppCredentials().load();
     if (identity == null) return;
     Map<String, dynamic>? response;
