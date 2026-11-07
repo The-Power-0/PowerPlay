@@ -29,6 +29,7 @@ class PowerShuffleSession {
   String _serverId = '';
   String _currentKey = '';
   String? _awaitingEpisodeKey;
+  PlexMediaItem? _pendingNavigationTarget;
   List<String> _order = [];
   Map<String, PlexMediaItem> _items = {};
   List<List<int>> _coverage = [];
@@ -45,6 +46,7 @@ class PowerShuffleSession {
   bool get active => _identity != null && _sessionId.isNotEmpty;
   bool get completedForCurrent => _completed;
   bool get hasStarted => _started;
+  MediaItem? get pendingNavigationTarget => _pendingNavigationTarget;
 
   static String? keyOf(MediaItem item) {
     if (item is! PlexMediaItem || !item.isEpisode) return null;
@@ -78,6 +80,7 @@ class PowerShuffleSession {
     _items = Map.of(items);
     _order = List.of(order);
     _awaitingEpisodeKey = null;
+    _pendingNavigationTarget = null;
     _resetEpisode();
   }
 
@@ -187,7 +190,10 @@ class PowerShuffleSession {
     // After a confirmed Next, do not resurrect the old episode while its
     // native stream is still retiring and the new item is being loaded.
     if (_awaitingEpisodeKey != null && key != _awaitingEpisodeKey) return;
-    if (key == _awaitingEpisodeKey) _awaitingEpisodeKey = null;
+    if (key == _awaitingEpisodeKey) {
+      _awaitingEpisodeKey = null;
+      _pendingNavigationTarget = null;
+    }
     if (_currentKey != key) {
       _resetEpisode();
       _currentKey = key;
@@ -311,6 +317,7 @@ class PowerShuffleSession {
     );
     _resetEpisode();
     _awaitingEpisodeKey = keyOf(playable.first);
+    _pendingNavigationTarget = playable.first;
     return playable.first;
   }
 
