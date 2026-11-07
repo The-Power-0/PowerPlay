@@ -417,13 +417,27 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
         return compact;
       }
 
-      final medium = <FocusableAction>[playAction, ?versionAction, ?downloadAction, watchedAction, ?moreActionsAction];
-      if (!maxWidth.isFinite || estimatedRowWidth(medium) <= maxWidth) return medium;
+      // Preserve PowerShuffle on the show page at every resolution.
+      // Prioritize playback, Shuffle and PowerShuffle over secondary actions
+      // so a narrow TV hero cannot overflow or hide the newly added button.
+      final medium = <FocusableAction>[
+        playAction, ?versionAction, ?shuffleAction, ?powerShuffleAction,
+        watchedAction, ?moreActionsAction,
+      ];
+      if (!maxWidth.isFinite || estimatedRowWidth(medium) <= maxWidth) {
+        return medium;
+      }
 
-      final compact = <FocusableAction>[playAction, ?versionAction, watchedAction, ?moreActionsAction];
+      final compact = <FocusableAction>[
+        playAction, ?shuffleAction, ?powerShuffleAction, ?moreActionsAction,
+      ];
       if (estimatedRowWidth(compact) <= maxWidth) return compact;
 
-      return [playAction, ?versionAction, ?moreActionsAction];
+      final minimum = <FocusableAction>[
+        playAction, ?powerShuffleAction, ?moreActionsAction,
+      ];
+      if (estimatedRowWidth(minimum) <= maxWidth) return minimum;
+      return [playAction, ?powerShuffleAction];
     }
 
     Widget actionBar(List<FocusableAction> actions) {
@@ -453,7 +467,7 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
         final maxWidth = constraints.maxWidth;
         // TV screens are wide and D-pad focus should see every direct action.
         // On smaller online screens, hidden actions remain available from ⋮.
-        final actions = isTv || !maxWidth.isFinite || estimatedRowWidth(allActions) <= maxWidth
+        final actions = !maxWidth.isFinite || estimatedRowWidth(allActions) <= maxWidth
             ? allActions
             : compactActionsFor(maxWidth);
         final status = tracksStatusFor(actions, maxWidth);
