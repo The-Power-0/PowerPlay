@@ -31,6 +31,7 @@ class PowerShuffleSession {
   String _serverId = '';
   String _currentKey = '';
   String? _awaitingEpisodeKey;
+  String? _attachedManifestToken;
   PlexMediaItem? _pendingNavigationTarget;
   List<String> _order = [];
   Map<String, PlexMediaItem> _items = {};
@@ -50,6 +51,7 @@ class PowerShuffleSession {
   bool get active => _identity != null && _sessionId.isNotEmpty;
   bool get completedForCurrent => _completed;
   bool get hasStarted => _started;
+  String? get attachedManifestToken => _attachedManifestToken;
   MediaItem? get pendingNavigationTarget => _pendingNavigationTarget;
 
   static String? keyOf(MediaItem item) {
@@ -91,6 +93,7 @@ class PowerShuffleSession {
         : 90;
     _awaitingEpisodeKey = null;
     _pendingNavigationTarget = null;
+    _attachedManifestToken = null;
     _resetEpisode();
   }
 
@@ -109,14 +112,16 @@ class PowerShuffleSession {
   /// ownership to this device. The queue header carries the session ID, not
   /// a credential. Only a paired recipient can obtain HA's session metadata.
   Future<void> attachFromHandoff(
-    BuildContext context, String? transferredContext, MediaItem current,
-  ) async {
+    BuildContext context, String? transferredContext, MediaItem current, {
+    String? manifestToken,
+  }) async {
     if (transferredContext == null ||
         !transferredContext.startsWith('powershuffle:')) {
       return;
     }
     final id = transferredContext.substring('powershuffle:'.length);
-    if (id.isEmpty || (active && _sessionId == id)) return;
+    if (id.isEmpty || (active && _sessionId == id &&
+        _attachedManifestToken == manifestToken)) return;
     final identity = await PowerLinkAppCredentials().load();
     if (identity == null) return;
     Map<String, dynamic>? response;
@@ -180,6 +185,11 @@ class PowerShuffleSession {
       settings: response['settings'] is Map<String, dynamic>
           ? response['settings'] as Map<String, dynamic> : null,
     );
+    // Returning to a previously used Fire Stick may carry the SAME
+    // PowerShuffle session ID but a NEW PowerLink transfer manifest.
+    // Reattach on each newly acknowledged transfer, never assume stale
+    // locally cached queue/coverage still belongs to this device.
+    _attachedManifestToken = manifestToken;
     final savedKey = response['coverage_episode'];
     final ranges = response['coverage'];
     if (savedKey is String && savedKey == keyOf(current) && ranges is List) {
@@ -383,6 +393,7 @@ class PowerShuffleSession {
   void deactivate() {
     _identity = null;
     _sessionId = '';
+    _attachedManifestToken = null;
     _awaitingEpisodeKey = null;
     _resetEpisode();
     _items = {};
