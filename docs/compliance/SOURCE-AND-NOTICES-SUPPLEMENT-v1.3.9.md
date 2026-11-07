@@ -4,7 +4,7 @@ The private review archives contain the current evidence for the signed ARMv7 AP
 
 | Archive | SHA-256 |
 | --- | --- |
-| `PowerPlay-v1.3.9-SourceAndNotices-Supplement.zip` | `cf80d4dab10af4a582189b5463eba5e980ce5dfb91167caa9f9111d0994b4ae3` |
+| `PowerPlay-v1.3.9-SourceAndNotices-Supplement-v4.zip` | `cf80d4dab10af4a582189b5463eba5e980ce5dfb91167caa9f9111d0994b4ae3` |
 | `PowerPlay-v1.3.9-Flutter-and-Cronet-Source-Inputs.zip` | `d7c65c0b4e16c3cc73edcc7ebd8a5e4edd00fee4b6da373fee98a27ceeaeb699` |
 | Original signed `PowerPlay-v1.3.9.apk` | `f832a2c507f997fcb047c0ab899254d1fd111520942e88da50e61ebc82e3c764` |
 
