@@ -11,6 +11,7 @@ import '../../providers/playback_state_provider.dart';
 import '../../providers/multi_server_provider.dart';
 import '../../media/ids.dart';
 import '../powerlink/powerlink_app_client.dart';
+import 'powershuffle_event_journal.dart';
 
 /// A single active PowerShuffle player-side session. Only a named
 /// PowerShuffle queue context may report events; ordinary Plex Shuffle and
@@ -22,6 +23,7 @@ class PowerShuffleSession {
   static final PowerShuffleSession instance = PowerShuffleSession._();
 
   final PowerLinkAppClient _api = const PowerLinkAppClient();
+  final PowerShuffleEventJournal _journal = const PowerShuffleEventJournal();
   PowerLinkAppIdentity? _identity;
   String _sessionId = '';
   String _profileId = '';
@@ -284,7 +286,7 @@ class PowerShuffleSession {
     final completer = Completer<Map<String, dynamic>>();
     _inFlight = _inFlight.catchError((Object _) {}).then((_) async {
       try {
-        completer.complete(await _api.powerShuffleEvent(identity, payload));
+        completer.complete(await _journal.send(identity, payload));
       } catch (error, stack) {
         completer.completeError(error, stack);
       }
