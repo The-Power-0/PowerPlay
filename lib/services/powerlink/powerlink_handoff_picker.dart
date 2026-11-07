@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 import '../../focus/focusable_button.dart';
@@ -177,7 +178,7 @@ class _PowerLinkHandoffPickerState extends State<PowerLinkHandoffPicker> {
       title: const Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Symbols.cast_rounded),
+          SvgPicture.asset('assets/brand/powerlink-mark.svg', width: 24, height: 24, colorFilter: ColorFilter.mode(Theme.of(context).colorScheme.primary, BlendMode.srcIn)),
           SizedBox(width: 12),
           Text('PowerLink · Move playback'),
         ],

@@ -163,6 +163,7 @@ flutter:
     - assets/powerplay.png
     - assets/powerplay_splash.png
     - assets/plezy_adaptive_foreground.svg
+    - assets/brand/powerlink-mark.svg
     - assets/plex_chevron.svg
     - assets/emby_icon.svg
     - assets/seerr_mark.svg
