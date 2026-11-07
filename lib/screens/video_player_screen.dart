@@ -987,6 +987,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
   Timer? _powerShuffleTimer;
   bool _powerShuffleAttachInFlight = false;
   bool _powerShuffleNavigationApproved = false;
+  bool _powerShuffleActionInFlight = false;
 
   void _tickPowerShuffle() {
     if (!mounted || _shuttingDown || widget.isLive) return;
