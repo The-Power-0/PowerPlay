@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../../media/media_item.dart';
+import '../../media/media_item_types.dart';
 import '../../media/play_queue.dart';
 import '../../providers/playback_state_provider.dart';
 import '../../providers/multi_server_provider.dart';
@@ -43,6 +44,7 @@ class PowerShuffleSession {
   String get contextKey => 'powershuffle:$_sessionId';
   bool get active => _identity != null && _sessionId.isNotEmpty;
   bool get completedForCurrent => _completed;
+  bool get hasStarted => _started;
 
   static String? keyOf(MediaItem item) {
     if (item is! PlexMediaItem || !item.isEpisode) return null;
