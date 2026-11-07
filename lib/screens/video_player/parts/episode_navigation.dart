@@ -103,6 +103,7 @@ extension _VideoPlayerEpisodeNavigationMethods on VideoPlayerScreenState {
       if (!mounted) return;
       if (target == null) {
         showMainSnackBar('No eligible episodes remain. Check PowerShuffle cooldowns in Home Assistant.');
+        await _stopVideoAndExit();
         return;
       }
     }
