@@ -60,8 +60,22 @@ jobs:
           assert 'PowerPlayPalette' in Path('lib/theme/powerplay_palette.dart').read_text()
           assert Path('assets/brand/powerplay-mark.svg').is_file()
           assert Path('assets/brand/powerlink-mark.svg').is_file()
-          assert 'Plezy' not in Path('lib/i18n/en.i18n.json').read_text()
-          assert 'Plezy' not in Path('lib/i18n/strings_en.g.dart').read_text()
+          # Preserve inherited translation *keys* such as addPlezyProfile/quitPlezy:
+          # only their displayed text is rebranded, never the API identifiers.
+          def human_strings(node):
+              if isinstance(node, dict):
+                  for value in node.values():
+                      yield from human_strings(value)
+              elif isinstance(node, list):
+                  for value in node:
+                      yield from human_strings(value)
+              elif isinstance(node, str):
+                  yield node
+          source_messages=json.loads(Path('lib/i18n/en.i18n.json').read_text())
+          assert all('Plezy' not in message for message in human_strings(source_messages))
+          generated=Path('lib/i18n/strings_en.g.dart').read_text()
+          assert "'Add Plezy profile'" not in generated
+          assert "'Quit Plezy'" not in generated
           assert Path('docs/artwork/powerplay-icon.webp').stat().st_size > 3000
           assert Path('assets/powerplay_splash.png').read_bytes()[25] == 6
           with open(os.environ['GITHUB_ENV'],'a') as env:
