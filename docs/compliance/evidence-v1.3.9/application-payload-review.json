@@ -1,0 +1,28 @@
+{
+  "counts": {
+    "java-packaging-metadata": 74,
+    "android-profile": 2,
+    "dex": 1,
+    "native-elf": 15,
+    "flutter-generated-metadata": 4,
+    "app-source-archive-asset": 68,
+    "verified-generated-font": 4,
+    "locked-pub-archive-asset": 1,
+    "verified-generated-shader": 2,
+    "android-top-level-payload": 18,
+    "packaged-jvm-resource": 21,
+    "compiled-android-resource": 296
+  },
+  "resources_with_table_names": 296,
+  "go_noto_current_match": "882afbab965608c2d2bc627fd8016b962aa5a6be2d358f9de24a7b5967c5632e",
+  "go_noto_hangul_rebuild_match": "1eb9901df47c22443e93526b14efb949757b40d024a0eb19146eee3c40ea83c5",
+  "dart_lockfile_records": 196,
+  "verified_hosted_archives": 180,
+  "pinned_git_package_inputs": 7,
+  "billing_source_jar_http_status": 404,
+  "limitations": [
+    "Resource table names do not uniquely attribute bytecode or merged resources to their original packages.",
+    "Lockfile covers runtime and development inputs. It does not prove which Dart packages survived AOT.",
+    "The training inputs for the shipped chapter model and third-party branding permissions are not established."
+  ]
+}

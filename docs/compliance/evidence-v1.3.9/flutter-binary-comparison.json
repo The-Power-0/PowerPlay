@@ -1,0 +1,12 @@
+{
+  "original_sha256": "d96888c4a096874f949ff71fa490c54f38398462a19e28c7caccbb166cda7c5b",
+  "candidate_sha256": "d96888c4a096874f949ff71fa490c54f38398462a19e28c7caccbb166cda7c5b",
+  "original_bytes": 8625652,
+  "candidate_bytes": 8625652,
+  "original_build_id": "fcaebc2ee74afb2e5f4d45e128a56c27a9c5a148",
+  "candidate_build_id": "fcaebc2ee74afb2e5f4d45e128a56c27a9c5a148",
+  "elf_identity_matches": true,
+  "mode": "all-bytes-except-build-id-descriptor",
+  "differing_allocated_sections": [],
+  "matches": true
+}

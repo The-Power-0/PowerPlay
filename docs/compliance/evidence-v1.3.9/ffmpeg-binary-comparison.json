@@ -1,0 +1,47 @@
+[
+  {
+    "original_sha256": "2473103a892e51acc09c4bc5f34e5c24ad56beb003d1ff8b2a084ae5b46510b9",
+    "candidate_sha256": "f8a4cf966005461f26383012e4fcb87260734e49eccc34310c4d8a706d500f43",
+    "original_bytes": 12372956,
+    "candidate_bytes": 12372956,
+    "original_build_id": "17ea746caa5ef085abbcac6c66f4a3a3d8386ab6",
+    "candidate_build_id": "a658eea0968d587b1a34f2593f04fc996f81124a",
+    "elf_identity_matches": true,
+    "mode": "all-bytes-except-build-id-descriptor",
+    "differing_allocated_sections": [
+      ".note.gnu.build-id"
+    ],
+    "matches": true,
+    "name": "libavcodec.so"
+  },
+  {
+    "original_sha256": "8db8f2b854af0f0291ccb009c6d1ebb81022a3360aff9cd3430a88a6ebdd3477",
+    "candidate_sha256": "37fb85fd2187c2306858b4a3a05f8e87bba1ae85a1cf65558285af3669350dbe",
+    "original_bytes": 1306364,
+    "candidate_bytes": 1306364,
+    "original_build_id": "11ab5193f8846430e8e1a1cef28d6794a6ab98ad",
+    "candidate_build_id": "ff806ba58b69ff9ff26a1fa1e6ac37931a50b569",
+    "elf_identity_matches": true,
+    "mode": "all-bytes-except-build-id-descriptor",
+    "differing_allocated_sections": [
+      ".note.gnu.build-id"
+    ],
+    "matches": true,
+    "name": "libavutil.so"
+  },
+  {
+    "original_sha256": "96399a311a504b98ed8bcc28a5637e73150f731924494e9deb160a1e4498dc37",
+    "candidate_sha256": "84a90bdb61c56f83496e5e8e0d9a9304f8b091ffdef5f2279d939b3c222b1c58",
+    "original_bytes": 749596,
+    "candidate_bytes": 749596,
+    "original_build_id": "a59561b40f3d5e218ba97ddeb7e8192c68ec4a1d",
+    "candidate_build_id": "71a4cf7d6bf73484369b89dbe9c716d6c7c3185d",
+    "elf_identity_matches": true,
+    "mode": "all-bytes-except-build-id-descriptor",
+    "differing_allocated_sections": [
+      ".note.gnu.build-id"
+    ],
+    "matches": true,
+    "name": "libswresample.so"
+  }
+]

@@ -1,0 +1,26 @@
+{
+  "assets/flutter_assets/fonts/MaterialIcons-Regular.otf": {
+    "apk_sha256": "20c8ac64c9e346fe8d7d7f6be20c6e0700c71e964277b95ec676d7f4b28a6569",
+    "rebuilt_sha256": "20c8ac64c9e346fe8d7d7f6be20c6e0700c71e964277b95ec676d7f4b28a6569",
+    "codepoints": 17,
+    "matches": true
+  },
+  "assets/flutter_assets/packages/material_symbols_icons/lib/fonts/MaterialSymbolsOutlined.ttf": {
+    "apk_sha256": "bce58eb2b2e43787b639d19dd2e82a7c1d2ba03435e23af5b20a82b63ba2eb9c",
+    "rebuilt_sha256": "bce58eb2b2e43787b639d19dd2e82a7c1d2ba03435e23af5b20a82b63ba2eb9c",
+    "codepoints": 1,
+    "matches": true
+  },
+  "assets/flutter_assets/packages/material_symbols_icons/lib/fonts/MaterialSymbolsRounded.ttf": {
+    "apk_sha256": "dde89fe94f3dd54eea8892bd95c5abfa277b79df816e57fc6dc022af3d4eb325",
+    "rebuilt_sha256": "dde89fe94f3dd54eea8892bd95c5abfa277b79df816e57fc6dc022af3d4eb325",
+    "codepoints": 265,
+    "matches": true
+  },
+  "assets/flutter_assets/packages/material_symbols_icons/lib/fonts/MaterialSymbolsSharp.ttf": {
+    "apk_sha256": "605d52221b7e76d0b37f571730d58845c8d8064024098c9341e5b1c97b663515",
+    "rebuilt_sha256": "605d52221b7e76d0b37f571730d58845c8d8064024098c9341e5b1c97b663515",
+    "codepoints": 1,
+    "matches": true
+  }
+}

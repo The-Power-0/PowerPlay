@@ -1,0 +1,148 @@
+{
+  "schema": "powerplay-native-source-signoff-v1",
+  "release": "powerplay-v1.3.9",
+  "signed_apk_sha256": "f832a2c507f997fcb047c0ab899254d1fd111520942e88da50e61ebc82e3c764",
+  "release_source_commit": "dfab0f7ae979c0edee617f9f50a6c72efac51aa4",
+  "historical_wrapdb_commit": "99634f253c3f2e83295b210018d071f6570284e6",
+  "status": "NOT_CLEARED",
+  "human_license_review_approved": false,
+  "version_specific_complete_source_bundle_verified": false,
+  "native_components": {
+    "libapp.so": "The source commit dfab0f7ae979c0edee617f9f50a6c72efac51aa4 was rebuilt by the candidate CI workflow. Its signed candidate APK is byte-identical to the published APK (SHA-256 f832a2c507f997fcb047c0ab899254d1fd111520942e88da50e61ebc82e3c764); libapp.so and all 79 Flutter assets therefore match. The Flutter engine source build, original chapter-model training inputs and other app-wide rights are tracked separately.",
+    "libasskt.so": "Tagged JNI relink matches the signed ELF except for its GNU build ID. Source-built modified FriBidi relinks successfully. Device test and public distribution remain open.",
+    "libavcodec.so": "Rebuilt from pinned patched FFmpeg, dav1d and Dolby Vision Rust sources. All bytes match except the GNU build-ID descriptor.",
+    "libavutil.so": "Rebuilt from pinned patched FFmpeg. All bytes match except the GNU build-ID descriptor.",
+    "libc++_shared.so": "Pinned AAR and official NDK 29.0.14206865 match the APK, with the NDK copy stripped using llvm-strip --strip-unneeded.",
+    "libcronet.143.0.7445.0.so": "Exact Maven ARMv7 ELF match. Official bucket binary matches allocated sections and build ID. Recorded source and toolchain paths resolve and generator inputs are identified. Historical full build output verification remains open.",
+    "libdartjni.so": "Rebuilt lockfile-pinned jni 0.14.2 ARMv7 source with NDK r28c. The stripped ELF matches the APK apart from the GNU build ID.",
+    "libdatastore_shared_counter.so": "Rebuilt AndroidX DataStore 1.1.7 native source with NDK r25c. The stripped ELF matches the APK apart from the GNU build ID.",
+    "libdovi_bridge.so": "Rebuilt the bridge from the public release source and checksum-pinned standalone libdovi archive. All bytes match except the GNU build-ID descriptor. The underlying libdovi static archive was independently reproduced byte-for-byte.",
+    "libffmpegJNI.so": "Rebuilt the Apache-2.0 Media3-derived adapter from the public release source. All bytes match except the GNU build-ID descriptor. Preserve the original notices and modification attribution.",
+    "libflutter.so": "Exact upstream ARMv7 ELF match after stripping. Recorded source and toolchain paths resolve and generator inputs are identified. Historical full build output verification remains open.",
+    "libsentry-android.so": "Rebuilt with the same Sentry 0.16.6 build. All bytes match except the GNU build-ID descriptor.",
+    "libsentry.so": "Rebuilt from Sentry 0.16.6 and exact unwindstack-ndk submodule with NDK 27.0.12077973. All bytes match except the GNU build-ID descriptor.",
+    "libsqlite3.so": "Rebuilt byte-for-byte from SQLite 3.53.3 amalgamation, sqlite3 3.5.0 hook configuration and NDK 29.0.14206865.",
+    "libswresample.so": "Rebuilt from pinned patched FFmpeg. All bytes match except the GNU build-ID descriptor."
+  },
+  "open_blockers": [
+    {
+      "id": "SRC-001",
+      "area": "libass WrapDB source",
+      "detail": "Original libass v0.18.3 ARMv7 combined archive independently reproduced byte-for-byte (182 identical members, SHA256 c5cd611c2b0ddbdf9ab863d91e5901789b1623a808081c91627b65a486fffcc3) using exact historical WrapDB source archive checksums and NDK 28.1.13356709",
+      "required_evidence": "Satisfied by GitHub Actions run 42164891689: PowerPlay-v1.3.9-libass-source-reproduction artifact",
+      "status": "closed",
+      "evidence_url": "https://github.com/The-Power-0/PowerPlay/actions/runs/42164891689"
+    },
+    {
+      "id": "NOTICE-002",
+      "area": "libunibreak licence redistribution",
+      "detail": "The original libunibreak 6.1 LICENCE is in the SHA-verified historical source and the tested FriBidi relink kit. The existing public source attachment omitted it.",
+      "required_evidence": "Include the verified original notice in the corrected version-specific public source/notices distribution and verify recipient access.",
+      "status": "pending_public_distribution"
+    },
+    {
+      "id": "LGPL-003",
+      "area": "FriBidi static linkage",
+      "detail": "Verified source-based LGPL relink on Linux for the exact signed ARMv7 release. Replaced all 18 FriBidi objects, observed the source change in the linked ELF, and confirmed matching dynamic exports and DT_NEEDED. A disposable-key test APK has verified signing and alignment, with libasskt.so as its only changed non-signature payload.",
+      "required_evidence": "Verify installation and subtitle playback on Fire TV, and publish the applicable notices and source/object/relink materials.",
+      "status": "blocked_device_validation_and_publication"
+    },
+    {
+      "id": "RUST-004",
+      "area": "libdovi historic Rust build",
+      "detail": "Pinned dovi_tool 2.3.1 source compiled with historical Rust stable 1.93.1 and original unlocked Cargo command yields byte-identical ARMv7 libdovi.a (18,606,070 bytes; 443 identical members), checksum 9f5e4e7cbacdf26581a6c2832ececa3caa33ac805c6f808b4f02febfc76eeb39. Cargo.lock unchanged by the build, supporting exact 15-crate source provenance.",
+      "required_evidence": "Satisfied by GitHub Actions run 42165640143: PowerPlay-v1.3.9-libdovi-source-reproduction artifact",
+      "status": "closed",
+      "evidence_url": "https://github.com/The-Power-0/PowerPlay/actions/runs/42165640143"
+    },
+    {
+      "id": "FFMPEG-005",
+      "area": "FFmpeg GPLv3 and static libraries",
+      "detail": "All three shipped ARMv7 FFmpeg libraries independently rebuilt and matched except the GNU build-ID descriptor. Pinned source, locked Rust crates, patches, configuration, IJG terms and build instructions captured. Reviewed headers for 1,675 FFmpeg source paths in the matching rebuilds and retained 31 with additional or distinct terms. This includes ISC-style grants, BSD notices, the IJG terms and Mark Adler’s zlib-derived Adler-32 notice.",
+      "required_evidence": "Include the corresponding source, exact build recipes, and original FFmpeg file-specific attribution with RELEASE-012.",
+      "status": "awaiting_publication"
+    },
+    {
+      "id": "LLVM-006",
+      "area": "Android libc++ runtime",
+      "detail": "The exact official NDK 29 ARMv7 runtime matched after stripping. Original toolchain and sysroot notices were retained and the signed APK inspection job passed.",
+      "required_evidence": "Include the applicable notices with RELEASE-012.",
+      "status": "awaiting_publication"
+    },
+    {
+      "id": "FLUTTER-007",
+      "area": "Flutter engine",
+      "detail": "The candidate CI build from the exact application source commit produces the byte-identical signed release APK, including libapp.so and all 79 Flutter assets. The Flutter engine ELF matches upstream after stripping; 22 source repositories are pinned, 6,242 DWARF paths resolve, 1,496 sky_engine license text blocks are present, 98 toolchain paths resolve, and 150 generated paths are mapped.",
+      "required_evidence": "Complete historical Flutter engine build graph/generated-output verification and include applicable source/notices in recipient-accessible public corresponding-source distribution.",
+      "status": "open_historical_engine_build_and_publication"
+    },
+    {
+      "id": "CRONET-008",
+      "area": "Chromium Cronet",
+      "detail": "Chromium revision and upstream ARMv7 builder configuration identified. Matching symbols map 2,951 paths to source archives. The NSPR and Mozilla URL parser file terms missing from the recovered notice corpus are now retained. All 194 recorded toolchain paths resolve, and source or generator candidates are mapped for all 128 recorded generated paths.",
+      "required_evidence": "Verify the full historical build graph and generated outputs. Include applicable original notices and verified source access in the public distribution.",
+      "status": "open_historical_cronet_build_and_publication"
+    },
+    {
+      "id": "SENTRY-009",
+      "area": "Sentry native",
+      "detail": "Both Sentry native ELFs source-rebuilt with exact unwindstack submodule and NDK r27. Only the GNU build-ID descriptors differ. The original vendor and NDK runtime notices are retained.",
+      "required_evidence": "Include source, rebuild configuration and notices with RELEASE-012.",
+      "status": "awaiting_publication"
+    },
+    {
+      "id": "NATIVE-010",
+      "area": "Dart JNI and SQLite",
+      "detail": "Dart JNI and AndroidX DataStore source rebuilds match after build-ID normalization. SQLite 3.53.3 now independently rebuilt byte-for-byte from the amalgamation and sqlite3 3.5.0 configuration.",
+      "required_evidence": "Include the verified source, recipes and original notices with RELEASE-012.",
+      "status": "awaiting_publication"
+    },
+    {
+      "id": "MAVEN-011",
+      "area": "Android runtime dependencies",
+      "detail": "All 137 Maven module POMs were retrieved (133 with a license declaration). The signed APK still defines 16 recognizable Google Play Services classes and four DataTransport classes after shrinking; these are not merely absent/runtime-only Gradle dependencies. Six GMS modules declare Android SDK License terms. File-level terms, actual redistributed Java/native code and GPLv3 compatibility remain unresolved. Fifteen surviving class names match the exact Google Maven base, basement and cronet AARs. Their embedded third-party license lists do not establish terms for the Google client classes. Ten recognizable GMS classes contain 61 method bodies. The standard Google Maven source JAR URLs for the three matched artifacts return HTTP 404. Artifact-specific source and grant are unavailable in the reviewed public evidence. Play Billing 8.0.0 adds three matching classes and 14 method bodies. Its POM cites the Android SDK license and its standard source JAR URL returns 404.",
+      "required_evidence": "Obtain applicable terms and source for the retained Play Services and Play Billing client implementations, or document a supported exception, and complete public Corresponding Source review.",
+      "status": "blocked_external_evidence"
+    },
+    {
+      "id": "RELEASE-012",
+      "area": "Source distribution",
+      "detail": "Public v1.3.9 materials remain incomplete. The expanded private evidence supplement records native rebuilds, original terms and pinned source references.",
+      "required_evidence": "Publish applicable recipient-accessible source, notices and relink materials and verify their checksums and access. Require a verified source bundle for clearance."
+    },
+    {
+      "id": "GPL-013",
+      "area": "GPLv3 distribution terms",
+      "detail": "The audited GitHub download conveys the standalone APK for separately acquired hardware. GPLv3 section 6 installation information is conditional on a transaction transferring possession or use of a User Product, which is not present in this delivery.",
+      "required_evidence": "Distribution facts assessment recorded. Complete section 6(d) public Corresponding Source delivery under RELEASE-012 and reassess installation information if distribution includes hardware.",
+      "status": "closed"
+    },
+    {
+      "id": "ASSET-014",
+      "area": "Application assets and generated payloads",
+      "status": "open_model_training_provenance_and_upstream_icon_policy",
+      "detail": "The source-built chapter model (SHA-256 37378f7e1214cc7db49adcf39ba3a27327a9c9071e7e5c51595e011445342bc2) matches the APK and was introduced in upstream commit eb42723ee8500ba02b153bb6779b37a7a87b6334, but its original training inputs are absent. Go Noto source/license review is closed: both shipped font assets match source/APK, the v7.0 upstream release and OFL 1.1 terms are pinned, and the Hangul subset regenerates byte-for-byte. The APK still contains upstream Plezy app-icon preview assets and adaptive foreground covered by the upstream fork trademark policy; no written permission was found. Full details are in continuation-source-review-v1.3.9.json.",
+      "required_evidence": "Resolve training-input provenance for the model and the upstream Plezy alternate-icon/adaptive-icon policy (permission or future app-asset change), then include applicable evidence and notices in the recipient-accessible source distribution."
+    }
+  ],
+  "limitations": [
+    "This ledger distinguishes artifact identity, source rebuild evidence and verified release distribution.",
+    "Matching vendor symbols and pinned source archives do not independently reproduce a historical build.",
+    "Overall status remains NOT_CLEARED while the documented release conditions are unresolved."
+  ],
+  "dex_defined_class_evidence": {
+    "total_classes": 5605,
+    "recognizable_gms": 16,
+    "google_datatransport": 4,
+    "scan_sha256": "4207d148ea269632ca55507d6bdbb2fee23724b194c22ededdc917ce6b5b0a1e"
+  },
+  "continuation_evidence": {
+    "candidate_workflow_run": 42131147294,
+    "candidate_artifact_id": 13464805992,
+    "source_commit": "dfab0f7ae979c0edee617f9f50a6c72efac51aa4",
+    "candidate_apk_sha256": "f832a2c507f997fcb047c0ab899254d1fd111520942e88da50e61ebc82e3c764",
+    "font_and_model_review": "font-and-model-review-v1.3.9.json",
+    "candidate_native_libraries_byte_exact": 15,
+    "dependency_changes": false
+  }
+}
