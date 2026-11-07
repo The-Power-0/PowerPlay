@@ -39,6 +39,7 @@ class PowerShuffleSession {
   DateTime? _lastSent;
   bool _started = false;
   bool _completed = false;
+  int _completionPercent = 90;
   int _eventCounter = 0;
   Future<void> _inFlight = Future<void>.value();
 
@@ -72,6 +73,7 @@ class PowerShuffleSession {
     required String sessionId,
     required List<String> order,
     required Map<String, PlexMediaItem> items,
+    Map<String, dynamic>? settings,
   }) {
     _identity = identity;
     _profileId = profileId;
@@ -80,6 +82,11 @@ class PowerShuffleSession {
     _sessionId = sessionId;
     _items = Map.of(items);
     _order = List.of(order);
+    final requestedThreshold = settings?['completion_percent'];
+    _completionPercent = requestedThreshold is int &&
+            requestedThreshold >= 80 && requestedThreshold <= 95
+        ? requestedThreshold
+        : 90;
     _awaitingEpisodeKey = null;
     _pendingNavigationTarget = null;
     _resetEpisode();
@@ -149,6 +156,8 @@ class PowerShuffleSession {
       serverId: serverId, sessionId: id,
       order: order.whereType<String>().toList(growable: false),
       items: items,
+      settings: response['settings'] is Map<String, dynamic>
+          ? response['settings'] as Map<String, dynamic> : null,
     );
     final savedKey = response['coverage_episode'];
     final ranges = response['coverage'];
@@ -224,7 +233,7 @@ class PowerShuffleSession {
     }
     _lastPosition = positionMs;
     _lastSample = now;
-    if (!_completed && viewedMs * 10 >= durationMs * 9) {
+    if (!_completed && viewedMs * 100 >= durationMs * _completionPercent) {
       _completed = true;
       unawaited(_record('completed', positionMs, durationMs).then<void>((_) {}, onError: (Object _) { _completed = false; }));
     } else if (_lastSent == null || now.difference(_lastSent!).inSeconds >= 12) {
