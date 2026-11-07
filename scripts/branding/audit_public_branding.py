@@ -29,6 +29,9 @@ for file in (ROOT/"assets/app_icons/source").rglob("*.svg"):
     assert "M335.65,192.66" not in file.read_text(encoding="utf-8"),file
 assert (ROOT/"assets/brand/powerplay-mark.svg").exists()
 assert (ROOT/"assets/brand/powerplay-app-icon.svg").exists()
+entry=(ROOT/"lib/main.dart").read_text(encoding="utf-8")
+assert "bugs.plezy.app" not in entry,"Inherited crash-reporting destination must not ship"
+assert "'Plezy v" not in entry,"Legacy diagnostic label must not ship"
 assert "applicationId = \"com.power.powerplay\"" in (ROOT/"android/app/build.gradle.kts").read_text(encoding="utf-8")
 assert "Plezy" in (ROOT/"UPSTREAM-README.md").read_text(encoding="utf-8"),"Retain upstream attribution"
 print(f"Brand audit passed: {len(locales)} locales, 23 alternate icons, website and native labels")
