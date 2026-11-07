@@ -1030,7 +1030,7 @@
     "confirmAction": "Confirm Action"
   },
   "profiles": {
-    "addPowerPlayProfile": "Add PowerPlay profile",
+    "addPlezyProfile": "Add PowerPlay profile",
     "switchingProfile": "Switching profile…",
     "deleteThisProfileTitle": "Delete this profile?",
     "deleteThisProfileMessage": "Remove ${displayName}. Connections aren't affected.",
@@ -1407,7 +1407,7 @@
     "repairSucceeded": "Storage repaired",
     "repairNeedsRestart": "Storage repaired — restart required",
     "restartRequiredBody": "Your data was repaired, but PowerPlay has to start fresh before it can use it. Close PowerPlay and open it again.",
-    "quitPowerPlay": "Quit PowerPlay",
+    "quitPlezy": "Quit PowerPlay",
     "repairFailed": "Repair failed",
     "repairKeptSignIns": "Your servers and profiles are still signed in.",
     "repairLostSignIns": "The key protecting your saved sign-ins could not be recovered. You will have to sign in to every server and profile again.",

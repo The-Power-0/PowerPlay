@@ -2903,7 +2903,7 @@ class Translations$profiles$en {
 	// Translations
 
 	/// en: 'Add PowerPlay profile'
-	String get addPowerPlayProfile => 'Add PowerPlay profile';
+	String get addPlezyProfile => 'Add PowerPlay profile';
 
 	/// en: 'Switching profile…'
 	String get switchingProfile => 'Switching profile…';
@@ -3691,7 +3691,7 @@ class Translations$startup$en {
 	String get restartRequiredBody => 'Your data was repaired, but PowerPlay has to start fresh before it can use it. Close PowerPlay and open it again.';
 
 	/// en: 'Quit PowerPlay'
-	String get quitPowerPlay => 'Quit PowerPlay';
+	String get quitPlezy => 'Quit PowerPlay';
 
 	/// en: 'Repair failed'
 	String get repairFailed => 'Repair failed';
@@ -9048,7 +9048,7 @@ extension on Translations {
 			'mpvConfig.removeLine' => 'Remove line',
 			'mpvConfig.embeddedVoHint' => 'vo, gpu-context and gpu-api are ignored on Linux: embedded video always renders through vo=libmpv on the video plane, and gpu-next (which compute shaders like ArtCNN need) cannot run embedded.',
 			'dialog.confirmAction' => 'Confirm Action',
-			'profiles.addPowerPlayProfile' => 'Add PowerPlay profile',
+			'profiles.addPlezyProfile' => 'Add PowerPlay profile',
 			'profiles.switchingProfile' => 'Switching profile…',
 			'profiles.deleteThisProfileTitle' => 'Delete this profile?',
 			'profiles.deleteThisProfileMessage' => ({required Object displayName}) => 'Remove ${displayName}. Connections aren\'t affected.',
@@ -9380,7 +9380,7 @@ extension on Translations {
 			'startup.repairSucceeded' => 'Storage repaired',
 			'startup.repairNeedsRestart' => 'Storage repaired — restart required',
 			'startup.restartRequiredBody' => 'Your data was repaired, but PowerPlay has to start fresh before it can use it. Close PowerPlay and open it again.',
-			'startup.quitPowerPlay' => 'Quit PowerPlay',
+			'startup.quitPlezy' => 'Quit PowerPlay',
 			'startup.repairFailed' => 'Repair failed',
 			'startup.repairKeptSignIns' => 'Your servers and profiles are still signed in.',
 			'startup.repairLostSignIns' => 'The key protecting your saved sign-ins could not be recovered. You will have to sign in to every server and profile again.',
