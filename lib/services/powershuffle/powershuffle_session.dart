@@ -159,15 +159,26 @@ class PowerShuffleSession {
       final plex = context.read<MultiServerProvider>()
           .getPlexClientForServer(ServerId(serverId));
       if (plex != null) {
-        final episodes = await plex.fetchClientSideEpisodeQueue(current.grandparentId!);
-        for (final episode in episodes ?? <MediaItem>[]) {
-          if (episode is PlexMediaItem) {
-            final key = keyOf(episode);
-            if (key != null) items.putIfAbsent(key, () => episode);
+        try {
+          final episodes = await plex.fetchClientSideEpisodeQueue(
+            current.grandparentId!,
+          );
+          if (!context.mounted) return;
+          for (final episode in episodes ?? <MediaItem>[]) {
+            if (episode is PlexMediaItem && episode.serverId == serverId) {
+              final key = keyOf(episode);
+              if (key != null && order.contains(key)) {
+                items.putIfAbsent(key, () => episode);
+              }
+            }
           }
+        } catch (_) {
+          // Plex inventory is supplementary. Never lose the already verified
+          // PowerLink destination queue just because a metadata scan failed.
         }
       }
     }
+    if (!context.mounted) return;
     final activeKey = keyOf(current);
     if (current is! PlexMediaItem || current.serverId != serverId ||
         activeKey == null || !order.contains(activeKey)) {
