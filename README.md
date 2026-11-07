@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/artwork/powerplay-banner.webp" alt="PowerPlay purple play-button artwork" width="640" />
+<img src="docs/artwork/powerplay-banner.webp" alt="PowerPlay blue/purple play triangle, white P and cyan lightning bolt" width="640" />
 
 # PowerPlay
 
@@ -33,7 +33,9 @@ adb install -r PowerPlay-vX.Y.Z.apk
 
 A matching signing certificate permits an update in place. If Android reports `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, the existing app was signed with a different key. Reinstallation may require uninstalling the previous package, **which deletes its local app data**; back up what you need first.
 
-**Current milestone:** [PowerPlay 1.4.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.4.0) introduces PowerShuffle and works with [PowerLink 0.3.0](https://github.com/The-Power-0/PowerLink/releases/tag/v0.3.0).
+**Current stable:** [PowerPlay 1.4.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.4.0) introduces PowerShuffle and works with [PowerLink 0.3.0](https://github.com/The-Power-0/PowerLink/releases/tag/v0.3.0).
+
+**In review:** PowerPlay **2.0.0** is a visual branding release candidate designed alongside PowerLink **1.0.0**. Both remain unpublished until approved. See [the brand kit](branding/README.md).
 
 ## Why PowerPlay exists
 
@@ -143,7 +145,7 @@ Published release workflows verify the APK identity, signature, architecture and
 
 ## Version history
 
-PowerPlay versions begin with the independent 1.0.0 rebrand. Pre-1.0 Plezy-based builds are documented in the [legacy archive](docs/archive/README.md).
+PowerPlay versions begin with the independent 1.0.0 rebrand. The 2.0.0 candidate coordinates the refreshed PowerPlay and PowerLink identity. Pre-1.0 Plezy-based builds are documented in the [legacy archive](docs/archive/README.md).
 
 | Version | Milestone |
 | --- | --- |
