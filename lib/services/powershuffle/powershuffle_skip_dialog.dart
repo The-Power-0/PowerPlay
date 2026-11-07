@@ -112,9 +112,11 @@ class _PowerShuffleSkipDialogState extends State<PowerShuffleSkipDialog> {
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 460),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
+        child: SingleChildScrollView(
+          primary: false,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -158,6 +160,7 @@ class _PowerShuffleSkipDialogState extends State<PowerShuffleSkipDialog> {
                 ),
               ),
             ],
+            ),
           ),
         ),
       ),
