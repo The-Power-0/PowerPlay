@@ -51,28 +51,7 @@ extension _VideoPlayerEpisodeNavigationMethods on VideoPlayerScreenState {
 
   /// Only explicit Next/direct episode selection offers a skip. Back cancels,
   /// pauses/exits are never interpreted as skips.
-  Future<String?> _choosePowerShuffleSkipOption() => showDialog<String>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: const Text('Skip this episode?'),
-      content: const Text('When should this episode become eligible again?'),
-      actionsAlignment: MainAxisAlignment.spaceEvenly,
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop('five_days'),
-          child: const Text('Skip for 5 days'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop('next_cycle'),
-          child: const Text('Skip until next cycle'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(),
-          child: const Text('Cancel'),
-        ),
-      ],
-    ),
-  );
+  Future<String?> _choosePowerShuffleSkipOption() => PowerShuffleSkipDialog.show(context);
 
   Future<void> _playNext() async {
     if (!_canNavigateMediaItems() || !mounted || _episode.isLoadingNext) return;
