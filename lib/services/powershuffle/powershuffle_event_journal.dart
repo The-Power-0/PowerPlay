@@ -79,10 +79,20 @@ class PowerShuffleEventJournal {
     final prefs = await SharedPreferences.getInstance();
     final name = identity.sourceDevice;
     final pending = await _read(prefs, name);
-    if (pending.length >= 200) {
-      throw const FormatException('PowerShuffle pending event journal is full');
+    // Progress contains complete cumulative viewed ranges. A long offline
+    // interval therefore needs only its latest unsent progress event per
+    // current episode, not hundreds of duplicate heartbeat records.
+    final last = pending.isEmpty ? null : pending.last;
+    if (event['action'] == 'progress' && last?['action'] == 'progress' &&
+        last?['session_id'] == event['session_id'] &&
+        last?['episode_key'] == event['episode_key']) {
+      pending[pending.length - 1] = Map<String, dynamic>.of(event);
+    } else {
+      if (pending.length >= 200) {
+        throw const FormatException('PowerShuffle pending event journal is full');
+      }
+      pending.add(Map<String, dynamic>.of(event));
     }
-    pending.add(Map<String, dynamic>.of(event));
     await _write(prefs, name, pending);
     final reply = await flush(identity, requiredEventId: event['event_id'] as String?);
     if (reply == null || reply['accepted'] != true) {
