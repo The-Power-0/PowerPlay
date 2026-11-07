@@ -110,7 +110,7 @@ PowerLink uses Home Assistant to discover **already-integrated** Fire Sticks, ha
 - Uses scoped, per-device pairing credentials rather than a Home Assistant administrator token in the app.
 - Supports custom Home Assistant wake routines and eligible routed networks; it does **not** automatically create a tunnel or discover unknown LAN devices.
 
-PowerShuffle sessions also travel through PowerLink, preserving their cycle and completion history. See the [PowerLink setup guide](https://github.com/The-Power-0/PowerLink#setup) for installation, device registration and pairing.
+PowerShuffle sessions also travel through PowerLink, preserving their cycle and completion history. See the [PowerLink setup guide](https://github.com/The-Power-0/PowerLink#installation) for installation, device registration and pairing.
 
 ## Home Assistant & automations
 
