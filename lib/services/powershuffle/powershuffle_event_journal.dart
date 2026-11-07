@@ -1,0 +1,83 @@
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../powerlink/powerlink_app_client.dart';
+
+/// Small device-local outbox for unacknowledged PowerShuffle events.
+///
+/// This stores no Home Assistant credential or Plex token. Each record carries
+/// an idempotency key, so retrying after a Fire TV sleep/app restart cannot
+/// double count a completed episode. HA is the final authority: no local
+/// event may invent or advance a queue without an HA acknowledgment.
+class PowerShuffleEventJournal {
+  const PowerShuffleEventJournal({PowerLinkAppClient client = const PowerLinkAppClient()})
+      : _client = client;
+
+  final PowerLinkAppClient _client;
+  static const _prefix = 'powershuffle.pending.v1.';
+
+  Future<List<Map<String, dynamic>>> _read(SharedPreferences prefs, String name) async {
+    final raw = prefs.getString(_prefix + name);
+    if (raw == null) return <Map<String, dynamic>>[];
+    try {
+      final parsed = jsonDecode(raw);
+      if (parsed is! List || parsed.length > 200) {
+        throw const FormatException('PowerShuffle journal exceeds safe bound');
+      }
+      return [
+        for (final item in parsed)
+          if (item is Map<String, dynamic>) item,
+      ];
+    } on FormatException {
+      // Prefer a visible error to silently losing the only copy of a queued
+      // completion or skip. The app's event caller can present its failure UI.
+      rethrow;
+    } catch (_) {
+      throw const FormatException('PowerShuffle event journal is invalid');
+    }
+  }
+
+  Future<void> _write(
+    SharedPreferences prefs, String name, List<Map<String, dynamic>> events,
+  ) async {
+    if (!await prefs.setString(_prefix + name, jsonEncode(events))) {
+      throw const FormatException('Could not save PowerShuffle pending event');
+    }
+  }
+
+  Future<Map<String, dynamic>?> flush(PowerLinkAppIdentity identity) async {
+    final prefs = await SharedPreferences.getInstance();
+    final name = identity.sourceDevice;
+    final pending = await _read(prefs, name);
+    Map<String, dynamic>? latest;
+    while (pending.isNotEmpty) {
+      try {
+        latest = await _client.powerShuffleEvent(identity, pending.first);
+      } on FormatException catch (e) {
+        // The source can cease to own a session after an acknowledged
+        // PowerLink handoff. Those stale events must not block future ones.
+        // Only definitive HA conflicts are discarded; transport errors
+        // remain on disk for the next retry.
+        if (!e.message.toString().contains('HTTP 409')) rethrow;
+      }
+      pending.removeAt(0);
+      await _write(prefs, name, pending);
+    }
+    return latest;
+  }
+
+  Future<Map<String, dynamic>> send(
+    PowerLinkAppIdentity identity, Map<String, dynamic> event,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final name = identity.sourceDevice;
+    final pending = await _read(prefs, name);
+    if (pending.length >= 200) {
+      throw const FormatException('PowerShuffle pending event journal is full');
+    }
+    pending.add(Map<String, dynamic>.of(event));
+    await _write(prefs, name, pending);
+    return await flush(identity) ?? <String, dynamic>{'accepted': false};
+  }
+}
