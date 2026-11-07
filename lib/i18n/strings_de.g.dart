@@ -1177,7 +1177,7 @@ class _Translations$profiles$de extends Translations$profiles$en {
 	final TranslationsDe _root; // ignore: unused_field
 
 	// Translations
-	@override String get addPowerPlayProfile => 'PowerPlay-Profil hinzufügen';
+	@override String get addPlezyProfile => 'PowerPlay-Profil hinzufügen';
 	@override String get switchingProfile => 'Profil wird gewechselt…';
 	@override String get deleteThisProfileTitle => 'Dieses Profil löschen?';
 	@override String deleteThisProfileMessage({required Object displayName}) => '${displayName} entfernen. Verbindungen bleiben unberührt.';
@@ -1507,7 +1507,7 @@ class _Translations$startup$de extends Translations$startup$en {
 	@override String get repairSucceeded => 'Speicher repariert';
 	@override String get repairNeedsRestart => 'Speicher repariert – Neustart erforderlich';
 	@override String get restartRequiredBody => 'Deine Daten wurden repariert, aber PowerPlay muss neu starten, bevor es sie verwenden kann. Schließe PowerPlay und öffne es erneut.';
-	@override String get quitPowerPlay => 'PowerPlay beenden';
+	@override String get quitPlezy => 'PowerPlay beenden';
 	@override String get repairFailed => 'Reparatur fehlgeschlagen';
 	@override String get repairKeptSignIns => 'Deine Server und Profile sind weiterhin angemeldet.';
 	@override String get repairLostSignIns => 'Der Schlüssel, der deine gespeicherten Anmeldungen schützt, konnte nicht wiederhergestellt werden. Du musst dich bei jedem Server und Profil erneut anmelden.';
@@ -4354,7 +4354,7 @@ extension on TranslationsDe {
 			'mpvConfig.removeLine' => 'Zeile entfernen',
 			'mpvConfig.embeddedVoHint' => 'vo, gpu-context und gpu-api werden unter Linux ignoriert: eingebettetes Video wird immer über vo=libmpv auf der Videoebene gerendert, und gpu-next (das Compute-Shader wie ArtCNN benötigen) kann nicht eingebettet ausgeführt werden.',
 			'dialog.confirmAction' => 'Aktion bestätigen',
-			'profiles.addPowerPlayProfile' => 'PowerPlay-Profil hinzufügen',
+			'profiles.addPlezyProfile' => 'PowerPlay-Profil hinzufügen',
 			'profiles.switchingProfile' => 'Profil wird gewechselt…',
 			'profiles.deleteThisProfileTitle' => 'Dieses Profil löschen?',
 			'profiles.deleteThisProfileMessage' => ({required Object displayName}) => '${displayName} entfernen. Verbindungen bleiben unberührt.',
@@ -4686,7 +4686,7 @@ extension on TranslationsDe {
 			'startup.repairSucceeded' => 'Speicher repariert',
 			'startup.repairNeedsRestart' => 'Speicher repariert – Neustart erforderlich',
 			'startup.restartRequiredBody' => 'Deine Daten wurden repariert, aber PowerPlay muss neu starten, bevor es sie verwenden kann. Schließe PowerPlay und öffne es erneut.',
-			'startup.quitPowerPlay' => 'PowerPlay beenden',
+			'startup.quitPlezy' => 'PowerPlay beenden',
 			'startup.repairFailed' => 'Reparatur fehlgeschlagen',
 			'startup.repairKeptSignIns' => 'Deine Server und Profile sind weiterhin angemeldet.',
 			'startup.repairLostSignIns' => 'Der Schlüssel, der deine gespeicherten Anmeldungen schützt, konnte nicht wiederhergestellt werden. Du musst dich bei jedem Server und Profil erneut anmelden.',

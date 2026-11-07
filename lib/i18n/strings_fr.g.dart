@@ -1177,7 +1177,7 @@ class _Translations$profiles$fr extends Translations$profiles$en {
 	final TranslationsFr _root; // ignore: unused_field
 
 	// Translations
-	@override String get addPowerPlayProfile => 'Ajouter un profil PowerPlay';
+	@override String get addPlezyProfile => 'Ajouter un profil PowerPlay';
 	@override String get switchingProfile => 'Changement de profil…';
 	@override String get deleteThisProfileTitle => 'Supprimer ce profil ?';
 	@override String deleteThisProfileMessage({required Object displayName}) => 'Supprimer ${displayName}. Les connexions ne sont pas affectées.';
@@ -1507,7 +1507,7 @@ class _Translations$startup$fr extends Translations$startup$en {
 	@override String get repairSucceeded => 'Stockage réparé';
 	@override String get repairNeedsRestart => 'Stockage réparé — redémarrage requis';
 	@override String get restartRequiredBody => 'Vos données ont été réparées, mais PowerPlay doit redémarrer pour pouvoir les utiliser. Fermez PowerPlay puis rouvrez-le.';
-	@override String get quitPowerPlay => 'Quitter PowerPlay';
+	@override String get quitPlezy => 'Quitter PowerPlay';
 	@override String get repairFailed => 'Échec de la réparation';
 	@override String get repairKeptSignIns => 'Vos serveurs et profils sont toujours connectés.';
 	@override String get repairLostSignIns => 'La clé qui protégeait vos connexions enregistrées n\'a pas pu être récupérée. Vous devrez vous reconnecter à chaque serveur et profil.';
@@ -4354,7 +4354,7 @@ extension on TranslationsFr {
 			'mpvConfig.removeLine' => 'Supprimer la ligne',
 			'mpvConfig.embeddedVoHint' => 'vo, gpu-context et gpu-api sont ignorés sous Linux : la vidéo intégrée est toujours rendue via vo=libmpv sur le plan vidéo, et gpu-next (dont les shaders de calcul comme ArtCNN ont besoin) ne peut pas fonctionner en mode intégré.',
 			'dialog.confirmAction' => 'Confirmer l\'action',
-			'profiles.addPowerPlayProfile' => 'Ajouter un profil PowerPlay',
+			'profiles.addPlezyProfile' => 'Ajouter un profil PowerPlay',
 			'profiles.switchingProfile' => 'Changement de profil…',
 			'profiles.deleteThisProfileTitle' => 'Supprimer ce profil ?',
 			'profiles.deleteThisProfileMessage' => ({required Object displayName}) => 'Supprimer ${displayName}. Les connexions ne sont pas affectées.',
@@ -4686,7 +4686,7 @@ extension on TranslationsFr {
 			'startup.repairSucceeded' => 'Stockage réparé',
 			'startup.repairNeedsRestart' => 'Stockage réparé — redémarrage requis',
 			'startup.restartRequiredBody' => 'Vos données ont été réparées, mais PowerPlay doit redémarrer pour pouvoir les utiliser. Fermez PowerPlay puis rouvrez-le.',
-			'startup.quitPowerPlay' => 'Quitter PowerPlay',
+			'startup.quitPlezy' => 'Quitter PowerPlay',
 			'startup.repairFailed' => 'Échec de la réparation',
 			'startup.repairKeptSignIns' => 'Vos serveurs et profils sont toujours connectés.',
 			'startup.repairLostSignIns' => 'La clé qui protégeait vos connexions enregistrées n\'a pas pu être récupérée. Vous devrez vous reconnecter à chaque serveur et profil.',
