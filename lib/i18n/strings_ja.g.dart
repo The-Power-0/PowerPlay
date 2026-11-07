@@ -1173,7 +1173,7 @@ class _Translations$profiles$ja extends Translations$profiles$en {
 	final TranslationsJa _root; // ignore: unused_field
 
 	// Translations
-	@override String get addPowerPlayProfile => 'PowerPlayプロフィールを追加';
+	@override String get addPlezyProfile => 'PowerPlayプロフィールを追加';
 	@override String get switchingProfile => 'プロフィールを切り替え中…';
 	@override String get deleteThisProfileTitle => 'このプロフィールを削除しますか？';
 	@override String deleteThisProfileMessage({required Object displayName}) => '${displayName}を削除します。接続には影響しません。';
@@ -1502,7 +1502,7 @@ class _Translations$startup$ja extends Translations$startup$en {
 	@override String get repairSucceeded => 'ストレージを修復しました';
 	@override String get repairNeedsRestart => 'ストレージを修復しました — 再起動が必要です';
 	@override String get restartRequiredBody => 'データは修復されましたが、PowerPlayはそれを使用する前に再起動する必要があります。PowerPlayを閉じて再度開いてください。';
-	@override String get quitPowerPlay => 'PowerPlayを終了';
+	@override String get quitPlezy => 'PowerPlayを終了';
 	@override String get repairFailed => '修復に失敗しました';
 	@override String get repairKeptSignIns => 'サーバーとプロフィールはサインインしたままです。';
 	@override String get repairLostSignIns => '保存済みのサインインを保護するキーを復元できませんでした。すべてのサーバーとプロフィールに再度サインインする必要があります。';
@@ -4342,7 +4342,7 @@ extension on TranslationsJa {
 			'mpvConfig.removeLine' => '行を削除',
 			'mpvConfig.embeddedVoHint' => 'Linux では vo、gpu-context、gpu-api は無視されます。埋め込み動画は常にビデオプレーン上で vo=libmpv を通してレンダリングされ、gpu-next（ArtCNN のようなコンピュートシェーダーに必要）は埋め込みでは実行できません。',
 			'dialog.confirmAction' => '操作の確認',
-			'profiles.addPowerPlayProfile' => 'PowerPlayプロフィールを追加',
+			'profiles.addPlezyProfile' => 'PowerPlayプロフィールを追加',
 			'profiles.switchingProfile' => 'プロフィールを切り替え中…',
 			'profiles.deleteThisProfileTitle' => 'このプロフィールを削除しますか？',
 			'profiles.deleteThisProfileMessage' => ({required Object displayName}) => '${displayName}を削除します。接続には影響しません。',
@@ -4674,7 +4674,7 @@ extension on TranslationsJa {
 			'startup.repairSucceeded' => 'ストレージを修復しました',
 			'startup.repairNeedsRestart' => 'ストレージを修復しました — 再起動が必要です',
 			'startup.restartRequiredBody' => 'データは修復されましたが、PowerPlayはそれを使用する前に再起動する必要があります。PowerPlayを閉じて再度開いてください。',
-			'startup.quitPowerPlay' => 'PowerPlayを終了',
+			'startup.quitPlezy' => 'PowerPlayを終了',
 			'startup.repairFailed' => '修復に失敗しました',
 			'startup.repairKeptSignIns' => 'サーバーとプロフィールはサインインしたままです。',
 			'startup.repairLostSignIns' => '保存済みのサインインを保護するキーを復元できませんでした。すべてのサーバーとプロフィールに再度サインインする必要があります。',

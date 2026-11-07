@@ -1177,7 +1177,7 @@ class _Translations$profiles$kk extends Translations$profiles$en {
 	final TranslationsKk _root; // ignore: unused_field
 
 	// Translations
-	@override String get addPowerPlayProfile => 'PowerPlay профилін қосу';
+	@override String get addPlezyProfile => 'PowerPlay профилін қосу';
 	@override String get switchingProfile => 'Профильді ауыстыру…';
 	@override String get deleteThisProfileTitle => 'Осы профиль өшірілсін бе?';
 	@override String deleteThisProfileMessage({required Object displayName}) => '${displayName} өшіріледі. Қосылымдарға әсер етпейді.';
@@ -1507,7 +1507,7 @@ class _Translations$startup$kk extends Translations$startup$en {
 	@override String get repairSucceeded => 'Сақтау қалпына келтірілді';
 	@override String get repairNeedsRestart => 'Сақтау қалпына келтірілді — қайта іске қосу қажет';
 	@override String get restartRequiredBody => 'Деректеріңіз қалпына келтірілді, бірақ PowerPlay оларды пайдаланар алдында жаңадан іске қосылуы керек. PowerPlay жабыңыз да, қайта ашыңыз.';
-	@override String get quitPowerPlay => 'PowerPlay бағдарламасынан шығу';
+	@override String get quitPlezy => 'PowerPlay бағдарламасынан шығу';
 	@override String get repairFailed => 'Қалпына келтіру сәтсіз аяқталды';
 	@override String get repairKeptSignIns => 'Серверлеріңіз бен профильдеріңіз әлі кірген күйде.';
 	@override String get repairLostSignIns => 'Сақталған кіру деректерін қорғайтын кілт қалпына келтірілмеді. Әрбір сервер мен профильге қайта кіруге тура келеді.';
@@ -4354,7 +4354,7 @@ extension on TranslationsKk {
 			'mpvConfig.removeLine' => 'Жолды өшіру',
 			'mpvConfig.embeddedVoHint' => 'vo, gpu-context және gpu-api Linux-те еленбейді: ендірілген бейне әрқашан бейне жазықтығында vo=libmpv арқылы көрсетіледі, ал gpu-next (ArtCNN сияқты compute шейдерлеріне қажет) ендірілген режимде жұмыс істей алмайды.',
 			'dialog.confirmAction' => 'Әрекетті растау',
-			'profiles.addPowerPlayProfile' => 'PowerPlay профилін қосу',
+			'profiles.addPlezyProfile' => 'PowerPlay профилін қосу',
 			'profiles.switchingProfile' => 'Профильді ауыстыру…',
 			'profiles.deleteThisProfileTitle' => 'Осы профиль өшірілсін бе?',
 			'profiles.deleteThisProfileMessage' => ({required Object displayName}) => '${displayName} өшіріледі. Қосылымдарға әсер етпейді.',
@@ -4686,7 +4686,7 @@ extension on TranslationsKk {
 			'startup.repairSucceeded' => 'Сақтау қалпына келтірілді',
 			'startup.repairNeedsRestart' => 'Сақтау қалпына келтірілді — қайта іске қосу қажет',
 			'startup.restartRequiredBody' => 'Деректеріңіз қалпына келтірілді, бірақ PowerPlay оларды пайдаланар алдында жаңадан іске қосылуы керек. PowerPlay жабыңыз да, қайта ашыңыз.',
-			'startup.quitPowerPlay' => 'PowerPlay бағдарламасынан шығу',
+			'startup.quitPlezy' => 'PowerPlay бағдарламасынан шығу',
 			'startup.repairFailed' => 'Қалпына келтіру сәтсіз аяқталды',
 			'startup.repairKeptSignIns' => 'Серверлеріңіз бен профильдеріңіз әлі кірген күйде.',
 			'startup.repairLostSignIns' => 'Сақталған кіру деректерін қорғайтын кілт қалпына келтірілмеді. Әрбір сервер мен профильге қайта кіруге тура келеді.',

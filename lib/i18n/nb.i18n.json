@@ -1030,7 +1030,7 @@
     "confirmAction": "Bekreft handling"
   },
   "profiles": {
-    "addPowerPlayProfile": "Legg til PowerPlay-profil",
+    "addPlezyProfile": "Legg til PowerPlay-profil",
     "switchingProfile": "Bytter profil…",
     "deleteThisProfileTitle": "Slett denne profilen?",
     "deleteThisProfileMessage": "Fjern ${displayName}. Tilkoblinger påvirkes ikke.",
@@ -1407,7 +1407,7 @@
     "repairSucceeded": "Lagring reparert",
     "repairNeedsRestart": "Lagring reparert – omstart kreves",
     "restartRequiredBody": "Dataene dine ble reparert, men PowerPlay må starte på nytt før det kan bruke dem. Lukk PowerPlay og åpne det igjen.",
-    "quitPowerPlay": "Avslutt PowerPlay",
+    "quitPlezy": "Avslutt PowerPlay",
     "repairFailed": "Reparasjon mislyktes",
     "repairKeptSignIns": "Serverne og profilene dine er fortsatt pålogget.",
     "repairLostSignIns": "Nøkkelen som beskytter de lagrede påloggingene dine kunne ikke gjenvinnes. Du må logge på alle servere og profiler på nytt.",
