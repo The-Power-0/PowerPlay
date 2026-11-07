@@ -75,7 +75,7 @@ jobs:
       - name: Protect existing playback queue and video-start logic
         run: flutter test test/providers/playback_state_provider_test.dart
       - name: Verify PowerShuffle Fire TV D-pad focus, Back behavior and narrow-screen layout
-        run: flutter test test/services/powershuffle/powershuffle_skip_dialog_test.dart
+        run: flutter test test/services/powershuffle/powershuffle_skip_dialog_test.dart test/services/powershuffle/powershuffle_event_journal_test.dart
 
       - name: Analyze PowerLink, source capture and player integration
         run: |
