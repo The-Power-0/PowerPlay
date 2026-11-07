@@ -252,7 +252,7 @@ class PowerShuffleSession {
       return;
     }
     _addRange(startMs, endMs);
-    if (!_completed && viewedMs * 10 >= durationMs * 9) {
+    if (!_completed && viewedMs * 100 >= durationMs * _completionPercent) {
       _completed = true;
       unawaited(_record('completed', endMs, durationMs).then<void>((_) {}, onError: (Object _) { _completed = false; }));
     }
