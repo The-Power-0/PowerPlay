@@ -14,7 +14,7 @@ Finder _option(String label) => find.ancestor(
 FocusNode _focus(WidgetTester tester, String label) =>
     tester.widget<FocusableButton>(_option(label)).focusNode!;
 
-Future<void> _open(WidgetTester tester, Size size) async {
+Future<void> _open(WidgetTester tester, Size size, {double textScale = 1}) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
@@ -24,6 +24,12 @@ Future<void> _open(WidgetTester tester, Size size) async {
     InputModeTracker(
       child: MaterialApp(
         theme: monoTheme(MonoPalette.dark),
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(textScale),
+          ),
+          child: child!,
+        ),
         home: Scaffold(
           body: Builder(
             builder: (context) => Center(
@@ -78,6 +84,19 @@ void main() {
     expect(find.byType(PowerShuffleSkipDialog), findsNothing);
     expect(find.text('cancelled'), findsOneWidget);
     expect(find.text('Open PowerShuffle'), findsOneWidget);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.android));
+
+  testWidgets('large accessibility text retains remote navigation and scrolls focused choice',
+      (tester) async {
+    await _open(tester, const Size(960, 540), textScale: 1.8);
+    expect(tester.takeException(), isNull);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    expect(_focus(tester, 'Skip until next cycle').hasPrimaryFocus, isTrue);
+    expect(tester.takeException(), isNull);
+    await tester.sendKeyEvent(LogicalKeyboardKey.select);
+    await tester.pumpAndSettle();
+    expect(find.text('next_cycle'), findsOneWidget);
   }, variant: TargetPlatformVariant.only(TargetPlatform.android));
 
   testWidgets('small Fire TV viewport keeps both choices visible without overflow',
