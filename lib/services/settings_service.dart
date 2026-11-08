@@ -901,6 +901,9 @@ class SettingsService extends BaseSharedPreferencesService {
   static const ambientLighting = BoolPref('ambient_lighting');
   static const audioPassthrough = _AudioPassthroughPref();
   static const audioNormalization = BoolPref('audio_normalization');
+  /// Original Dolby Pro Logic Lt/Rt encoder on Android ExoPlayer only.
+  /// Off on all new and existing installs; never a global surround default.
+  static const proLogicMatrixEnabled = BoolPref('pro_logic_matrix_enabled');
 
   /// Replaced the `audio_downmix` stereo toggle: on → [AudioChannelLimit.stereo].
   static const audioChannelLimit = LegacyBoolEnumPref<AudioChannelLimit>(
@@ -1553,6 +1556,7 @@ class SettingsService extends BaseSharedPreferencesService {
     ambientLighting,
     audioPassthrough,
     audioNormalization,
+    proLogicMatrixEnabled,
     audioChannelLimit,
     audioDownmixNormalize,
     appLocale,
