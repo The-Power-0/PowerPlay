@@ -33,7 +33,7 @@ adb install -r PowerPlay-vX.Y.Z.apk
 
 A matching signing certificate permits an update in place. If Android reports `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, the existing app was signed with a different key. Reinstallation may require uninstalling the previous package, **which deletes its local app data**; back up what you need first.
 
-**Current milestone:** [PowerPlay 2.0.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v2.0.0) and [PowerLink 1.0.0](https://github.com/The-Power-0/PowerLink/releases/tag/v1.0.0) share a refreshed visual identity while preserving PowerShuffle, paired devices, and queue compatibility.
+**Current milestone:** [PowerPlay 2.0.2](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v2.0.2) and [PowerLink 1.0.0](https://github.com/The-Power-0/PowerLink/releases/tag/v1.0.0) share a refreshed visual identity while preserving PowerShuffle, paired devices, and queue compatibility.
 
 ## Why PowerPlay exists
 
@@ -147,7 +147,8 @@ PowerPlay versions begin with the independent 1.0.0 rebrand. Pre-1.0 Plezy-based
 
 | Version | Milestone |
 | --- | --- |
-| **[2.0.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v2.0.0)** | **Visual rebrand:** blue-purple equilateral play glyph, fresh Fire TV launcher/splash and 23 updated alternate icons, localized PowerPlay labels and companion PowerLink identity. |
+| **[2.0.2](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v2.0.2)** | **Production artwork:** full-detail approved v10 SVG across launchers, all 23 icon styles, splash, TV banners and README, with lossless raster exports. |
+| [2.0.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v2.0.0) | **Visual rebrand:** blue-purple equilateral play glyph, fresh Fire TV launcher/splash and 23 updated alternate icons, localized PowerPlay labels and companion PowerLink identity. |
 | [1.4.0](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.4.0) | **PowerShuffle**: per-profile show rotations, two skip durations, completion tracking, automatic cycle rollover, Home Assistant management and handoff continuity. Companion: PowerLink 0.3.0. |
 | [1.3.10](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.10) | Holds the destination screen awake while a PowerLink queue and first video frame initialize. |
 | [1.3.9](https://github.com/The-Power-0/PowerPlay/releases/tag/powerplay-v1.3.9) | Repairs destination-picker focus and D-pad navigation. |
