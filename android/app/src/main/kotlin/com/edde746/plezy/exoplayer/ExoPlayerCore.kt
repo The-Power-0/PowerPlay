@@ -255,6 +255,7 @@ class ExoPlayerCore(private val activity: Activity) :
 
   // Stereo downmix: runs as a ChannelMixingAudioProcessor inside the sink's
   // decoded-PCM pipeline, so encoded audio is force-decoded while enabled.
+  private var proLogicEnabled: Boolean = false
   private var audioDownmixEnabled: Boolean = false
   private var audioDownmixCenterBoostDb: Int = 0
   private var audioDownmixNormalize: Boolean = true
@@ -2292,7 +2293,7 @@ class ExoPlayerCore(private val activity: Activity) :
     // Stereo downmix runs in the sink's PCM pipeline; bitstream output would
     // bypass it, so encoded audio is force-decoded while downmix is on
     // (overrides the passthrough preference — Android TV defaults it on).
-    if (audioDownmixEnabled && isEncodedAudioMimeType(mimeType)) return true
+    if ((audioDownmixEnabled || proLogicEnabled) && isEncodedAudioMimeType(mimeType)) return true
     if (shouldBlockDirectOutputForPassthrough(mimeType, audioPassthroughEnabled)) return true
     if (directAudioOutputBlockedAfterFailure.contains(mimeType)) {
       if (loggedDirectAudioRecoveryBlocks.add("$mimeType|$reason")) {
@@ -2697,7 +2698,8 @@ class ExoPlayerCore(private val activity: Activity) :
       !tunnelingDisabledForCodec &&
       !tunnelingDisabledForAssSubtitles &&
       !audioDelayActive &&
-      !audioNormalizationEnabled
+      !audioNormalizationEnabled &&
+      !proLogicEnabled
   }
 
   private fun updateCurrentTunnelingState(reason: String, shouldTunnel: Boolean): Boolean {
@@ -3606,6 +3608,25 @@ class ExoPlayerCore(private val activity: Activity) :
       startAudioRendererBounce("audio-passthrough")
     } else {
       updateTunnelingState("audio-passthrough")
+    }
+  }
+
+  /** Experimental original Dolby Pro Logic-compatible PCM matrix (opt-in, default off). */
+  fun setProLogicEnabled(enabled: Boolean) {
+    if (proLogicEnabled == enabled) return
+    proLogicEnabled = enabled
+    renderersFactory?.proLogicProcessor?.enabled = enabled
+    emitLog("info", "audio-prologic", "Pro Logic I matrix ${if (enabled) "enabled" else "disabled"}")
+    // Processor format and encoded passthrough decisions are latched at sink configure.
+    // An active player must re-select/reconfigure audio to reflect the new mode.
+    if (exoPlayer == null || lastAudioTrackConfig == null) {
+      updateTunnelingState("pro-logic")
+      return
+    }
+    if (calculateTunnelingEnabled() != currentTunneledPlayback) {
+      updateTunnelingState("pro-logic", forceSelector = true)
+    } else {
+      startAudioRendererBounce("pro-logic")
     }
   }
 
