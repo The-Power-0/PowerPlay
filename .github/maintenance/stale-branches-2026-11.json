@@ -1,0 +1,227 @@
+{
+  "repository": "The-Power-0/PowerPlay",
+  "confirm": "ARCHIVE_STALE_BRANCHES_2026_11",
+  "retained_branches": [
+    "main",
+    "audit/android-native-license-transitive-v1.3.9",
+    "maintenance/retire-legacy-builds-2026-11"
+  ],
+  "branches": [
+    {
+      "name": "branding/powerplay-v2.0.0-review",
+      "sha": "0fd35407985fe9a282de294a66efc31c57625ed0"
+    },
+    {
+      "name": "branding/powerplay-v2.0.0",
+      "sha": "60cd2f3ad3138cea592655124084dc2658a80bb3"
+    },
+    {
+      "name": "branding/wave-circuit-production-assets",
+      "sha": "e12fa2be9472c0ed4ee9407cef53f5caaff1bf25"
+    },
+    {
+      "name": "docs/powerplay-v1.3.1-release-notes",
+      "sha": "4cc7ef575a853bec40bc68faf27f4558ee561099"
+    },
+    {
+      "name": "docs/powerplay-v1.3.6-release-notes",
+      "sha": "6976e55e3cabb877635332c1f7bfe1f4e75e815d"
+    },
+    {
+      "name": "docs/powerplay-v1.3.7-history",
+      "sha": "0330d848f4ea16785e5544968ad2659ebe0af831"
+    },
+    {
+      "name": "docs/powerplay-v1.3.8-pairing-fix",
+      "sha": "039313500fc417dc2a857ec8c61e718d5ad2cdac"
+    },
+    {
+      "name": "docs/powerplay-v1.3.9-picker",
+      "sha": "7d0e53e3e1ad020610eac6ffe842045166afb9c3"
+    },
+    {
+      "name": "docs/readme-powershuffle-1.4",
+      "sha": "9bbb5d824e3c0f961a66b88d24c16e7f4a846e69"
+    },
+    {
+      "name": "docs/standardize-powerplay-release-notes",
+      "sha": "9824eefb10b42ed9f1e773e9e35c8605b2023764"
+    },
+    {
+      "name": "feature/curated-color-themes",
+      "sha": "514aa9987cd44231ebb440e816b6b5802e24577b"
+    },
+    {
+      "name": "feature/powerlink-1.3.0",
+      "sha": "7ced031df459d3b33596e199a36481d0d691b28f"
+    },
+    {
+      "name": "feature/powerlink-hacs-stage",
+      "sha": "a49cd25c7d40147ec9c34225810312941c7fa850"
+    },
+    {
+      "name": "feature/powerlink-player-handoff-v1.3.7",
+      "sha": "446af81f68d47b4c3592fd2a30f8fffd3f874c0d"
+    },
+    {
+      "name": "feature/powerlink-v1.3.0-app",
+      "sha": "6c7fe2bab7c5a278f969a24cf58e3864f164b91d"
+    },
+    {
+      "name": "feature/powerlink-v1.3.0-hacs",
+      "sha": "378ec2799be9a16153e953c30cfc873c8351dcf9"
+    },
+    {
+      "name": "feature/powershuffle-v1",
+      "sha": "6d878082d350529edcd77cfdcb21bbcff9c1a8c0"
+    },
+    {
+      "name": "feature/pro-logic-i-matrix-test",
+      "sha": "3a27a0278204810b55c9d1648f9cb3ca161d1bac"
+    },
+    {
+      "name": "feature/prologic-overlay-diagnostics",
+      "sha": "c80df4fe99c291bdb83d9069fa453be2871eb614"
+    },
+    {
+      "name": "fix/powerlink-destination-awake-startup",
+      "sha": "5d477240cd1ab3d9dc5ffd6100ee2434206deb19"
+    },
+    {
+      "name": "fix/powerlink-firetv-pairing-focus-v1.3.8",
+      "sha": "f7b56047c575a31654cdd4d061a5656afdc20d3a"
+    },
+    {
+      "name": "fix/powerlink-handoff-active-player-v1.3.6",
+      "sha": "65e8b6ff26ddb86b6b4024c7802eb5f90ee3660a"
+    },
+    {
+      "name": "fix/powerlink-picker-dpad-v1.3.9",
+      "sha": "af003119709c9c084067d5abd2390ec2d585f8a6"
+    },
+    {
+      "name": "fix/powerlink-queue-artwork-metadata",
+      "sha": "59ee1949b5d32655601b24baae535d097c9f936c"
+    },
+    {
+      "name": "migration/powerplay-canonical-source",
+      "sha": "34ad979607fd5ad4fac893ed26c1846a1a13b54d"
+    },
+    {
+      "name": "release/powerplay-v1.1.2-rc1",
+      "sha": "6050ef42ed5b4f6520294141fa7df7f70d547a08"
+    },
+    {
+      "name": "release/powerplay-v1.2.0-rc1",
+      "sha": "514aa9987cd44231ebb440e816b6b5802e24577b"
+    },
+    {
+      "name": "release/powerplay-v1.2.1-rc1",
+      "sha": "8efc3069d6c8ad108798ffdb28307bbfaa3aff20"
+    },
+    {
+      "name": "release/powerplay-v1.2.4-rc1",
+      "sha": "8ba4cdf0c28c07dc1e87dc4785aac863203cc9c1"
+    },
+    {
+      "name": "release/powerplay-v1.2.4-rc2",
+      "sha": "34ad979607fd5ad4fac893ed26c1846a1a13b54d"
+    },
+    {
+      "name": "release/powerplay-v1.3.0-rc1",
+      "sha": "3fbd6d83776d7181ea294d8d4aabd9cb0322f0df"
+    },
+    {
+      "name": "release/powerplay-v1.3.1-rc1",
+      "sha": "aaa6d5dde92d48e7487b16929ce37aa012469273"
+    },
+    {
+      "name": "release/powerplay-v1.3.6-rc1",
+      "sha": "aa17300d5c0e7ea7580b1c0b0585fe202ec67fd5"
+    },
+    {
+      "name": "release/powerplay-v1.3.7-rc1",
+      "sha": "249dbe3f416cbac1b7342fcaae7660cd3d812bd4"
+    },
+    {
+      "name": "release/powerplay-v1.3.8-rc1",
+      "sha": "e2e318794790fd7fb25f66d3c40db1e154b81bec"
+    },
+    {
+      "name": "release/powerplay-v1.3.9-rc1",
+      "sha": "dfab0f7ae979c0edee617f9f50a6c72efac51aa4"
+    },
+    {
+      "name": "release/powerplay-v1.3.10-rc1",
+      "sha": "df96e57938d3059226b5e5ec56d596974ab5d45c"
+    },
+    {
+      "name": "release/powerplay-v1.4.0-rc1",
+      "sha": "6d878082d350529edcd77cfdcb21bbcff9c1a8c0"
+    },
+    {
+      "name": "release/powerplay-v2.0.0-rc1",
+      "sha": "0fd35407985fe9a282de294a66efc31c57625ed0"
+    },
+    {
+      "name": "release/powerplay-v2.0.1-rc1",
+      "sha": "c2ea1f5882d7d145a48b4ec11d95d314cde8527b"
+    },
+    {
+      "name": "release/powerplay-v2.0.2-rc1",
+      "sha": "cde0b7eef9ffe99d98aef1a9be69555e2b5d060d"
+    },
+    {
+      "name": "release/powerplay-v2.1.0-rc1",
+      "sha": "ca6a461c69162b0112f03dcd370c695dbd90f8d8"
+    },
+    {
+      "name": "release/powerplay-v2.1.1-rc1",
+      "sha": "e8595a82553ef1c020fcf265b22dbc59f486033f"
+    },
+    {
+      "name": "release/powerplay-v2.1.2-rc1",
+      "sha": "f3836beaaba38ee925154cd9586ae104f166e289"
+    },
+    {
+      "name": "release/powerplay-v2.1.2",
+      "sha": "f3836beaaba38ee925154cd9586ae104f166e289"
+    },
+    {
+      "name": "release/powerplay-v2.1.3-rc1",
+      "sha": "a67b36c841e5f7cd613e0c7216827304c244c930"
+    },
+    {
+      "name": "release/powerplay-v2.1.3",
+      "sha": "a67b36c841e5f7cd613e0c7216827304c244c930"
+    },
+    {
+      "name": "upstream/firetv-card-and-detail-rendering",
+      "sha": "29c9afb5fbed77d48f70457c4484819c2466dc5b"
+    },
+    {
+      "name": "upstream/firetv-grid-poster-aspect-ratio",
+      "sha": "44ee64c673c41f8452635ca63daca2d8b9819cf8"
+    },
+    {
+      "name": "upstream/firetv-library-header-stability",
+      "sha": "d2db6efcd9446aad859cb59fdd6e1b68db4a74d5"
+    },
+    {
+      "name": "upstream/firetv-plex-idle-connections",
+      "sha": "11e4fb3203b13de25092e14711fcd79de5f646fd"
+    },
+    {
+      "name": "upstream/firetv-scrub-preview-memory",
+      "sha": "52062d9861669c0ddbbc06238299752344cf654f"
+    },
+    {
+      "name": "upstream/playback-progress-inflight-guard",
+      "sha": "2b4460a2dfb297818131115530700f4cd4bf102b"
+    },
+    {
+      "name": "upstream/plex-reconnect-fresh-endpoints",
+      "sha": "c0afbff7abb0a292995ec36e6b0746f10aaa5517"
+    }
+  ]
+}
