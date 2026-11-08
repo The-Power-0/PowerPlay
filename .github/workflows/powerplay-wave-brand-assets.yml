@@ -42,7 +42,15 @@ jobs:
           from pathlib import Path
           from PIL import Image
           import xml.etree.ElementTree as ET
+          import hashlib
+          approved=Path('assets/brand/powerplay-mark.svg').read_bytes()
+          assert hashlib.sha256(approved).hexdigest() == 'ec899293036bf7e8ce096894c529928c231a3d2e7b7fe804b2f51a1d3d8bb3dc', 'approved v10 SVG changed'
           for p in Path('assets/brand').glob('*.svg'): ET.parse(p)
+          assert Path('docs/artwork/powerplay-icon.svg').read_bytes()==approved
+          for name in ('powerplay-mark-flat.svg','powerplay-mark-monochrome.svg'):
+              assert (Path('assets/brand')/name).read_bytes()==approved
+          for p in Path('assets/app_icons/source').glob('*/foreground.svg'):
+              assert 'frameDiagonal' in p.read_text() and 'pcbStroke' in p.read_text(), p
           for p in ('android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png',
                     'android/app/src/main/res/drawable-xhdpi/tv_banner.png',
                     'docs/artwork/powerplay-banner.webp',

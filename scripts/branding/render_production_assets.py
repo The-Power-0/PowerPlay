@@ -12,9 +12,18 @@ import cairosvg
 ROOT=Path(__file__).resolve().parents[2]
 DIR=ROOT/"assets/brand"
 MARK=(DIR/"powerplay-mark.svg").read_text(encoding="utf-8")
-ICON=(DIR/"powerplay-app-icon.svg").read_text(encoding="utf-8")
-MONO=(DIR/"powerplay-mark-monochrome.svg").read_text(encoding="utf-8")
-FLAT=(DIR/"powerplay-mark-flat.svg").read_text(encoding="utf-8")
+# The exact approved SVG is the only glyph source. The launcher adds a backdrop
+# and safe-area placement, never redraws or simplifies any design detail.
+def launcher_svg() -> str:
+    inner=MARK[MARK.index("<defs>"):MARK.rfind("</svg>")]
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" '
+            f'viewBox="0 0 1024 1024"><rect width="1024" height="1024" '
+            f'rx="168" fill="#05091F"/>'
+            f'<g transform="translate(512 512) scale(.76) translate(-627 -627)">'
+            f'{inner}</g></svg>')
+ICON=launcher_svg()
+MONO=MARK
+FLAT=MARK
 NAVY="#05091F"
 
 def raster(svg,size):
@@ -24,7 +33,7 @@ def raster(svg,size):
 def save(path,im):
     p=ROOT/path
     p.parent.mkdir(parents=True,exist_ok=True)
-    if p.suffix==".webp": im.save(p,"WEBP",quality=94,method=6)
+    if p.suffix==".webp": im.save(p,"WEBP",lossless=True,method=6,exact=True)
     elif p.suffix==".ico":
         im.save(p,"ICO",sizes=[(16,16),(24,24),(32,32),(48,48),(64,64),(128,128),(256,256)])
     else: im.save(p,"PNG",optimize=True)
@@ -51,15 +60,22 @@ def banner():
     return f'''<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="560" viewBox="0 0 1920 560">{d}
 <defs><linearGradient id="word" x1="1200" y1="120" x2="1830" y2="450" gradientUnits="userSpaceOnUse"><stop stop-color="#00DDF9"/><stop offset=".5" stop-color="#1871FF"/><stop offset="1" stop-color="#E22AF6"/></linearGradient></defs>
 <rect width="1920" height="560" rx="28" fill="#05091F"/>
-<g transform="translate(22 14) scale(.52)">{b}</g>
+<g transform="translate(30 27) scale(.40)">{b}</g>
 <path d="M565 115 V442" stroke="#177BFB" stroke-width="3" opacity=".7"/>
 <text x="611" y="302" font-family="DejaVu Sans,Arial,sans-serif" font-size="157" font-weight="900" font-style="italic" letter-spacing="-6" fill="white">POWER</text>
 <text x="1220" y="302" font-family="DejaVu Sans,Arial,sans-serif" font-size="157" font-weight="900" font-style="italic" letter-spacing="-6" fill="url(#word)">PLAY</text>
 <text x="659" y="391" font-family="DejaVu Sans,Arial,sans-serif" font-size="36" letter-spacing="6" fill="#C4D5F4">MEDIA  •  LIBRARIES  •  SHUFFLE  •  POWERLINK</text></svg>'''
 
 def render():
+    # Preserve the approved v10 SVG byte-for-byte as assets/brand/powerplay-mark.svg.
     lockup=banner()
+    (DIR/"powerplay-app-icon.svg").write_text(ICON,encoding="utf-8")
+    (DIR/"powerplay-mark-monochrome.svg").write_text(MARK,encoding="utf-8")
+    (DIR/"powerplay-mark-flat.svg").write_text(MARK,encoding="utf-8")
     (DIR/"powerplay-banner.svg").write_text(lockup,encoding="utf-8")
+    (ROOT/"docs/artwork").mkdir(parents=True,exist_ok=True)
+    (ROOT/"docs/artwork/powerplay-banner.svg").write_text(lockup,encoding="utf-8")
+    (ROOT/"docs/artwork/powerplay-icon.svg").write_text(MARK,encoding="utf-8")
     for n in (64,128,256,512,1024,2048):
         save(f"assets/brand/renders/powerplay-mark-{n}.png",raster(MARK,(n,n)))
     for n in (128,512,1024):
