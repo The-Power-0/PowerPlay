@@ -4,7 +4,7 @@ import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.PI
 import kotlin.math.sin
 
@@ -16,14 +16,15 @@ import kotlin.math.sin
  * Intended for the Fire TV -> HDMI -> TCL optical PCM -> stereo DAC -> receiver path.
  */
 internal class ProLogicSpeakerTest {
-  private val running = AtomicBoolean(false)
+  private val generation = AtomicLong(0)
   @Volatile private var worker: Thread? = null
   @Volatile private var track: AudioTrack? = null
 
   fun play(speaker: String): Boolean {
     if (speaker !in setOf("left", "center", "right", "surround")) return false
     stop()
-    running.set(true)
+    val token = generation.incrementAndGet()
+    val isCurrent = { generation.get() == token }
     val thread = Thread({
       var audio: AudioTrack? = null
       try {
@@ -40,8 +41,9 @@ internal class ProLogicSpeakerTest {
             .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO).build(),
           maxOf(minBuffer, rate / 4), AudioTrack.MODE_STREAM, AudioManager.AUDIO_SESSION_ID_GENERATE
         )
+        if (!isCurrent()) return@Thread
         track = audio
-        if (audio.state != AudioTrack.STATE_INITIALIZED || !running.get()) return@Thread
+        if (audio.state != AudioTrack.STATE_INITIALIZED || !isCurrent()) return@Thread
         audio.play()
         val matrix = ProLogicMatrixEncoder().apply { reset(rate) }
         val channels = FloatArray(6)
@@ -56,7 +58,7 @@ internal class ProLogicSpeakerTest {
         // 1.6 seconds with 80ms linear fades, low output to avoid surprises.
         val totalFrames = rate * 8 / 5
         var offset = 0
-        while (running.get() && offset < totalFrames) {
+        while (isCurrent() && offset < totalFrames) {
           val n = minOf(framesPerChunk, totalFrames - offset)
           for (i in 0 until n) {
             val t = offset + i
@@ -74,7 +76,7 @@ internal class ProLogicSpeakerTest {
             pcm[i * 2 + 1] = (matrix.right * 32767f).toInt().toShort()
           }
           var written = 0
-          while (running.get() && written < n * 2) {
+          while (isCurrent() && written < n * 2) {
             val count = audio.write(pcm, written, n * 2 - written, AudioTrack.WRITE_BLOCKING)
             if (count <= 0) break
             written += count
@@ -82,13 +84,13 @@ internal class ProLogicSpeakerTest {
           if (written < n * 2) break
           offset += n
         }
-        if (running.get()) audio.stop()
+        if (isCurrent()) audio.stop()
       } catch (_: Exception) {
         // The UI remains usable on devices with an unavailable PCM route.
       } finally {
         audio?.release()
         if (track === audio) track = null
-        running.set(false)
+        // A finished older test must not stop a newer test.
       }
     }, "PowerPlay-ProLogic-SpeakerTest").apply { isDaemon = true }
     worker = thread
@@ -97,7 +99,7 @@ internal class ProLogicSpeakerTest {
   }
 
   fun stop() {
-    running.set(false)
+    generation.incrementAndGet()
     try { track?.pause() } catch (_: Exception) {}
     try { track?.flush() } catch (_: Exception) {}
     // Worker owns AudioTrack.release(); never block the Flutter/UI thread.
