@@ -80,7 +80,13 @@ jobs:
           text = manifest.read_text()
           old = 'android:label="PowerPlay"'
           assert text.count(old) == 1
-          manifest.write_text(text.replace(old, 'android:label="PowerPlay Pro Logic Test"'))
+          text = text.replace(old, 'android:label="PowerPlay Pro Logic Test"')
+          # Android content-provider authorities must not collide with
+          # installed production PowerPlay; otherwise Android rejects install.
+          text = text.replace('android:authorities="com.power.powerplay.',
+                              'android:authorities="com.power.powerplay.prologictest.')
+          assert text.count('com.power.powerplay.prologictest.') >= 2
+          manifest.write_text(text)
           PY
       - name: Configure existing test signing identity
         env:
