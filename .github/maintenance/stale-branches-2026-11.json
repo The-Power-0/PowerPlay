@@ -3,8 +3,7 @@
   "confirm": "ARCHIVE_STALE_BRANCHES_2026_11",
   "retained_branches": [
     "main",
-    "audit/android-native-license-transitive-v1.3.9",
-    "maintenance/retire-legacy-builds-2026-11"
+    "audit/android-native-license-transitive-v1.3.9"
   ],
   "branches": [
     {
@@ -222,7 +221,11 @@
     {
       "name": "upstream/plex-reconnect-fresh-endpoints",
       "sha": "c0afbff7abb0a292995ec36e6b0746f10aaa5517"
+    },
+    {
+      "name": "maintenance/retire-legacy-builds-2026-11",
+      "sha": "4a4c17e04c055bdd7f3759b71abbf3dd7a22bfc5"
     }
   ],
-  "retry_revision": 2
+  "retry_revision": 3
 }
