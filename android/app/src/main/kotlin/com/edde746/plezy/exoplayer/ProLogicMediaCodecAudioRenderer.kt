@@ -14,19 +14,28 @@ import androidx.media3.exoplayer.mediacodec.MediaCodecAdapter
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 
 /**
- * Only encoded AC3/EAC3 is eligible for this explicit decoder channel request.
- * Do not request it for stereo or while Pro Logic is disabled, and do not
- * override the special output-layout negotiation used for other audio codecs.
+ * Keep the decoded PCM layout for every FFmpeg-recoverable multichannel codec.
+ * This mirrors FfmpegLibrary.getCodecName, without claiming that an installed
+ * FFmpeg binary necessarily supports every individual stream/profile.
+ * Raw PCM and IAMF keep Media3's own channel-mask negotiation untouched.
  */
 @OptIn(UnstableApi::class)
 internal object ProLogicDecoderChannelPolicy {
-  fun requestedOutputChannels(enabled: Boolean, mimeType: String?, channels: Int): Int? =
-    if (enabled && supportsSoftwareFallback(mimeType) && channels in 3..8) channels else null
+  private val ffmpegRecoverableMimes = setOf(
+    MimeTypes.AUDIO_AAC,
+    MimeTypes.AUDIO_MPEG, MimeTypes.AUDIO_MPEG_L1, MimeTypes.AUDIO_MPEG_L2,
+    MimeTypes.AUDIO_AC3, MimeTypes.AUDIO_E_AC3, MimeTypes.AUDIO_E_AC3_JOC,
+    MimeTypes.AUDIO_TRUEHD, MimeTypes.AUDIO_DTS, MimeTypes.AUDIO_DTS_HD,
+    MimeTypes.AUDIO_VORBIS, MimeTypes.AUDIO_OPUS,
+    MimeTypes.AUDIO_FLAC, MimeTypes.AUDIO_ALAC,
+    MimeTypes.AUDIO_AMR_NB, MimeTypes.AUDIO_AMR_WB,
+    MimeTypes.AUDIO_MLAW, MimeTypes.AUDIO_ALAW
+  )
 
-  fun supportsSoftwareFallback(mimeType: String?): Boolean =
-    mimeType == MimeTypes.AUDIO_AC3 ||
-      mimeType == MimeTypes.AUDIO_E_AC3 ||
-      mimeType == MimeTypes.AUDIO_E_AC3_JOC
+  fun requestedOutputChannels(enabled: Boolean, mimeType: String?, channels: Int): Int? =
+    if (enabled && supportsSoftwareFallback(mimeType) && channels in 3..12) channels else null
+
+  fun supportsSoftwareFallback(mimeType: String?): Boolean = mimeType in ffmpegRecoverableMimes
 
   fun needsSoftwareFallback(
     enabled: Boolean,
@@ -42,8 +51,8 @@ internal object ProLogicDecoderChannelPolicy {
 
 /**
  * Media3 1.11 only sets KEY_MAX_OUTPUT_CHANNEL_COUNT on API 32+.
- * Fire OS 7/8 devices may therefore negotiate stereo PCM for 5.1 AC3
- * even when our custom AudioProcessor can convert 6ch PCM to Lt/Rt.
+ * Fire OS 7/8 devices may negotiate stereo PCM for multichannel
+ * AC3, E-AC3, AAC or other supported codecs before the Lt/Rt matrix sees it.
  *
  * Retain the stock hardware decoder, audio sink and renderer parameters.
  * This only changes a codec configuration hint when Pro Logic is opted in.
