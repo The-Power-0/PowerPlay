@@ -39,9 +39,9 @@ def run():
         if tv.exists():tv.write_text(strip_plezy_background(tv.read_text(encoding="utf-8")),encoding="utf-8")
         color=GLYPH
         if folder.name in {"paper","matcha","gold"}:
-            color=GLYPH.replace('fill="url(#whiteSteel)"','fill="#132243"')
+            color=GLYPH.replace('fill="url(#pSteel)"','fill="#132243"')
         (folder/"foreground.svg").write_text(HEADER+defs(color)+mark(color,.69)+"</svg>\n",encoding="utf-8")
-        (folder/"monochrome.svg").write_text(HEADER+mark(MONO,.69)+"</svg>\n",encoding="utf-8")
+        (folder/"monochrome.svg").write_text(HEADER+defs(MONO)+mark(MONO,.69)+"</svg>\n",encoding="utf-8")
         # Keep theme background and palette; only change the symbol in front.
         root=background.rsplit("</svg>",1)[0]
         (folder/"icon.svg").write_text(root+defs(color)+mark(color,.87)+"</svg>\n",encoding="utf-8")
