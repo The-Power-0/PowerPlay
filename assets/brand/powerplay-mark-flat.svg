@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><defs>
+<linearGradient id="brandDiag" gradientUnits="userSpaceOnUse" x1="166" y1="94" x2="1110" y2="1086"><stop offset="0" stop-color="#00FAF3"/><stop offset=".27" stop-color="#05C9FF"/><stop offset=".51" stop-color="#1477FF"/><stop offset=".74" stop-color="#6C41F5"/><stop offset="1" stop-color="#F309F4"/></linearGradient>
+<linearGradient id="boltDiag" gradientUnits="userSpaceOnUse" x1="310" y1="456" x2="606" y2="966"><stop offset="0" stop-color="#00F7F1"/><stop offset=".37" stop-color="#00C8FF"/><stop offset=".66" stop-color="#246BFF"/><stop offset="1" stop-color="#BE2AFF"/></linearGradient>
+<linearGradient id="pSteel" gradientUnits="userSpaceOnUse" x1="286" y1="405" x2="755" y2="732"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".52" stop-color="#F9FCFF"/><stop offset="1" stop-color="#DFE0FF"/></linearGradient>
+<linearGradient id="navyInner" gradientUnits="userSpaceOnUse" x1="205" y1="185" x2="1032" y2="982"><stop stop-color="#001333"/><stop offset=".52" stop-color="#050A27"/><stop offset="1" stop-color="#10012F"/></linearGradient>
+<linearGradient id="topWave" gradientUnits="userSpaceOnUse" x1="229" y1="248" x2="947" y2="536"><stop stop-color="#0EEFFF" stop-opacity=".93"/><stop offset=".47" stop-color="#1289F9" stop-opacity=".72"/><stop offset="1" stop-color="#4518FF" stop-opacity="0"/></linearGradient>
+<linearGradient id="bottomWave" gradientUnits="userSpaceOnUse" x1="237" y1="927" x2="1008" y2="633"><stop stop-color="#0879FF" stop-opacity=".85"/><stop offset=".48" stop-color="#643CFF" stop-opacity=".88"/><stop offset="1" stop-color="#F01EFF" stop-opacity=".86"/></linearGradient>
+<linearGradient id="midWave" gradientUnits="userSpaceOnUse" x1="232" y1="575" x2="999" y2="709"><stop stop-color="#00A4FF" stop-opacity=".72"/><stop offset=".48" stop-color="#2763FF" stop-opacity=".12"/><stop offset="1" stop-color="#D626F6" stop-opacity=".8"/></linearGradient>
+<filter id="edgeGlow" x="-24%" y="-24%" width="148%" height="148%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="12"/></filter>
+<filter id="traceGlow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4.8"/></filter>
+<path id="triangle" d="M287 110 C247 110 211 145 211 196 L211 1037 C211 1103 258 1132 310 1113 C323 1109 330 1104 343 1096 L1033 669 C1096 631 1090 587 1030 549 L335 123 C319 114 306 110 287 110 Z"/>
+<clipPath id="inside"><use href="#triangle"/></clipPath>
+<path id="bolt" d="M487 488 L598 488 L524 591 L617 591 L301 985 L433 704 L343 704 Z"/>
+<clipPath id="boltClip"><use href="#bolt"/></clipPath>
+</defs><g transform="scale(0.81658692185)"><use href="#triangle" fill="none" stroke="url(#brandDiag)" stroke-width="48" stroke-linejoin="round"/><path d="M324 393 L601 393 C701 392 752 452 752 551 C752 651 696 717 605 721 L529 721 L590 619 L612 619 C670 619 686 587 684 557 C682 512 650 487 605 487 L281 487 L293 435 C297 409 307 393 324 393 Z" fill="#FFFFFF"/><use href="#bolt" fill="url(#boltDiag)"/></g></svg>
