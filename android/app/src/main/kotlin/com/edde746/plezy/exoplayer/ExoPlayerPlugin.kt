@@ -42,6 +42,7 @@ class ExoPlayerPlugin :
   private var sessionGeneration = 0
   private var mediaGeneration = 0
   private var debugLoggingEnabled = false
+  private val proLogicSpeakerTest = ProLogicSpeakerTest()
 
   override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     channels.attach(binding)
@@ -59,7 +60,10 @@ class ExoPlayerPlugin :
     playerCore = null
     coreInstanceId = null
     observedProperties.clear()
-    if (clearActivity) activity = null
+    if (clearActivity) {
+      proLogicSpeakerTest.stop()
+      activity = null
+    }
     core?.dispose()
   }
 
@@ -229,6 +233,18 @@ class ExoPlayerPlugin :
         it.setAudioPassthrough(call.argument<Boolean>("enabled") ?: false)
         result.success(true)
       }
+      "setProLogicEnabled" -> withCore(result) {
+        it.setProLogicEnabled(call.argument<Boolean>("enabled") ?: false)
+        result.success(true)
+      }
+      "startProLogicSpeakerTest" -> {
+        val speaker = call.argument<String>("speaker")
+        result.success(if (activity != null && speaker != null) proLogicSpeakerTest.play(speaker) else false)
+      }
+      "stopProLogicSpeakerTest" -> {
+        proLogicSpeakerTest.stop()
+        result.success(true)
+      }
       "setAudioDownmix" -> withCore(result) {
         it.setAudioDownmix(
           call.argument<Boolean>("enabled") ?: false,
@@ -272,6 +288,7 @@ class ExoPlayerPlugin :
   }
 
   private fun initialize(call: MethodCall, result: MethodChannel.Result) {
+    proLogicSpeakerTest.stop()
     val a = activity
     if (a == null) {
       result.error("NO_ACTIVITY", "Activity is unavailable", null)
