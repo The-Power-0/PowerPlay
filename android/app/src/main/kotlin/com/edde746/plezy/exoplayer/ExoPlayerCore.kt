@@ -45,6 +45,7 @@ import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.cronet.CronetDataSource
+import androidx.media3.decoder.ffmpeg.FfmpegAudioRenderer
 import androidx.media3.exoplayer.DecoderReuseEvaluation
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
@@ -3670,12 +3671,20 @@ class ExoPlayerCore(private val activity: Activity) :
       if (ProLogicDecoderChannelPolicy.needsSoftwareFallback(
           proLogicEnabled, mime, format.channelCount, processor.configuredInputChannels,
           stereoPcm, mime in proLogicSoftwareDecoderMimes
-        ) && proLogicSoftwareDecoderMimes.add(mime)
+        )
       ) {
-        emitLog("warn", "audio-prologic",
-          "Decoder delivered ${processor.configuredInputChannels}ch from " +
-          "${format.channelCount}ch $mime; retrying bundled FFmpeg for full Lt/Rt matrix input")
-        startAudioRendererBounce("pro-logic multichannel decoder fallback")
+        if (FfmpegAudioRenderer.canDecode(mime) && proLogicSoftwareDecoderMimes.add(mime)) {
+          emitLog("warn", "audio-prologic",
+            "Decoder delivered ${processor.configuredInputChannels}ch from " +
+            "${format.channelCount}ch $mime; retrying bundled FFmpeg for full Lt/Rt matrix input")
+          startAudioRendererBounce("pro-logic multichannel decoder fallback")
+        } else {
+          // Never evict a working platform decoder when this build lacks a
+          // matching FFmpeg codec; report reduced PCM and keep audio playing.
+          emitLog("warn", "audio-prologic",
+            "Missing usable FFmpeg decoder for $mime; keeping available " +
+            "${processor.configuredInputChannels}ch PCM")
+        }
       }
     }
     proLogicFallbackCheck = check
