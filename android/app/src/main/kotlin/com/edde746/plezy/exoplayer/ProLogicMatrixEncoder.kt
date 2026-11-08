@@ -36,14 +36,18 @@ internal class ProLogicMatrixEncoder {
   private var hpPrevInput = 0f
   private var hpPrevOutput = 0f
   private var lpOutput = 0f
-  private var sampleRate = 48000
+  private var hpAlpha = 0f
+  private var lpAlpha = 0f
   var left = 0f
     private set
   var right = 0f
     private set
 
   fun reset(rate: Int) {
-    sampleRate = rate.coerceAtLeast(8000)
+    val sampleRate = rate.coerceAtLeast(8000)
+    val dt = 1f / sampleRate
+    hpAlpha = ((1.0 / (2.0 * PI * 100.0)).toFloat()).let { it / (it + dt) }
+    lpAlpha = dt / ((1.0 / (2.0 * PI * 7000.0)).toFloat() + dt)
     leftDelay.fill(0f)
     rightDelay.fill(0f)
     centerDelay.fill(0f)
@@ -76,14 +80,9 @@ internal class ProLogicMatrixEncoder {
     }
 
     // First-order HP at 100 Hz and LP at 7 kHz, matched to Pro Logic I rear.
-    val dt = 1f / sampleRate
-    val hpRc = (1.0 / (2.0 * PI * 100.0)).toFloat()
-    val hpAlpha = hpRc / (hpRc + dt)
     val hp = hpAlpha * (hpPrevOutput + surround - hpPrevInput)
     hpPrevInput = surround
     hpPrevOutput = hp
-    val lpRc = (1.0 / (2.0 * PI * 7000.0)).toFloat()
-    val lpAlpha = dt / (lpRc + dt)
     lpOutput += lpAlpha * (hp - lpOutput)
 
     leftDelay[head] = l
