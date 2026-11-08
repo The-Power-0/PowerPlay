@@ -216,6 +216,22 @@ class PerformanceStatsService {
         audioChannels: CodecUtils.formatAudioChannels(statsMap['audioChannels'] as int?),
         audioBitrate: statsMap['audioBitrate'] as int?,
         audioDecoderName: statsMap['audioDecoderName'] as String?,
+        // All fields come from the existing single ExoPlayer getStats() read.
+        // No additional timer, per-sample introspection or platform channel.
+        proLogicEnabled: statsMap['proLogicEnabled'] as bool?,
+        proLogicProcessorConfigured: statsMap['proLogicProcessorConfigured'] as bool?,
+        proLogicEncoding: statsMap['proLogicEncoding'] as bool?,
+        proLogicOutputStereoPcm: statsMap['proLogicOutputStereoPcm'] as bool?,
+        proLogicInputChannels: (statsMap['proLogicInputChannels'] as num?)?.toInt(),
+        proLogicOutputChannels: (statsMap['proLogicOutputChannels'] as num?)?.toInt(),
+        proLogicOutputSampleRate: (statsMap['proLogicOutputSampleRate'] as num?)?.toInt(),
+        proLogicOutputEncoding: statsMap['proLogicOutputEncoding'] as String?,
+        proLogicProcessedFrames: (statsMap['proLogicProcessedFrames'] as num?)?.toInt(),
+        proLogicProcessedBuffers: (statsMap['proLogicProcessedBuffers'] as num?)?.toInt(),
+        proLogicAverageBufferUs: (statsMap['proLogicAverageBufferUs'] as num?)?.toDouble(),
+        proLogicPeakBufferUs: (statsMap['proLogicPeakBufferUs'] as num?)?.toInt(),
+        proLogicAudioTimePercent: (statsMap['proLogicAudioTimePercent'] as num?)?.toDouble(),
+        audioUnderruns: (statsMap['audioUnderruns'] as num?)?.toInt(),
         // Tunneling
         tunneledPlayback: statsMap['tunneledPlayback'] == true,
         tunnelingStatus: statsMap['tunnelingStatus'] as String?,
