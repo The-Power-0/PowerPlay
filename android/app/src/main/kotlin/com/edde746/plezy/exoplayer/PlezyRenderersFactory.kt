@@ -63,7 +63,7 @@ class PlezyRenderersFactory(context: Context) : DefaultRenderersFactory(context)
   }
 
   // Matrix encoding happens before the existing Lo/Ro channel mixer; stereo stays untouched.
-  val proLogicProcessor = ProLogicAudioProcessor()
+  internal val proLogicProcessor = ProLogicAudioProcessor()
 
   val channelMixProcessor = ChannelMixingAudioProcessor().apply {
     for (matrix in identityChannelMixingMatrices) putChannelMixingMatrix(matrix)
