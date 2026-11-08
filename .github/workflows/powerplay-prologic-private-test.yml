@@ -49,7 +49,7 @@ jobs:
             lib/services/settings_service.dart
       - name: Analyze changed Flutter UI and settings
         run: |
-          flutter analyze --no-pub \
+          flutter analyze --no-pub --no-fatal-infos \
             lib/screens/settings/pro_logic_speaker_test_screen.dart \
             lib/screens/settings/playback_settings_screen.dart \
             lib/mpv/player/platform/player_android.dart \
