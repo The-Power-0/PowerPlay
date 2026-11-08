@@ -46,7 +46,8 @@ internal object ProLogicDecoderChannelPolicy {
     alreadyRetried: Boolean
   ): Boolean =
     requestedOutputChannels(enabled, mimeType, sourceChannels) != null &&
-      decodedChannels == 2 && stereoPcmOutput && !alreadyRetried
+      decodedChannels in 1 until sourceChannels &&
+      stereoPcmOutput && !alreadyRetried
 }
 
 /**
