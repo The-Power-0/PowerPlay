@@ -223,5 +223,6 @@
       "name": "upstream/plex-reconnect-fresh-endpoints",
       "sha": "c0afbff7abb0a292995ec36e6b0746f10aaa5517"
     }
-  ]
+  ],
+  "retry_revision": 2
 }
