@@ -18,6 +18,7 @@ class PlayerAndroid extends PlayerBase {
   bool _audioNormalizationEnabled = false;
   bool _audioPassthroughEnabled = false;
   bool _downmixEnabled = false;
+  bool _proLogicEnabled = false;
   int _downmixCenterBoostDb = 0;
   bool _downmixNormalize = true;
   double? _requestedVolume;
@@ -123,6 +124,7 @@ class PlayerAndroid extends PlayerBase {
         'centerBoostDb': _downmixCenterBoostDb,
         'normalize': _downmixNormalize,
       });
+      await invoke('setProLogicEnabled', {'enabled': _proLogicEnabled});
       final pendingVolume = _requestedVolume;
       if (pendingVolume != null) {
         await invoke('setVolume', {'volume': pendingVolume});
@@ -369,6 +371,16 @@ class PlayerAndroid extends PlayerBase {
     await _applyWhenInitialized(
       () => invoke('setAudioDownmix', {'enabled': enabled, 'centerBoostDb': centerBoostDb, 'normalize': normalize}),
       () => _downmixEnabled == enabled && _downmixCenterBoostDb == centerBoostDb && _downmixNormalize == normalize,
+    );
+  }
+
+  /// Fire TV-only original Pro Logic PCM matrix; independent of stereo downmix.
+  Future<void> setProLogicEnabled(bool enabled) async {
+    if (disposed) return;
+    _proLogicEnabled = enabled;
+    await _applyWhenInitialized(
+      () => invoke('setProLogicEnabled', {'enabled': enabled}),
+      () => _proLogicEnabled == enabled,
     );
   }
 
