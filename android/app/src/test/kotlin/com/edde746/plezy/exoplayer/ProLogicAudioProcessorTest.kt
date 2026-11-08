@@ -41,7 +41,7 @@ class ProLogicAudioProcessorTest {
         val result = processor.configure(AudioProcessor.AudioFormat(48000, count, encoding))
         assertTrue("encoding=$encoding count=$count", processor.isActive)
         assertEquals(2, result.channelCount)
-        assertEquals(encoding, result.encoding)
+        assertEquals(AudioFormat.ENCODING_PCM_16BIT, result.encoding)
         assertEquals(48000, result.sampleRate)
       }
     }
@@ -91,10 +91,10 @@ class ProLogicAudioProcessorTest {
     pcm.flip()
     processor.queueInput(pcm)
     val out = processor.getOutput().order(ByteOrder.nativeOrder())
-    assertEquals(frames * 2 * 4, out.remaining())
+    assertEquals(frames * 2 * 2, out.remaining())
     assertEquals(frames.toLong(), processor.processedFrames)
     var energy = 0f
-    while (out.hasRemaining()) energy += kotlin.math.abs(out.getFloat())
+    while (out.hasRemaining()) energy += kotlin.math.abs(out.getShort().toInt()) / 32768f
     assertTrue("Extended front-height audio must be audible", energy > 1f)
   }
 
@@ -112,7 +112,7 @@ class ProLogicAudioProcessorTest {
     pcm.flip()
     processor.queueInput(pcm)
     val out = processor.getOutput()
-    assertEquals(frames * 2 * 3, out.remaining())
+    assertEquals(frames * 2 * 2, out.remaining())
     var nonzero = false
     while (out.hasRemaining()) if (out.get().toInt() != 0) nonzero = true
     assertTrue("Front-left 24-bit PCM should produce nonzero Lt", nonzero)
