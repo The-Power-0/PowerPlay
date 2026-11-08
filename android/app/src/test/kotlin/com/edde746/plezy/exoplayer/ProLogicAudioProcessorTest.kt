@@ -93,14 +93,16 @@ class ProLogicAudioProcessorTest {
     val out = processor.getOutput().order(ByteOrder.nativeOrder())
     assertEquals(frames * 2 * 4, out.remaining())
     assertEquals(frames.toLong(), processor.processedFrames)
-    assertTrue("Extended front-height audio must be audible", out.getFloat() != 0f || out.getFloat() != 0f)
+    var energy = 0f
+    while (out.hasRemaining()) energy += kotlin.math.abs(out.getFloat())
+    assertTrue("Extended front-height audio must be audible", energy > 1f)
   }
 
   @Test fun packedPcm24IsConvertedToStereoWithCorrectBufferShape() {
     val processor = ProLogicAudioProcessor().apply { enabled = true }
     processor.configure(AudioProcessor.AudioFormat(48000, 6, AudioFormat.ENCODING_PCM_24BIT_PACKED))
     processor.flush()
-    val frames = 32
+    val frames = 192
     val pcm = ByteBuffer.allocateDirect(frames * 6 * 3).order(ByteOrder.nativeOrder())
     repeat(frames) {
       // +0.5 on front left, remaining channels silent.
@@ -111,7 +113,9 @@ class ProLogicAudioProcessorTest {
     processor.queueInput(pcm)
     val out = processor.getOutput()
     assertEquals(frames * 2 * 3, out.remaining())
-    assertTrue("Front-left 24-bit PCM should produce nonzero Lt", (out.get().toInt() or out.get().toInt() or out.get().toInt()) != 0)
+    var nonzero = false
+    while (out.hasRemaining()) if (out.get().toInt() != 0) nonzero = true
+    assertTrue("Front-left 24-bit PCM should produce nonzero Lt", nonzero)
   }
 
 }
