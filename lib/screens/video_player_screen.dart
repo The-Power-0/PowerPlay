@@ -2248,6 +2248,15 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
         );
       }
 
+      // On Android ExoPlayer this overrides passthrough/downmix with a
+      // phase-preserving Lt/Rt matrix for multichannel tracks. The preference
+      // is off by default, and mono/stereo remain unchanged.
+      if (currentPlayer is PlayerAndroid) {
+        await currentPlayer.setProLogicEnabled(
+          settingsService.read(SettingsService.proLogicMatrixEnabled),
+        );
+      }
+
       if (PlatformDetector.isDesktopOS()) {
         await currentPlayer.setProperty('screenshot-directory', '~/Pictures');
       }

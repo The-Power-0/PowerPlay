@@ -23,6 +23,7 @@ import 'external_player_screen.dart';
 import 'mpv_config_screen.dart';
 import 'settings_utils.dart';
 import 'subtitle_styling_screen.dart';
+import 'pro_logic_speaker_test_screen.dart';
 
 class PlaybackSettingsScreen extends StatelessWidget {
   const PlaybackSettingsScreen({super.key});
@@ -107,10 +108,28 @@ class PlaybackSettingsScreen extends StatelessWidget {
               children: [
                 if (PlatformDetector.supportsAudioPassthrough()) _audioPassthroughTile(),
                 _audioChannelLimitTile(exoActive: exoActive),
+                if (exoActive) SettingSwitchTile(
+                  pref: SettingsService.proLogicMatrixEnabled,
+                  icon: Symbols.surround_sound_rounded,
+                  title: 'Pro Logic I matrix surround (experimental)',
+                  subtitle: 'Off by default. Encode 3–8 channel PCM into stereo Lt/Rt for an original Dolby Pro Logic receiver. Existing stereo is unchanged. Requires PCM audio output and disables encoded passthrough/tunneling during playback.',
+                ),
                 // Only a stereo fold mixes the center away; any fold can clip.
                 if (channelLimit == AudioChannelLimit.stereo) _downmixCenterBoostTile(),
                 if (channelLimit != AudioChannelLimit.original) _downmixNormalizeTile(),
                 _maxVolumeTile(),
+              ],
+            ),
+
+            if (exoActive) SettingsGroup(
+              title: 'Speaker diagnostics',
+              children: [
+                SettingNavigationTile(
+                  icon: Symbols.speaker_group_rounded,
+                  title: 'Test Pro Logic speaker output',
+                  subtitle: 'Check front left, center, front right, and mono rear steering. Works with the feature switched off.',
+                  destinationBuilder: (_) => const ProLogicSpeakerTestScreen(),
+                ),
               ],
             ),
 
