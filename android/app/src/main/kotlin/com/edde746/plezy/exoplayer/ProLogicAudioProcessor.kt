@@ -59,7 +59,7 @@ internal class ProLogicAudioProcessor : BaseAudioProcessor() {
     val output = replaceOutputBuffer(frames * 2 * bytes)
     repeat(frames) {
       for (i in 0 until channels) {
-        frame[i] = if (bytes == 4) inputBuffer.float else inputBuffer.short / 32768f
+        frame[i] = if (bytes == 4) inputBuffer.getFloat() else inputBuffer.getShort() / 32768f
       }
       matrix.encodeFrame(frame, channels)
       if (bytes == 4) {
