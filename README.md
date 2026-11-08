@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/artwork/powerplay-banner.webp" alt="PowerPlay blue-purple equilateral play-button artwork" width="640" />
+<img src="docs/artwork/powerplay-banner.svg" alt="PowerPlay blue-purple equilateral play-button artwork" width="640" />
 
 # PowerPlay
 
@@ -176,7 +176,7 @@ The project does not claim that every transitive native-dependency licensing, so
 
 <div align="center">
 
-<img src="docs/artwork/powerplay-icon.webp" width="120" alt="PowerPlay icon" />
+<img src="docs/artwork/powerplay-icon.svg" width="120" alt="PowerPlay icon" />
 
 *Pick a show. Press play. Let PowerPlay handle the rest.*
 

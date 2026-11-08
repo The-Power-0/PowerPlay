@@ -261,7 +261,7 @@ class Renderer:
             args += ["-background", "black", "-alpha", "remove", "-alpha", "off"]
         _run(*args, "-define", "png:compression-level=9", str(out))
 
-    def webp(self, source: Path, out: Path, *, lossless: bool = False) -> None:
+    def webp(self, source: Path, out: Path, *, lossless: bool = True) -> None:
         out.parent.mkdir(parents=True, exist_ok=True)
         quality = ["-lossless", "-z", "9"] if lossless else ["-q", WEBP_QUALITY, "-sharp_yuv", "-alpha_q", "100"]
         _run(self.cwebp, "-quiet", "-m", "6", "-metadata", "none", *quality, str(source), "-o", str(out))

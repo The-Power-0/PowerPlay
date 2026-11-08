@@ -1,13 +1,15 @@
-# PowerPlay brand assets — 2.0.0 candidate
+# PowerPlay Wave + Circuit brand (review master)
 
-The primary mark is a **right-facing equilateral play triangle** surrounding a white P and a cyan lightning strike. It is intentionally related to, but visually distinct from, PowerLink's paired-link mark.
+## Approved concept
+The user-approved raster remains the visual reference. These editable SVG masters recreate its rounded right-facing play triangle, optically left-shifted white P, flowing background bands, and circuit-only lightning bolt without a heartbeat/pulse motif. The color direction is diagonally cyan (upper left) through blue and violet to magenta (lower right).
 
-* `powerplay-mark.svg`: luminous transparent primary glyph.
-* `powerplay-mark-monochrome.svg`: single-color fallback for toolbar and accessibility use.
-* `powerplay-app-icon.svg`: dark navy rounded-square app icon.
-* `powerplay-banner.svg`: official GitHub masthead.
-* The Android launcher, splash, Fire TV banners, platform icon layers, Flutter assets, and documentation imagery are generated from these approved masters.
+The SVG masters are vector recreations, not pixel-identical automatic traces of the raster reference. Review SVG and generated PNGs side by side before release.
 
-Color roles: PowerPlay uses white, cyan, electric blue and **purple**; PowerLink uses white, cyan and **blue** with restrained shared accents. Use flat assets at small UI sizes, rather than blurred glow.
+- `powerplay-mark.svg`: transparent master for glyphs and splash.
+- `powerplay-mark-flat.svg`: simplified high-legibility icon.
+- `powerplay-mark-monochrome.svg`: true one-color silhouette.
+- `powerplay-app-icon.svg`: Fire TV/Android launcher tile.
+- `powerplay-banner.svg`: generated README banner.
+- `renders/`: generated PNG exports.
 
-**Compatibility:** keep `com.power.powerplay`, `powerplay://`, existing queue state keys and all PowerLink/PowerShuffle protocols unchanged. Internal `plezy` identifiers inherited from the upstream fork are not public branding and must only be renamed with comprehensive import/native tests. Preserve GPL attribution, original copyright notices and upstream-source provenance.
+Run `python scripts/branding/render_production_assets.py`, `python scripts/branding/refresh_alternate_icons.py`, then `python scripts/codegen/generate_app_icons.py`. Stable IDs, signing identity, package name, playback logic and PowerLink protocol are not changed. Do not publish before review.
