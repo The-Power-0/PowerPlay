@@ -62,6 +62,9 @@ class PlezyRenderersFactory(context: Context) : DefaultRenderersFactory(context)
     )
   }
 
+  // Matrix encoding happens before the existing Lo/Ro channel mixer; stereo stays untouched.
+  val proLogicProcessor = ProLogicAudioProcessor()
+
   val channelMixProcessor = ChannelMixingAudioProcessor().apply {
     for (matrix in identityChannelMixingMatrices) putChannelMixingMatrix(matrix)
   }
@@ -191,7 +194,7 @@ class PlezyRenderersFactory(context: Context) : DefaultRenderersFactory(context)
       .setEnableAudioOutputPlaybackParameters(enableAudioOutputPlaybackParams)
       // Wraps in DefaultAudioProcessorChain, keeping stock silence-skip +
       // Sonic; the downmix runs first and only in the decoded-PCM path.
-      .setAudioProcessors(arrayOf(channelMixProcessor))
+      .setAudioProcessors(arrayOf(proLogicProcessor, channelMixProcessor))
       .setAudioOutputProvider(RawPositionOutputProvider(realProvider, rawPositionUs, audioDiagnosticsLogger))
       .build()
 
