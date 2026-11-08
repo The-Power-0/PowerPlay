@@ -18,6 +18,7 @@ import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
  * Do not request it for stereo or while Pro Logic is disabled, and do not
  * override the special output-layout negotiation used for other audio codecs.
  */
+@OptIn(UnstableApi::class)
 internal object ProLogicDecoderChannelPolicy {
   fun requestedOutputChannels(enabled: Boolean, mimeType: String?, channels: Int): Int? =
     if (enabled && supportsSoftwareFallback(mimeType) && channels in 3..8) channels else null
