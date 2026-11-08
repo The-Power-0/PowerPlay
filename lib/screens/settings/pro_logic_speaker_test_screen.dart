@@ -33,7 +33,9 @@ class _ProLogicSpeakerTestScreenState extends State<ProLogicSpeakerTestScreen> {
         if (ok != true) _error = 'Could not start PCM speaker test. Verify the audio output is available.';
       });
     } on PlatformException catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       setState(() { _error = 'Audio test failed: ${e.message ?? e.code}'; });
     } finally {
       if (mounted) setState(() { _busy = false; });
@@ -46,7 +48,9 @@ class _ProLogicSpeakerTestScreenState extends State<ProLogicSpeakerTestScreen> {
     } on PlatformException {
       // Leaving this screen also requests a stop.
     }
-    if (mounted) setState(() { _lastChannel = null; });
+    if (mounted) {
+      setState(() { _lastChannel = null; });
+    }
   }
 
   @override
