@@ -97,6 +97,14 @@ class _PlayerPerformanceOverlayState extends State<PlayerPerformanceOverlay> {
         if (_stats.hasValidAudioBitrate) _metric(t.fileInfo.bitrate, _stats.audioBitrateFormatted),
         if (!isMpv && _stats.audioDecoderName != null)
           _metric(t.performanceOverlay.decoder, _stats.audioDecoderFormatted),
+        // Piggybacks on the same 500 ms ExoPlayer stats snapshot. Keep the
+        // normal/off state compact: expanded details only when enabled.
+        if (_stats.hasProLogicDiagnostics) _metric('Pro Logic I', _stats.proLogicStateFormatted),
+        if (_stats.proLogicEnabled == true) _metric('PCM path', _stats.proLogicPathFormatted),
+        if (_stats.proLogicEnabled == true && (_stats.proLogicProcessedBuffers ?? 0) > 0)
+          _metric('DSP load', _stats.proLogicLoadFormatted),
+        if (_stats.proLogicEnabled == true)
+          _metric('Audio health', _stats.proLogicBuffersFormatted),
       ]),
       if (isMpv)
         _buildSection(Symbols.palette_rounded, t.performanceOverlay.color, [

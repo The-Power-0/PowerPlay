@@ -23,6 +23,33 @@ internal class ProLogicAudioProcessor : BaseAudioProcessor() {
   private var channels = 0
   private var encoding = 0
 
+  // A single playback-thread writer, read from the existing 500 ms overlay stats
+  // call. No logging, allocations or additional polling on the PCM hot path.
+  @Volatile var configuredInputChannels: Int = 0
+    private set
+  @Volatile var configuredSampleRate: Int = 0
+    private set
+  @Volatile var configuredPcmEncoding: Int = 0
+    private set
+  @Volatile var processedFrames: Long = 0
+    private set
+  @Volatile var processedBuffers: Long = 0
+    private set
+  @Volatile var processingTimeNs: Long = 0
+    private set
+  @Volatile var peakBufferTimeNs: Long = 0
+    private set
+  @Volatile var lastBufferTimeNs: Long = 0
+    private set
+
+  /** Percent of one real-time audio stream budget, not total device CPU usage. */
+  fun audioTimeBudgetPercent(): Double? {
+    val frames = processedFrames
+    val rate = configuredSampleRate
+    if (frames <= 0 || rate <= 0) return null
+    return processingTimeNs.toDouble() * rate * 100.0 / (frames * 1_000_000_000.0)
+  }
+
   override fun onConfigure(format: AudioProcessor.AudioFormat): AudioProcessor.AudioFormat {
     pendingChannels = format.channelCount
     pendingEncoding = format.encoding
@@ -40,6 +67,14 @@ internal class ProLogicAudioProcessor : BaseAudioProcessor() {
   override fun onFlush(streamMetadata: AudioProcessor.StreamMetadata) {
     channels = pendingChannels
     encoding = pendingEncoding
+    configuredInputChannels = channels
+    configuredSampleRate = inputAudioFormat.sampleRate
+    configuredPcmEncoding = encoding
+    processedFrames = 0
+    processedBuffers = 0
+    processingTimeNs = 0
+    peakBufferTimeNs = 0
+    lastBufferTimeNs = 0
     matrix.reset(inputAudioFormat.sampleRate)
   }
 
@@ -48,6 +83,14 @@ internal class ProLogicAudioProcessor : BaseAudioProcessor() {
     pendingEncoding = 0
     channels = 0
     encoding = 0
+    configuredInputChannels = 0
+    configuredSampleRate = 0
+    configuredPcmEncoding = 0
+    processedFrames = 0
+    processedBuffers = 0
+    processingTimeNs = 0
+    peakBufferTimeNs = 0
+    lastBufferTimeNs = 0
     matrix.reset(48000)
   }
 
@@ -56,6 +99,8 @@ internal class ProLogicAudioProcessor : BaseAudioProcessor() {
     val bytes = if (encoding == AudioFormat.ENCODING_PCM_FLOAT) 4 else 2
     val inputFrameBytes = channels * bytes
     val frames = inputBuffer.remaining() / inputFrameBytes
+    if (frames == 0) return
+    val startNs = System.nanoTime()
     val output = replaceOutputBuffer(frames * 2 * bytes)
     repeat(frames) {
       for (i in 0 until channels) {
@@ -71,5 +116,11 @@ internal class ProLogicAudioProcessor : BaseAudioProcessor() {
       }
     }
     output.flip()
+    val elapsedNs = (System.nanoTime() - startNs).coerceAtLeast(0)
+    processedFrames += frames
+    processedBuffers++
+    processingTimeNs += elapsedNs
+    lastBufferTimeNs = elapsedNs
+    if (elapsedNs > peakBufferTimeNs) peakBufferTimeNs = elapsedNs
   }
 }

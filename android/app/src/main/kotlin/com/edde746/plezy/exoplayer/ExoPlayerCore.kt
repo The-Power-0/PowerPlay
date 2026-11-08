@@ -314,6 +314,7 @@ class ExoPlayerCore(private val activity: Activity) :
   private var decoderInitName: String? = null
   private var audioDecoderInitName: String? = null
   private var lastAudioTrackConfig: AudioSink.AudioTrackConfig? = null
+  private var audioUnderrunCount: Int = 0
   private val directAudioOutputBlockedAfterFailure = mutableSetOf<String>()
   private val loggedDirectAudioRecoveryBlocks = mutableSetOf<String>()
   private var audioRecoveryAttempts: Int = 0
@@ -2943,6 +2944,7 @@ class ExoPlayerCore(private val activity: Activity) :
       bufferSizeMs: Long,
       elapsedSinceLastFeedMs: Long
     ) {
+      audioUnderrunCount++
       emitLog(
         "warn",
         "audio",
@@ -3430,6 +3432,7 @@ class ExoPlayerCore(private val activity: Activity) :
     audioDecoderInitName = null
     lastAudioTrackConfig = null
     lastAudioSinkError = null
+    audioUnderrunCount = 0
     audioRecoveryAttempts = 0
     lastAudioRecoveryAction = null
     lastAudioRecoveryReason = null
@@ -4193,6 +4196,17 @@ class ExoPlayerCore(private val activity: Activity) :
     val videoFormat = player.videoFormat
     val audioFormat = player.audioFormat
     val audioTrackConfig = lastAudioTrackConfig
+    val proLogicProcessor = renderersFactory?.proLogicProcessor
+    val proLogicFrames = proLogicProcessor?.processedFrames ?: 0L
+    val outputIsStereoPcm = audioTrackConfig?.let {
+      isPcmEncoding(it.encoding) && Integer.bitCount(it.channelConfig) == 2 &&
+        !it.tunneling && !it.offload
+    } == true
+    // 'active' means our own PCM encoder ran and the Media3 AudioTrack is
+    // configured as stereo PCM. It does NOT prove that downstream hardware
+    // preserves the phase relationship or that a receiver steers it correctly.
+    val proLogicEncoding = proLogicEnabled && proLogicFrames > 0 &&
+      proLogicProcessor?.isActive == true && outputIsStereoPcm
 
     // Get decoder info from the format's codecs field and check if hardware accelerated
     val videoDecoderInfo = getVideoDecoderInfo(videoFormat)
@@ -4274,6 +4288,26 @@ class ExoPlayerCore(private val activity: Activity) :
       "audioRecoveryAttempts" to audioRecoveryAttempts,
       "audioRecoveryLastAction" to lastAudioRecoveryAction,
       "audioRecoveryLastReason" to lastAudioRecoveryReason,
+      "audioUnderruns" to audioUnderrunCount,
+      // Piggyback on the existing stats read; no separate timer, threads,
+      // per-frame logging or samples shipped across the Flutter bridge.
+      "proLogicEnabled" to proLogicEnabled,
+      "proLogicProcessorConfigured" to (proLogicProcessor?.isActive == true),
+      "proLogicEncoding" to proLogicEncoding,
+      "proLogicInputChannels" to proLogicProcessor?.configuredInputChannels,
+      "proLogicInputSampleRate" to proLogicProcessor?.configuredSampleRate,
+      "proLogicInputEncoding" to proLogicProcessor?.configuredPcmEncoding,
+      "proLogicOutputStereoPcm" to outputIsStereoPcm,
+      "proLogicOutputEncoding" to audioTrackConfig?.let { audioEncodingName(it.encoding) },
+      "proLogicOutputChannels" to audioTrackConfig?.channelConfig?.let { Integer.bitCount(it) },
+      "proLogicOutputSampleRate" to audioTrackConfig?.sampleRate,
+      "proLogicProcessedFrames" to proLogicFrames,
+      "proLogicProcessedBuffers" to proLogicProcessor?.processedBuffers,
+      "proLogicAverageBufferUs" to proLogicProcessor?.let { p ->
+        if (p.processedBuffers > 0) p.processingTimeNs.toDouble() / p.processedBuffers / 1000.0 else null
+      },
+      "proLogicPeakBufferUs" to proLogicProcessor?.peakBufferTimeNs?.div(1000L),
+      "proLogicAudioTimePercent" to proLogicProcessor?.audioTimeBudgetPercent(),
       "audioDirectOutputBlockedMimes" to directAudioOutputBlockedAfterFailure.toList(),
       // Tunneling
       "tunneledPlayback" to currentTunneledPlayback,

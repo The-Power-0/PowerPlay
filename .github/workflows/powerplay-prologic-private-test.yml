@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - feature/pro-logic-i-matrix-test
+      - feature/prologic-overlay-diagnostics
   workflow_dispatch:
 
 permissions:
@@ -46,7 +47,11 @@ jobs:
             lib/screens/settings/playback_settings_screen.dart \
             lib/mpv/player/platform/player_android.dart \
             lib/screens/video_player_screen.dart \
-            lib/services/settings_service.dart
+            lib/services/settings_service.dart \
+            lib/widgets/video_controls/widgets/performance_overlay/performance_overlay.dart \
+            lib/widgets/video_controls/widgets/performance_overlay/performance_stats.dart \
+            lib/widgets/video_controls/widgets/performance_overlay/performance_stats_service.dart \
+            test/widgets/video_controls/performance_stats_prologic_test.dart
       - name: Analyze changed Flutter UI and settings
         run: |
           flutter analyze --no-pub --no-fatal-infos \
@@ -55,8 +60,10 @@ jobs:
             lib/mpv/player/platform/player_android.dart \
             lib/screens/video_player_screen.dart \
             lib/services/settings_service.dart
-      - name: Run settings regression tests
-        run: flutter test test/services/settings_service_test.dart
+      - name: Run settings and audio-overlay regression tests
+        run: |
+          flutter test test/services/settings_service_test.dart
+          flutter test test/widgets/video_controls/performance_stats_prologic_test.dart
       - name: Configure Android local properties
         run: printf 'flutter.sdk=%s\nsdk.dir=%s\n' "$FLUTTER_ROOT" "$ANDROID_HOME" > android/local.properties
       - name: Run focused Media3 JVM audio tests
@@ -86,6 +93,8 @@ jobs:
           text = text.replace('android:authorities="com.power.powerplay.',
                               'android:authorities="com.power.powerplay.prologictest.')
           assert text.count('com.power.powerplay.prologictest.') >= 2
+          # This test app must not intercept the production PowerPlay URI.
+          text = text.replace('android:scheme="powerplay"', 'android:scheme="powerplay-prologictest"')
           manifest.write_text(text)
           PY
       - name: Configure existing test signing identity
@@ -108,16 +117,20 @@ jobs:
         run: |
           flutter build apk --release --target-platform android-arm --split-per-abi \
             --dart-define=PLEZY_FIRETV_PLEX_ONLY=true \
-            --dart-define=PLEZY_FIRETV_FORCE_EXO_VIDEO=true
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk PowerPlay-ProLogic1-Private-Test.apk
-          test -s PowerPlay-ProLogic1-Private-Test.apk
-          sha256sum PowerPlay-ProLogic1-Private-Test.apk > PowerPlay-ProLogic1-Private-Test.apk.sha256
+            --dart-define=PLEZY_FIRETV_FORCE_EXO_VIDEO=true \
+            --dart-define=PLEZY_FIRETV_MOVIES_TV_ONLY=true \
+            --dart-define=PLEZY_FIRETV_NO_EXTERNAL_SERVICES=true \
+            --dart-define=PLEZY_FIRETV_NO_WATCH_TOGETHER=true \
+            --dart-define=PLEZY_FIRETV_NO_COMPANION_REMOTE=true
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk PowerPlay-ProLogic-Overlay-Test.apk
+          test -s PowerPlay-ProLogic-Overlay-Test.apk
+          sha256sum PowerPlay-ProLogic-Overlay-Test.apk > PowerPlay-ProLogic-Overlay-Test.apk.sha256
       - name: Store APK for manual Fire TV validation only
         uses: actions/upload-artifact@v4
         with:
-          name: PowerPlay-ProLogic1-Private-Test
+          name: PowerPlay-ProLogic-Overlay-Test
           path: |
-            PowerPlay-ProLogic1-Private-Test.apk
-            PowerPlay-ProLogic1-Private-Test.apk.sha256
+            PowerPlay-ProLogic-Overlay-Test.apk
+            PowerPlay-ProLogic-Overlay-Test.apk.sha256
           retention-days: 14
           if-no-files-found: error
