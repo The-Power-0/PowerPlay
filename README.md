@@ -17,7 +17,6 @@
 
 </div>
 
-
 ---
 
 ## Start here
@@ -25,15 +24,10 @@
 PowerPlay is the **Fire TV Plex player**. [PowerLink](https://github.com/The-Power-0/PowerLink) is its optional **Home Assistant companion** for PowerShuffle and room-to-room playback.
 
 | What you want to do | Where to start |
-
 | --- | --- |
-
 | Watch Plex on a Fire TV | [Download the latest APK](#download) and sideload it. |
-
 | Shuffle a show's episodes intelligently | [PowerShuffle](#powershuffle) + the PowerLink integration. |
-
 | Move a playing queue to another room | [PowerLink handoffs](#powerlink--room-to-room-playback). |
-
 | Trigger playback from Home Assistant | [Automation reference](#home-assistant--automations). |
 
 ## Download
