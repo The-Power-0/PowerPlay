@@ -136,6 +136,17 @@ jobs:
             test/services/powershuffle \
             test/screens/settings/powerlink_settings_screen_test.dart
           git diff --exit-code -- pubspec.yaml pubspec.lock
+      - name: Validate Pro Logic decoder-channel preservation and fallback
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf 'flutter.sdk=%s\nsdk.dir=%s\n' "$FLUTTER_ROOT" "$ANDROID_HOME" > android/local.properties
+          ( cd android && ./gradlew :app:testDebugUnitTest \
+            --tests 'com.edde746.plezy.exoplayer.ProLogicDecoderChannelPolicyTest' \
+            --tests 'com.edde746.plezy.exoplayer.ProLogicAudioProcessorTest' \
+            --tests 'com.edde746.plezy.exoplayer.ProLogicMatrixEncoderTest' \
+            -x :app:compileFlutterBuildDebug )
+
       - name: Prepare existing Fire TV signing identity
         shell: bash
         env:

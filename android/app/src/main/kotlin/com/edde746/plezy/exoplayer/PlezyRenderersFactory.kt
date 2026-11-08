@@ -18,6 +18,7 @@ import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.Renderer
 import androidx.media3.exoplayer.analytics.PlayerId
 import androidx.media3.exoplayer.audio.AudioOutput
+import androidx.media3.exoplayer.audio.MediaCodecAudioRenderer
 import androidx.media3.exoplayer.audio.AudioOutputProvider
 import androidx.media3.exoplayer.audio.AudioRendererEventListener
 import androidx.media3.exoplayer.audio.AudioSink
@@ -147,6 +148,16 @@ class PlezyRenderersFactory(context: Context) : DefaultRenderersFactory(context)
       eventListener,
       out
     )
+    // Keep Media3's renderer order, shared sink, decoder fallback, and bundled FFmpeg.
+    // Only the hardware audio renderer is substituted; the opt-in codec setting is
+    // evaluated at each decoder configuration (including an audio renderer bounce).
+    val mediaCodecIndex = out.indexOfFirst { it.javaClass == MediaCodecAudioRenderer::class.java }
+    if (mediaCodecIndex >= firstAudioIndex) {
+      out[mediaCodecIndex] = ProLogicMediaCodecAudioRenderer(
+        context, codecAdapterFactory, mediaCodecSelector, enableDecoderFallback,
+        eventHandler, eventListener, audioSink
+      ) { proLogicProcessor.enabled }
+    }
     audioDiagnosticsLogger?.invoke(
       "info",
       "audio",
