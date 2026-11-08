@@ -3649,10 +3649,10 @@ class ExoPlayerCore(private val activity: Activity) :
   }
 
   /**
-   * Check the actual PCM channel count, not the media's AC3 channel metadata.
-   * Only when a platform decoder still downmixes 5.1 to stereo, move that
-   * stream to the existing FFmpeg ExoPlayer audio renderer. This is a bounded
-   * one-time retry and never affects hardware video decoding or stereo tracks.
+   * Verify the decoder's actual PCM channel count against the source, regardless
+   * of codec: hardware can downmix 7.1 to 5.1 as well as 5.1 to stereo.
+   * Retry a recoverable multichannel stream only once with the bundled FFmpeg
+   * audio renderer. Never switch 2.0 sources or affect video decoding.
    */
   private fun scheduleProLogicFallbackCheck() {
     proLogicFallbackCheck?.let(handler::removeCallbacks)
@@ -3673,8 +3673,8 @@ class ExoPlayerCore(private val activity: Activity) :
         ) && proLogicSoftwareDecoderMimes.add(mime)
       ) {
         emitLog("warn", "audio-prologic",
-          "Platform decoder returned stereo from ${format.channelCount}ch $mime; " +
-          "retrying with bundled FFmpeg for matrix-encoded Lt/Rt")
+          "Decoder delivered ${processor.configuredInputChannels}ch from " +
+          "${format.channelCount}ch $mime; retrying bundled FFmpeg for full Lt/Rt matrix input")
         startAudioRendererBounce("pro-logic multichannel decoder fallback")
       }
     }
