@@ -256,6 +256,11 @@ class ExoPlayerCore(private val activity: Activity) :
   // Stereo downmix: runs as a ChannelMixingAudioProcessor inside the sink's
   // decoded-PCM pipeline, so encoded audio is force-decoded while enabled.
   private var proLogicEnabled: Boolean = false
+  // A few TV MediaCodec decoders still return stereo PCM after being asked for
+  // the full multichannel output. Fall back to the bundled FFmpeg only for the
+  // affected AC3/EAC3 stream, once, while the matrix feature is enabled.
+  private val proLogicSoftwareDecoderMimes = mutableSetOf<String>()
+  private var proLogicFallbackCheck: Runnable? = null
   private var audioDownmixEnabled: Boolean = false
   private var audioDownmixCenterBoostDb: Int = 0
   private var audioDownmixNormalize: Boolean = true
@@ -2316,6 +2321,7 @@ class ExoPlayerCore(private val activity: Activity) :
   }
 
   private fun shouldForceAppAudioDecoder(mimeType: String): Boolean {
+    if (proLogicEnabled && mimeType in proLogicSoftwareDecoderMimes) return true
     if (mimeType == MimeTypes.AUDIO_FLAC) return true
     if (DeviceQuirks.isEWaste && isEac3MimeType(mimeType)) {
       if (!loggedEwasteEac3Workaround) {
@@ -2995,6 +3001,7 @@ class ExoPlayerCore(private val activity: Activity) :
       // Re-key the normalization effect to the actual output channel count
       // (DynamicsProcessing parameters are per-channel).
       if (audioNormalizationEnabled) attachNormalizationEffect()
+      scheduleProLogicFallbackCheck()
     }
 
     override fun onAudioSessionIdChanged(eventTime: AnalyticsListener.EventTime, audioSessionId: Int) {
@@ -3536,6 +3543,9 @@ class ExoPlayerCore(private val activity: Activity) :
     // subtitle reloads all reuse setCurrentMediaSource for the *same* stream, and clearing
     // per-stream audio decisions there would undo them and loop.
     renderersFactory?.beginMediaItem()
+    proLogicFallbackCheck?.let(handler::removeCallbacks)
+    proLogicFallbackCheck = null
+    proLogicSoftwareDecoderMimes.clear()
 
     exoPlayer?.apply {
       setCurrentMediaSource(this, uri, startPositionMs)
@@ -3619,6 +3629,11 @@ class ExoPlayerCore(private val activity: Activity) :
     if (proLogicEnabled == enabled) return
     proLogicEnabled = enabled
     renderersFactory?.proLogicProcessor?.enabled = enabled
+    if (!enabled) {
+      proLogicFallbackCheck?.let(handler::removeCallbacks)
+      proLogicFallbackCheck = null
+      proLogicSoftwareDecoderMimes.clear()
+    }
     emitLog("info", "audio-prologic", "Pro Logic I matrix ${if (enabled) "enabled" else "disabled"}")
     // Processor format and encoded passthrough decisions are latched at sink configure.
     // An active player must re-select/reconfigure audio to reflect the new mode.
@@ -3631,6 +3646,40 @@ class ExoPlayerCore(private val activity: Activity) :
     } else {
       startAudioRendererBounce("pro-logic")
     }
+  }
+
+  /**
+   * Check the actual PCM channel count, not the media's AC3 channel metadata.
+   * Only when a platform decoder still downmixes 5.1 to stereo, move that
+   * stream to the existing FFmpeg ExoPlayer audio renderer. This is a bounded
+   * one-time retry and never affects hardware video decoding or stereo tracks.
+   */
+  private fun scheduleProLogicFallbackCheck() {
+    proLogicFallbackCheck?.let(handler::removeCallbacks)
+    proLogicFallbackCheck = null
+    if (!proLogicEnabled) return
+    val generation = currentMediaGeneration
+    val check = Runnable {
+      if (generation != currentMediaGeneration || !proLogicEnabled || pendingAudioRendererBounce) return@Runnable
+      val format = selectedAudioFormat() ?: return@Runnable
+      val mime = format.sampleMimeType ?: return@Runnable
+      val processor = renderersFactory?.proLogicProcessor ?: return@Runnable
+      val output = lastAudioTrackConfig ?: return@Runnable
+      val stereoPcm = isPcmEncoding(output.encoding) &&
+        Integer.bitCount(output.channelConfig) == 2 && !output.tunneling && !output.offload
+      if (ProLogicDecoderChannelPolicy.needsSoftwareFallback(
+          proLogicEnabled, mime, format.channelCount, processor.configuredInputChannels,
+          stereoPcm, mime in proLogicSoftwareDecoderMimes
+        ) && proLogicSoftwareDecoderMimes.add(mime)
+      ) {
+        emitLog("warn", "audio-prologic",
+          "Platform decoder returned stereo from ${format.channelCount}ch $mime; " +
+          "retrying with bundled FFmpeg for matrix-encoded Lt/Rt")
+        startAudioRendererBounce("pro-logic multichannel decoder fallback")
+      }
+    }
+    proLogicFallbackCheck = check
+    handler.postDelayed(check, 750L)
   }
 
   fun setAudioDownmix(enabled: Boolean, centerBoostDb: Int, normalize: Boolean) {

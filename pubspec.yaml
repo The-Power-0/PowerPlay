@@ -1,7 +1,7 @@
 name: plezy
 description: "PowerPlay: a Plex client for Fire TV"
 publish_to: "none"
-version: 2.1.1+20101
+version: 2.1.2+20102
 
 environment:
   # Dart floor stays 3.12: freezed 3.x emits `final` constructor parameters,
