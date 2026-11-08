@@ -10,7 +10,7 @@ import java.nio.ByteBuffer
 /**
  * Optional PCM-only Lt/Rt matrix encoder inserted BEFORE ChannelMixingAudioProcessor.
  * Mono becomes dual mono; existing stereo (including prematrixed Lt/Rt) is untouched.
- * Multichannel 3..12 becomes stereo; extra 7.1.4-style channels are folded down.
+ * Multichannel 3..12 becomes PCM16 stereo; extended height channels are folded.
  * Unsupported layouts are left to stock Media3 and reported as inactive by telemetry.
  */
 @OptIn(UnstableApi::class)
@@ -58,7 +58,8 @@ internal class ProLogicAudioProcessor : BaseAudioProcessor() {
       (format.channelCount == 1 || format.channelCount in 3..DownmixMatrices.MAX_MIXING_CHANNELS) &&
       isSupportedPcmEncoding(format.encoding)
     ) {
-      AudioProcessor.AudioFormat(format.sampleRate, 2, format.encoding)
+      // The following ChannelMixingAudioProcessor accepts only signed 16-bit PCM.
+      AudioProcessor.AudioFormat(format.sampleRate, 2, AudioFormat.ENCODING_PCM_16BIT)
     } else {
       AudioProcessor.AudioFormat.NOT_SET
     }
@@ -102,12 +103,12 @@ internal class ProLogicAudioProcessor : BaseAudioProcessor() {
     val frames = inputBuffer.remaining() / inputFrameBytes
     if (frames == 0) return
     val startNs = System.nanoTime()
-    val output = replaceOutputBuffer(frames * 2 * bytes)
+    val output = replaceOutputBuffer(frames * 2 * 2)
     repeat(frames) {
       for (i in 0 until channels) frame[i] = readPcm(inputBuffer, encoding)
       matrix.encodeFrame(frame, channels)
-      writePcm(output, encoding, matrix.left)
-      writePcm(output, encoding, matrix.right)
+      output.putShort((matrix.left.coerceIn(-1f, 1f) * 32767f).toInt().toShort())
+      output.putShort((matrix.right.coerceIn(-1f, 1f) * 32767f).toInt().toShort())
     }
     output.flip()
     val elapsedNs = (System.nanoTime() - startNs).coerceAtLeast(0)
@@ -141,17 +142,4 @@ internal class ProLogicAudioProcessor : BaseAudioProcessor() {
     else -> buffer.getFloat()
   }
 
-  private fun writePcm(buffer: ByteBuffer, pcm: Int, value: Float) {
-    val sample = value.coerceIn(-1f, 1f)
-    when (pcm) {
-      AudioFormat.ENCODING_PCM_8BIT -> buffer.put((sample * 127f + 128f).toInt().coerceIn(0, 255).toByte())
-      AudioFormat.ENCODING_PCM_16BIT -> buffer.putShort((sample * 32767f).toInt().toShort())
-      AudioFormat.ENCODING_PCM_24BIT_PACKED -> {
-        val v = (sample * 8388607f).toInt()
-        buffer.put(v.toByte()); buffer.put((v ushr 8).toByte()); buffer.put((v ushr 16).toByte())
-      }
-      AudioFormat.ENCODING_PCM_32BIT -> buffer.putInt((sample.toDouble() * 2147483647.0).toInt())
-      else -> buffer.putFloat(sample)
-    }
-  }
 }
