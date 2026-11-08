@@ -67,6 +67,23 @@ class PerformanceStats {
   /// ('spdif-eac3'); null when audio is decoded locally.
   final String? audioPassthroughFormat;
 
+  /// ExoPlayer's *actual* Pro Logic PCM processor and output sink state.
+  /// Null on other backends; never inferred solely from the settings toggle.
+  final bool? proLogicEnabled;
+  final bool? proLogicProcessorConfigured;
+  final bool? proLogicEncoding;
+  final bool? proLogicOutputStereoPcm;
+  final int? proLogicInputChannels;
+  final int? proLogicOutputChannels;
+  final int? proLogicOutputSampleRate;
+  final String? proLogicOutputEncoding;
+  final int? proLogicProcessedFrames;
+  final int? proLogicProcessedBuffers;
+  final double? proLogicAverageBufferUs;
+  final int? proLogicPeakBufferUs;
+  final double? proLogicAudioTimePercent;
+  final int? audioUnderruns;
+
   final bool tunneledPlayback;
   final String? tunnelingStatus;
 
@@ -124,6 +141,20 @@ class PerformanceStats {
     this.audioBitrate,
     this.audioDecoderName,
     this.audioPassthroughFormat,
+    this.proLogicEnabled,
+    this.proLogicProcessorConfigured,
+    this.proLogicEncoding,
+    this.proLogicOutputStereoPcm,
+    this.proLogicInputChannels,
+    this.proLogicOutputChannels,
+    this.proLogicOutputSampleRate,
+    this.proLogicOutputEncoding,
+    this.proLogicProcessedFrames,
+    this.proLogicProcessedBuffers,
+    this.proLogicAverageBufferUs,
+    this.proLogicPeakBufferUs,
+    this.proLogicAudioTimePercent,
+    this.audioUnderruns,
     this.tunneledPlayback = false,
     this.tunnelingStatus,
     this.actualFps,
@@ -186,6 +217,55 @@ class PerformanceStats {
     if (audioSamplerate == null) return t.common.notAvailable;
     final khz = audioSamplerate! / 1000;
     return '${khz.toStringAsFixed(1)} kHz';
+  }
+
+  /// True only on ExoPlayer. MPV's performance overlay is unchanged.
+  bool get hasProLogicDiagnostics => playerType == 'exoplayer' && proLogicEnabled != null;
+
+  /// This is a software-path assertion, not proof of receiver speaker steering.
+  String get proLogicStateFormatted {
+    if (proLogicEnabled != true) return 'Off';
+    if (proLogicEncoding == true) {
+      return proLogicInputChannels == 1 ? 'Active - dual mono' : 'Active - Lt/Rt';
+    }
+    if (proLogicInputChannels == 2 || (proLogicInputChannels == null && audioChannels == 'Stereo')) {
+      return 'Stereo unchanged';
+    }
+    if (proLogicProcessorConfigured == true && (proLogicProcessedFrames ?? 0) == 0) {
+      return 'Armed - awaiting PCM';
+    }
+    if ((proLogicProcessedFrames ?? 0) > 0 && proLogicOutputStereoPcm != true) {
+      return 'PCM output mismatch';
+    }
+    return 'Not processing';
+  }
+
+  String get proLogicPathFormatted {
+    final channels = proLogicInputChannels;
+    final source = channels != null && channels > 0
+        ? CodecUtils.formatAudioChannels(channels) ?? '${channels}ch'
+        : audioChannels ?? '?';
+    final output = proLogicOutputChannels;
+    final encoding = proLogicOutputEncoding;
+    if (output == null || encoding == null) return '$source -> output pending';
+    final rate = proLogicOutputSampleRate;
+    final rateText = rate != null && rate > 0 ? ' / ${(rate / 1000).toStringAsFixed(1)}kHz' : '';
+    return '$source -> ${output}ch $encoding$rateText';
+  }
+
+  String get proLogicLoadFormatted {
+    final microseconds = proLogicAverageBufferUs;
+    final percent = proLogicAudioTimePercent;
+    if (microseconds == null || percent == null) return 'Awaiting PCM buffers';
+    return '${microseconds.toStringAsFixed(1)}us/buf / ${percent.toStringAsFixed(2)}% audio time';
+  }
+
+  String get proLogicBuffersFormatted {
+    final buffers = proLogicProcessedBuffers;
+    final underruns = audioUnderruns;
+    final buffersText = buffers == null ? '?' : buffers.toString();
+    final underrunsText = underruns == null ? '?' : underruns.toString();
+    return '$buffersText encoded / $underrunsText underruns';
   }
 
   /// Whether audio is bitstreamed to the device instead of decoded locally.
