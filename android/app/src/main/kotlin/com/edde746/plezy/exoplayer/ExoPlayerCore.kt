@@ -45,6 +45,7 @@ import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.cronet.CronetDataSource
+import androidx.media3.decoder.ffmpeg.FfmpegAudioRenderer
 import androidx.media3.exoplayer.DecoderReuseEvaluation
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
@@ -3649,10 +3650,10 @@ class ExoPlayerCore(private val activity: Activity) :
   }
 
   /**
-   * Check the actual PCM channel count, not the media's AC3 channel metadata.
-   * Only when a platform decoder still downmixes 5.1 to stereo, move that
-   * stream to the existing FFmpeg ExoPlayer audio renderer. This is a bounded
-   * one-time retry and never affects hardware video decoding or stereo tracks.
+   * Verify the decoder's actual PCM channel count against the source, regardless
+   * of codec: hardware can downmix 7.1 to 5.1 as well as 5.1 to stereo.
+   * Retry a recoverable multichannel stream only once with the bundled FFmpeg
+   * audio renderer. Never switch 2.0 sources or affect video decoding.
    */
   private fun scheduleProLogicFallbackCheck() {
     proLogicFallbackCheck?.let(handler::removeCallbacks)
@@ -3670,12 +3671,20 @@ class ExoPlayerCore(private val activity: Activity) :
       if (ProLogicDecoderChannelPolicy.needsSoftwareFallback(
           proLogicEnabled, mime, format.channelCount, processor.configuredInputChannels,
           stereoPcm, mime in proLogicSoftwareDecoderMimes
-        ) && proLogicSoftwareDecoderMimes.add(mime)
+        )
       ) {
-        emitLog("warn", "audio-prologic",
-          "Platform decoder returned stereo from ${format.channelCount}ch $mime; " +
-          "retrying with bundled FFmpeg for matrix-encoded Lt/Rt")
-        startAudioRendererBounce("pro-logic multichannel decoder fallback")
+        if (FfmpegAudioRenderer.canDecode(mime) && proLogicSoftwareDecoderMimes.add(mime)) {
+          emitLog("warn", "audio-prologic",
+            "Decoder delivered ${processor.configuredInputChannels}ch from " +
+            "${format.channelCount}ch $mime; retrying bundled FFmpeg for full Lt/Rt matrix input")
+          startAudioRendererBounce("pro-logic multichannel decoder fallback")
+        } else {
+          // Never evict a working platform decoder when this build lacks a
+          // matching FFmpeg codec; report reduced PCM and keep audio playing.
+          emitLog("warn", "audio-prologic",
+            "Missing usable FFmpeg decoder for $mime; keeping available " +
+            "${processor.configuredInputChannels}ch PCM")
+        }
       }
     }
     proLogicFallbackCheck = check

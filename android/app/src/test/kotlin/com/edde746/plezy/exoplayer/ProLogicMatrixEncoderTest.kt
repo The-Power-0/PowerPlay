@@ -74,6 +74,50 @@ class ProLogicMatrixEncoderTest {
     assertTrue(energy > 3f)
   }
 
+
+  @Test fun extendedFrontHeightsFoldToCorrespondingFrontSpeakers() {
+    val encoder = ProLogicMatrixEncoder().apply { reset(48000) }
+    val ch = FloatArray(12)
+    var leftEnergy = 0f
+    var rightEnergy = 0f
+    repeat(1600) { t ->
+      ch[8] = sin(2.0 * PI * 1000.0 * t / 48000.0).toFloat()
+      encoder.encodeFrame(ch, 12)
+      if (t > 500) {
+        leftEnergy += abs(encoder.left)
+        rightEnergy += abs(encoder.right)
+      }
+    }
+    assertTrue("Front-left height must reach Lt", leftEnergy > 10f)
+    assertEquals("Front-left height must not leak into Rt", 0f, rightEnergy, 1e-4f)
+  }
+
+  @Test fun extendedRearHeightsProduceSingleOppositePolarityRear() {
+    val encoder = ProLogicMatrixEncoder().apply { reset(48000) }
+    val ch = FloatArray(12)
+    var energy = 0f
+    repeat(1600) { t ->
+      val signal = sin(2.0 * PI * 1000.0 * t / 48000.0).toFloat()
+      ch[10] = signal
+      ch[11] = signal
+      encoder.encodeFrame(ch, 12)
+      if (t > 500) {
+        energy += abs(encoder.left)
+        assertEquals(-encoder.left, encoder.right, 1e-5f)
+      }
+    }
+    assertTrue("Rear-height energy must survive mono surround fold", energy > 3f)
+  }
+
+  @Test fun nineChannelUnpairedHeightIsSafeCenterFold() {
+    val encoder = ProLogicMatrixEncoder().apply { reset(48000) }
+    val ch = FloatArray(9)
+    ch[8] = 0.5f
+    repeat(200) { encoder.encodeFrame(ch, 9) }
+    assertTrue(encoder.left > 0f)
+    assertEquals(encoder.left, encoder.right, 1e-5f)
+  }
+
   @Test fun resetRemovesPreviouslyBufferedSignal() {
     val encoder = ProLogicMatrixEncoder().apply { reset(48000) }
     val ch = FloatArray(6); ch[4] = 1f; ch[5] = 1f

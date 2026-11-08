@@ -54,6 +54,11 @@ public final class FfmpegAudioRenderer extends DecoderAudioRenderer<FfmpegAudioD
     return TAG;
   }
 
+  /** Runtime guard for Pro Logic's optional full-channel software-decoder retry. */
+  public static boolean canDecode(String mimeType) {
+    return FfmpegLibrary.isAvailable() && FfmpegLibrary.supportsFormat(mimeType);
+  }
+
   @Override
   protected @C.FormatSupport int supportsFormatInternal(Format format) {
     String mimeType = checkNotNull(format.sampleMimeType);
