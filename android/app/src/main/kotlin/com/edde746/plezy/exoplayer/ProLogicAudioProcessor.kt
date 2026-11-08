@@ -10,7 +10,8 @@ import java.nio.ByteBuffer
 /**
  * Optional PCM-only Lt/Rt matrix encoder inserted BEFORE ChannelMixingAudioProcessor.
  * Mono becomes dual mono; existing stereo (including prematrixed Lt/Rt) is untouched.
- * Multichannel 3..12 becomes stereo; extra 7.1.4-style channels are folded down.\n * Unsupported layouts are left to stock Media3 and reported as inactive by telemetry.
+ * Multichannel 3..12 becomes stereo; extra 7.1.4-style channels are folded down.
+ * Unsupported layouts are left to stock Media3 and reported as inactive by telemetry.
  */
 @OptIn(UnstableApi::class)
 internal class ProLogicAudioProcessor : BaseAudioProcessor() {
