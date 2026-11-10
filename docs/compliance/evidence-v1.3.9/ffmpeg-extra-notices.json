@@ -1,0 +1,161 @@
+{
+  "ffmpeg_source_paths_checked": 1675,
+  "files_with_additional_or_distinct_terms": {
+    "libavcodec/aacsbr_fixed.c": {
+      "source_sha256": "864a8b50946e731a183c0fd0984995f4fe3622692a16e0bab0486a8c14c53b7f",
+      "notice_file": "libavcodec-aacsbr_fixed.c.txt",
+      "notice_sha256": "2df010b10b554a52893b9a6c646c54f00c78f6b9b9f5b698757e79d165a6b670"
+    },
+    "libavcodec/ac3dec_fixed.c": {
+      "source_sha256": "4deaefe28b59eb59ba183d1a3952b4bfd5492260a985ef2167aee1d7d68884d2",
+      "notice_file": "libavcodec-ac3dec_fixed.c.txt",
+      "notice_sha256": "f288f037416f030ef3ca87032173fa0e5e13b9b6fece46cc07db7eafa949b073"
+    },
+    "libavcodec/aom_film_grain_template.c": {
+      "source_sha256": "3486c8617fcfd51880cee0fdaaf194b6714e7a68840072eba5b302d62f16d7cd",
+      "notice_file": "libavcodec-aom_film_grain_template.c.txt",
+      "notice_sha256": "b1343b7478cef06ed32fa00932ca8fec6a70095c078aa1212f39e9055deee8ec"
+    },
+    "libavcodec/arm/jrevdct_arm.S": {
+      "source_sha256": "e257733fa21bdfabd59050fbadcb631695ea9911a077c0a92e3614aca10a229c",
+      "notice_file": "libavcodec-arm-jrevdct_arm.S.txt",
+      "notice_sha256": "5e17d667de5dbb491b07c52e80816863c3efcdafa993fccc42e33460958494c3"
+    },
+    "libavcodec/arm/vp8dsp_armv6.S": {
+      "source_sha256": "2aadfec9c01c376eb6e563a587b75cbe772b44498a03731567925d6b2c0b7c05",
+      "notice_file": "libavcodec-arm-vp8dsp_armv6.S.txt",
+      "notice_sha256": "1a2c7d6ebc030ba5b8f0e9a237efcaa793dc270dc6efcf1744310970edd0dc98"
+    },
+    "libavcodec/bsf/mjpeg2jpeg.c": {
+      "source_sha256": "ade90df98251e6690748738d3b3b7f2e356672831138c338bab42c4c5cfbc475",
+      "notice_file": "libavcodec-bsf-mjpeg2jpeg.c.txt",
+      "notice_sha256": "c00a8762b4aaf054a1a326bc902eef8ce1d4967b6ee3365a00efc593fe65446a"
+    },
+    "libavcodec/dfpwmdec.c": {
+      "source_sha256": "c119e9e0d61d8b576742185f504b17e93a3328db3b3b4611039f78bcc416b64c",
+      "notice_file": "libavcodec-dfpwmdec.c.txt",
+      "notice_sha256": "2a78bce09e959cf6f44538e448adfbc2b941f09f9fcc77bbcb69d50e3ef485af"
+    },
+    "libavcodec/faandct.c": {
+      "source_sha256": "aedfd24e24231f6d2bc13943feedfdcf604fe41d2c675876feef71c883397754",
+      "notice_file": "libavcodec-faandct.c.txt",
+      "notice_sha256": "a5c555424d1538d2284dc7a1b2dcef275fa3fdb0714ad6424ac072f37f5bf89b"
+    },
+    "libavcodec/ilbcdata.h": {
+      "source_sha256": "174d6703017ee2af7499ebbcdf87a30bc35ddaf56bc5e85226ebc0ede8bb0f81",
+      "notice_file": "libavcodec-ilbcdata.h.txt",
+      "notice_sha256": "835cddad98438509a2cd0f3ed38a4774aefc8dd3c451193e9faa2774be564ce9"
+    },
+    "libavcodec/ilbcdec.c": {
+      "source_sha256": "31737b44eae0e49c5f797aee68305f32303d38b426d4746ac9db5f51947e3646",
+      "notice_file": "libavcodec-ilbcdec.c.txt",
+      "notice_sha256": "835cddad98438509a2cd0f3ed38a4774aefc8dd3c451193e9faa2774be564ce9"
+    },
+    "libavcodec/interplayacm.c": {
+      "source_sha256": "bc43dbb9fb1ea0df4a7e3773850838739af8a2d4d63be2392ed031c1616e9c6b",
+      "notice_file": "libavcodec-interplayacm.c.txt",
+      "notice_sha256": "06cdd49796d9478240bacffac450b74f014a478f622945b6efe67b8b5a9cde9d"
+    },
+    "libavcodec/jfdctfst.c": {
+      "source_sha256": "ead72c605ae80a82034ed59f84f41c7b501968798c9f0b4b39161c31a0c01deb",
+      "notice_file": "libavcodec-jfdctfst.c.txt",
+      "notice_sha256": "a64fb0a19dcb5b0771b8884a5a1323c1778b48e30b84b2174fa405171623b529"
+    },
+    "libavcodec/jfdctint_template.c": {
+      "source_sha256": "09920f49711889af8d0ae166c57b22b9451985e619ae887c72fae22df105bd99",
+      "notice_file": "libavcodec-jfdctint_template.c.txt",
+      "notice_sha256": "ad2135942918d03a1fc5496ff0eb97f651ecfc1d01c50c0cb23eff347cd51838"
+    },
+    "libavcodec/jpeg2000htdec.c": {
+      "source_sha256": "b94f519e23a9822512e83c1c6a5fe24ef3d7f3c464ba77b4c63cc00b6e5d396e",
+      "notice_file": "libavcodec-jpeg2000htdec.c.txt",
+      "notice_sha256": "eab856f5911a88c1780343ed8023eaae6b8c9c52070e23cccfcafe1759be27d4"
+    },
+    "libavcodec/jrevdct.c": {
+      "source_sha256": "7e8d6215664de8f620e94a7d6304f19675bc5174a9db4cb86611749e188c35bc",
+      "notice_file": "libavcodec-jrevdct.c.txt",
+      "notice_sha256": "9daff0c039515e2f9fac83df057c5ac655c8a33a70ca5366e3774dc969841e48"
+    },
+    "libavcodec/nellymoser.c": {
+      "source_sha256": "04b78bf828fb05f1eb6ba26a1eb6ea528d6ffbd41c3c26470ceb81197ef92643",
+      "notice_file": "libavcodec-nellymoser.c.txt",
+      "notice_sha256": "05be405ef61caff70b2184be2546a55d25f26292721e2396c3da3d5c2ab992ed"
+    },
+    "libavcodec/nellymoser.h": {
+      "source_sha256": "8527b9a35dcb034f911c9d4110d10f5ef2ef112b5917f3d63373f34ecdc9d4f3",
+      "notice_file": "libavcodec-nellymoser.h.txt",
+      "notice_sha256": "05be405ef61caff70b2184be2546a55d25f26292721e2396c3da3d5c2ab992ed"
+    },
+    "libavcodec/nellymoserdec.c": {
+      "source_sha256": "6fe076a5634b0e640700e48493721e8fb84d158017a75d3f965926476aec4a28",
+      "notice_file": "libavcodec-nellymoserdec.c.txt",
+      "notice_sha256": "35c3574b3ddfd0c939904cfa095241cf8f6375e55b0caffd52ce63dc04335eaa"
+    },
+    "libavcodec/ra144dec.c": {
+      "source_sha256": "8939f38387c1feb42339a2a86e6cb0c497b5879c736beb4475f73cdcb459529c",
+      "notice_file": "libavcodec-ra144dec.c.txt",
+      "notice_sha256": "7f9992ac88489b8c2bcb592ed35379bcf905dc4a99177bd31c78ec6b2991b625"
+    },
+    "libavcodec/speexdata.h": {
+      "source_sha256": "f24c26ddc60f062c20e0f2b5b6761316adc4c4b93518dfa4ae49a23fcfa60504",
+      "notice_file": "libavcodec-speexdata.h.txt",
+      "notice_sha256": "59de990a7ef1cd3e05c281a0dfa07679719e04dd37c7d89f3911e07ef05a19a4"
+    },
+    "libavcodec/speexdec.c": {
+      "source_sha256": "d195fc338c90f87b7940aea8ee0d39a8a3e03dc726b3ddf274d601f169d63eb0",
+      "notice_file": "libavcodec-speexdec.c.txt",
+      "notice_sha256": "59de990a7ef1cd3e05c281a0dfa07679719e04dd37c7d89f3911e07ef05a19a4"
+    },
+    "libavcodec/texturedsp.c": {
+      "source_sha256": "ebf53f1918e43fab76ee9c8cbe50a3113d7e7c745c74f24096f91b61b1464296",
+      "notice_file": "libavcodec-texturedsp.c.txt",
+      "notice_sha256": "8bdeeecf982b1e5c8702bb926cef723e378bf0a6404a6da87504ce471bb80f65"
+    },
+    "libavcodec/vvc/itx_1d.c": {
+      "source_sha256": "11e8e2c2f4dfd454f48758ecf0b13467a2bb7c943e21aa3c03c91c80740c2e74",
+      "notice_file": "libavcodec-vvc-itx_1d.c.txt",
+      "notice_sha256": "f7c59288c120f5c191a741ad1b15a64bd188cc6aec38dded3712e1e673159134"
+    },
+    "libavcodec/zerocodec.c": {
+      "source_sha256": "2b2e6adaca22e70a0fafe1e74a717df3a43e18f35a47c5bf2de7437fcb90dd39",
+      "notice_file": "libavcodec-zerocodec.c.txt",
+      "notice_sha256": "525835acff93a69ac1dd23368354a45635a64fc22d7e10ed30d7f437b5ecd6bd"
+    },
+    "libavutil/adler32.c": {
+      "source_sha256": "b951cde7a2375eebf743d93448d3eb66dd2c9a6785697513014a0f5f216570d1",
+      "notice_file": "libavutil-adler32.c.txt",
+      "notice_sha256": "0d5c7834c4f1ba4eb35295b9d8d6ee58b016429ccdab267197978b8fd20f4046"
+    },
+    "libavutil/avsscanf.c": {
+      "source_sha256": "45a3ffbb9e5ea298196cd1b383158a15776bd6c5ed2f891a67660a9fe38b9898",
+      "notice_file": "libavutil-avsscanf.c.txt",
+      "notice_sha256": "589ca254ece1b1bbf2815f0649d563bf625d58708f69543ae98f0ff7ee0a7e0c"
+    },
+    "libavutil/fixed_dsp.c": {
+      "source_sha256": "99f24d34f586a54177337678e2fbf8ddff0d1fbc72495ce8366ce2e4ca1d6285",
+      "notice_file": "libavutil-fixed_dsp.c.txt",
+      "notice_sha256": "837b737cd7f7c021b369dd0e99b790c07fa90c6e2319bfb42d52159156d1cbff"
+    },
+    "libavutil/fixed_dsp.h": {
+      "source_sha256": "d7769bf6ace8000b8486ada216c894712f3263849d4c8e4273a926a29d8aea76",
+      "notice_file": "libavutil-fixed_dsp.h.txt",
+      "notice_sha256": "43f660ec4661a76230479e802b6fcc3a1ae53527821043ac882623eaaffd4bbc"
+    },
+    "libavutil/sha.c": {
+      "source_sha256": "a1e25a92ea7902c3c6eb92ee4ada0ab6749695bae2026b7528c267f94ff11837",
+      "notice_file": "libavutil-sha.c.txt",
+      "notice_sha256": "71106a681c977bf5f05c2e89875a22420f00b46ab88410a12249e4bebb525da6"
+    },
+    "libavutil/softfloat_tables.h": {
+      "source_sha256": "2dd8aa42e7a9025fa2f0c2dbf81fdb17628d4e05099021ef42f114aa052c2362",
+      "notice_file": "libavutil-softfloat_tables.h.txt",
+      "notice_sha256": "46e881435d57af4c2e855fbbfdd44334d77c6cb4315bba7497b128969da26446"
+    },
+    "libavutil/uuid.c": {
+      "source_sha256": "e3fdfbd7f6f23b41d84930c9158d39928ef6554178d58ecc85ea0ef4929d5971",
+      "notice_file": "libavutil-uuid.c.txt",
+      "notice_sha256": "45dd8abe1b6b685ed50e49364f2b44f7d5d83bf1f54ef997af2f08b4eb9218ac"
+    }
+  },
+  "limitation": "Header inventory for source files visible in the matching rebuild line tables. Original source files retain the full terms."
+}

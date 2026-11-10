@@ -1,0 +1,625 @@
+name: Inventory PowerPlay v1.3.9 native dependencies
+
+on:
+  workflow_dispatch:
+    inputs:
+      strict_signoff:
+        description: 'Fail until native source/license obligations are genuinely cleared'
+        type: boolean
+        required: false
+        default: false
+  pull_request:
+    paths:
+      - 'docs/compliance/**'
+      - 'scripts/audit_powerplay_native_release.py'
+      - 'scripts/audit_powerplay_gradle_runtime.py'
+      - 'scripts/audit_powerplay_rust_crates.py'
+      - 'scripts/audit_libass_historical_wraps.py'
+      - 'scripts/audit_powerplay_maven_poms.py'
+      - 'scripts/check_powerplay_native_signoff.py'
+      - 'scripts/compare_powerplay_libass_archives.py'
+      - 'scripts/compare_powerplay_libdovi_archives.py'
+      - 'scripts/audit_powerplay_dex_classes.py'
+      - 'scripts/export_gradle_runtime_artifacts.init.gradle'
+      - '.github/workflows/native-license-inventory.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  packaged-native-elfs:
+    name: Inspect signed 1.3.9 APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download exact published APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release-apk
+          gh release download powerplay-v1.3.9 \
+            --repo The-Power-0/PowerPlay \
+            --pattern PowerPlay-v1.3.9.apk --dir release-apk
+      - name: Audit ELF inventory, ABI, identity and dynamic dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/audit_powerplay_native_release.py \
+            --apk release-apk/PowerPlay-v1.3.9.apk \
+            --expected-sha256 f832a2c507f997fcb047c0ab899254d1fd111520942e88da50e61ebc82e3c764 \
+            --output audit-evidence
+      - name: Inventory defined Java classes surviving R8 in the published APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/audit_powerplay_dex_classes.py \
+            --apk release-apk/PowerPlay-v1.3.9.apk \
+            --output audit-evidence
+      - name: Verify AAR-derived FFmpeg and C++ native bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 \
+            'https://github.com/edde746/mpv-build/releases/download/binaries-android/mpv-android-2f74669e1ec7.aar' \
+            -o /tmp/mpv-android-pinned.aar
+          echo '8ad8dbf2ebae864a14d768d7787895a74d044f18b270df886e76c9a23ee80158  /tmp/mpv-android-pinned.aar' | sha256sum -c -
+          python3 - <<'PY'
+          import json,zipfile,hashlib
+          from pathlib import Path
+          rows=[]
+          with zipfile.ZipFile('/tmp/mpv-android-pinned.aar') as a, zipfile.ZipFile('release-apk/PowerPlay-v1.3.9.apk') as b:
+              for name in ('libavcodec.so','libavutil.so','libswresample.so','libc++_shared.so'):
+                  source=a.read('jni/armeabi-v7a/'+name)
+                  shipped=b.read('lib/armeabi-v7a/'+name)
+                  if source!=shipped:
+                      raise SystemExit(f'Binary mismatch between pinned AAR and APK: {name}')
+                  rows.append(dict(name=name,sha256=hashlib.sha256(source).hexdigest(),equal=True))
+          Path('audit-evidence/aar-extracted-binary-match.json').write_text(json.dumps(rows,indent=2)+'\n')
+          print('All four AAR native library hashes match the shipping APK exactly')
+          PY
+      - name: Verify libc++ provenance against pinned Android NDK 29
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Ubuntu hosted runners already provide Android SDK cmdline-tools.
+          # android-actions/setup-android@v3 requests the removed 'tools' SDK
+          # package on this runner, so do not invoke that action.
+          NDK_VERSION=29.0.14206865
+          ANDROID_HOME="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          export ANDROID_HOME
+          test -d "$ANDROID_HOME"
+          NDK_ROOT="$ANDROID_HOME/ndk/$NDK_VERSION"
+          if [ ! -f "$NDK_ROOT/source.properties" ]; then
+            SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+            if [ ! -x "$SDKMANAGER" ]; then
+              SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -path '*/bin/sdkmanager' -type f | sort -V | tail -1)"
+            fi
+            test -x "$SDKMANAGER"
+            "$SDKMANAGER" --sdk_root="$ANDROID_HOME" "ndk;$NDK_VERSION"
+          fi
+          test -f "$NDK_ROOT/source.properties"
+          toolchain="$NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64"
+          test -x "$toolchain/bin/clang"
+          test -x "$toolchain/bin/llvm-strip"
+          "$toolchain/bin/clang" --version > audit-evidence/pinned-ndk-clang-version.txt
+          cp "$NDK_ROOT/source.properties" audit-evidence/pinned-ndk-source.properties
+          python3 - "$NDK_ROOT" <<'PY'
+          import hashlib,json,subprocess,sys,tempfile,zipfile
+          from pathlib import Path
+          ndk=Path(sys.argv[1])
+          native=list((ndk/'toolchains/llvm/prebuilt').glob(
+              '*/sysroot/usr/lib/arm-linux-androideabi/libc++_shared.so'))
+          if len(native)!=1:
+              raise SystemExit('Could not uniquely resolve NDK ARMv7 libc++ runtime: '+str(native))
+          raw=native[0].read_bytes()
+          strip=native[0].parents[4]/'bin'/'llvm-strip'
+          with tempfile.TemporaryDirectory() as tmp:
+              stripped=Path(tmp)/'libc++_shared.so'
+              subprocess.run([strip,'--strip-unneeded','-o',stripped,native[0]],check=True)
+              data=stripped.read_bytes()
+          with zipfile.ZipFile('release-apk/PowerPlay-v1.3.9.apk') as archive:
+              shipped=archive.read('lib/armeabi-v7a/libc++_shared.so')
+          result={
+              'release':'powerplay-v1.3.9',
+              'upstream_mpv_build_commit':'3b9f38affe3c4171f8e6bc47331feffd3d13be1d',
+              'upstream_toolchain_pin':'toolchain/android.txt: ndk=29.0.14206865',
+              'ndk_revision':'29.0.14206865',
+              'ndk_source_properties':(ndk/'source.properties').read_text().strip(),
+              'toolchain_path_relative_to_ndk':str(native[0].relative_to(ndk)),
+              'ndk_armv7_libcxx_sha256':hashlib.sha256(raw).hexdigest(),
+              'ndk_armv7_libcxx_stripped_sha256':hashlib.sha256(data).hexdigest(),
+              'normalization':'NDK llvm-strip --strip-unneeded',
+              'shipped_libcxx_sha256':hashlib.sha256(shipped).hexdigest(),
+              'byte_identical':data==shipped,
+              'llvm_notice_files':[],
+              'limitations':'Binary identity proves toolchain origin, not legal/source closure.',
+          }
+          toolchain=native[0].parents[4]
+          for notice in (toolchain/'NOTICE',toolchain/'sysroot'/'NOTICE',
+                         toolchain/'clang_source_info.md'):
+              original=notice.read_bytes()
+              dst=Path('audit-evidence/ndk-libcxx-notices')/notice.relative_to(ndk)
+              dst.parent.mkdir(parents=True,exist_ok=True)
+              dst.write_bytes(original)
+              result['llvm_notice_files'].append({
+                  'relative_path':str(notice.relative_to(ndk)),
+                  'sha256':hashlib.sha256(original).hexdigest(),
+              })
+          Path('audit-evidence/ndk-libcxx-provenance.json').write_text(json.dumps(result,indent=2)+'\n')
+          if data!=shipped:
+              raise SystemExit('Stripped NDK 29 ARMv7 libc++ does not match shipped APK')
+          print('APK libc++ runtime matches NDK 29.0.14206865 after stripping')
+          PY
+      - name: Publish inspectable ELF audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-ELF-inventory
+          path: audit-evidence/
+          if-no-files-found: warn
+
+
+  inspect-separate-static-archives:
+    name: Inspect pinned libass and libdovi prebuilt manifests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - name: Validate checksum-pinned prebuilt archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p audit-prebuilt
+          curl -fsSL --retry 3 \
+            'https://github.com/edde746/libass/releases/download/0.18.3/libass-android-0.18.3.zip' \
+            -o /tmp/powerplay-libass.zip
+          echo 'fc98637752695d7cf9e26b02befaa634dd4cad25a2f38fba80de814bfd310a17  /tmp/powerplay-libass.zip' | sha256sum -c -
+          curl -fsSL --retry 3 \
+            'https://github.com/edde746/libdovi-builds/releases/download/v2.3.1/libdovi-armv7-linux-androideabi.tar.gz' \
+            -o /tmp/powerplay-libdovi.tar.gz
+          echo 'ed6fec8bf744e41c661b97f5fc4bf1197ebe9b09a140cbde369728e790ee3a68  /tmp/powerplay-libdovi.tar.gz' | sha256sum -c -
+          unzip -Z1 /tmp/powerplay-libass.zip > audit-prebuilt/libass-archive-contents.txt
+          tar -tzf /tmp/powerplay-libdovi.tar.gz > audit-prebuilt/libdovi-archive-contents.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          import zipfile
+          with zipfile.ZipFile('/tmp/powerplay-libass.zip') as z:
+              names=z.namelist()
+              notices=[s for s in names if '/licenses/' in s.lower() and not s.endswith('/')]
+              Path('audit-prebuilt/libass-license-file-list.txt').write_text('\n'.join(sorted(notices))+'\n')
+              for entry in notices:
+                  from pathlib import PurePosixPath
+                  rel = PurePosixPath(*PurePosixPath(entry).parts[2:])
+                  dest = Path('audit-prebuilt/libass-notices').joinpath(*rel.parts)
+                  dest.parent.mkdir(parents=True,exist_ok=True)
+                  dest.write_bytes(z.read(entry))
+              readmes=[s for s in names if s.endswith('/README.md')]
+              for s in readmes:
+                  Path('audit-prebuilt/libass-package-README.md').write_bytes(z.read(s))
+              print(f'Found {len(notices)} packaged libass upstream notice files')
+          PY
+      - name: Resolve libdovi Cargo lockfile closure for Android ARMv7
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone -q --depth 1 --branch 2.3.1 https://github.com/quietvoid/dovi_tool.git /tmp/dovi-tool
+          git -C /tmp/dovi-tool rev-parse HEAD > audit-prebuilt/dovi-tool-commit.txt
+          grep -qx 'b25558062e4a56973482ec70133bd7b891320e48' audit-prebuilt/dovi-tool-commit.txt
+          cp /tmp/dovi-tool/dolby_vision/Cargo.lock audit-prebuilt/dolby_vision-Cargo.lock
+          cargo tree --locked --manifest-path /tmp/dovi-tool/dolby_vision/Cargo.toml \
+            --features capi --target armv7-linux-androideabi --edges normal \
+            > audit-prebuilt/libdovi-android-armv7-cargo-closure.txt
+          cargo metadata --locked --format-version 1 \
+            --manifest-path /tmp/dovi-tool/dolby_vision/Cargo.toml \
+            > /tmp/libdovi-cargo-metadata.json
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          graph=Path('audit-prebuilt/libdovi-android-armv7-cargo-closure.txt').read_text()
+          active=set(re.findall(r'([A-Za-z0-9_-]+) v([0-9][A-Za-z0-9.-]*)',graph))
+          packages=json.loads(Path('/tmp/libdovi-cargo-metadata.json').read_text())['packages']
+          rows=[]
+          for pkg in packages:
+              key=(pkg['name'],pkg['version'])
+              if key in active:
+                  rows.append({
+                      'name':pkg['name'], 'version':pkg['version'],
+                      'license':pkg.get('license') or '(missing license field)',
+                      'source':pkg.get('source') or '(local source)',
+                      'checksum':pkg.get('checksum') or '(local source)',
+                      'repository':pkg.get('repository') or ''
+                  })
+          covered={(r['name'].replace('-','_'),r['version']) for r in rows}
+          missing={(n,v) for n,v in active if (n.replace('-','_'),v) not in covered}
+          for n,v in sorted(missing):
+              rows.append({
+                  'name':n, 'version':v, 'license':'NOT RESOLVED FROM METADATA',
+                  'source':'(unresolved)', 'checksum':'(unresolved)', 'repository':''
+              })
+          if missing:
+              print('CAUTION: Cargo metadata did not identify package license records:',sorted(missing))
+              Path('audit-prebuilt/unresolved-cargo-license-packages.txt').write_text(
+                  '\n'.join(f'{n} {v}' for n,v in sorted(missing))+'\n')
+          assert len(rows)==len(active), (len(rows),len(active),missing)
+          rows.sort(key=lambda x:x['name'])
+          Path('audit-prebuilt/libdovi-android-armv7-license-components.json').write_text(
+              json.dumps(rows,indent=2)+'\n')
+          Path('audit-prebuilt/libdovi-android-armv7-license-components.md').write_text(
+              '# Source-lockfile-derived libdovi ARMv7 component licenses\n\n'
+              'This is NOT an attestation of the historical prebuilt Cargo resolution.\n\n'
+              '| Crate | License declared | Source/checksum |\n'
+              '| --- | --- | --- |\n'
+              +''.join('| '+r['name']+' '+r['version']+' | '+r['license']+
+                       ' | '+r['checksum']+' |\n' for r in rows))
+          PY
+          echo 'CAUTION: This is tag/Cargo.lock resolution, not an attestation of the prebuilt artifact.' \
+            > audit-prebuilt/PROVENANCE-LIMITATION.txt
+      - name: Preserve checksum-verified lockfile Rust crates and legal notices
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo fetch --locked \
+            --manifest-path /tmp/dovi-tool/dolby_vision/Cargo.toml \
+            --target armv7-linux-androideabi
+          python3 scripts/audit_powerplay_rust_crates.py \
+            --components audit-prebuilt/libdovi-android-armv7-license-components.json \
+            --lockfile audit-prebuilt/dolby_vision-Cargo.lock \
+            --dovi-root /tmp/dovi-tool \
+            --output audit-prebuilt/libdovi-locked-source-snapshot
+      - name: Preserve exact libass and Dolby Vision upstream source cores
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --quiet --depth 1 --branch 0.18.3 \
+            https://github.com/edde746/libass.git /tmp/powerplay-libass-core
+          test "$(git -C /tmp/powerplay-libass-core rev-parse HEAD)" = \
+            76cdb2bc174828aac74a458d38a0786cb7af922d
+          git -C /tmp/powerplay-libass-core archive --format=tar.gz \
+            --prefix=libass-0.18.3/ \
+            -o "$GITHUB_WORKSPACE/audit-prebuilt/libass-core-v0.18.3-source.tar.gz" HEAD
+          git -C /tmp/dovi-tool archive --format=tar.gz \
+            --prefix=dovi-tool-2.3.1/ \
+            -o "$GITHUB_WORKSPACE/audit-prebuilt/dovi-tool-v2.3.1-source.tar.gz" HEAD
+          (
+            cd audit-prebuilt
+            sha256sum libass-core-v0.18.3-source.tar.gz dovi-tool-v2.3.1-source.tar.gz \
+              > pinned-native-core-source-SHA256SUMS.txt
+          )
+          echo 'These tag-locked upstream source archives do not establish the historical dynamic Meson WrapDB resolution or unlocked Cargo build.' \
+            > audit-prebuilt/pinned-native-core-source-LIMITATIONS.txt
+      - name: Reconstruct historical libass WrapDB source and missing LICENCE texts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/audit_libass_historical_wraps.py \
+            --output audit-prebuilt/libass-historical-wrapdb-2026-07-10
+      - name: Publish prebuilt license provenance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-pinned-native-prebuilt-manifests
+          path: audit-prebuilt/
+          if-no-files-found: warn
+
+  resolved-android-runtime-graph:
+    name: Resolve exact 1.3.9 Android Gradle runtime
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout auditing workflow
+        uses: actions/checkout@v5
+      - name: Checkout immutable shipped application commit
+        uses: actions/checkout@v5
+        with:
+          ref: dfab0f7ae979c0edee617f9f50a6c72efac51aa4
+          path: source-v1.3.9
+          persist-credentials: false
+      - name: Confirm source commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C source-v1.3.9 rev-parse HEAD)" = dfab0f7ae979c0edee617f9f50a6c72efac51aa4
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up pinned release Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.9'
+          cache: true
+      - name: Resolve Flutter packages
+        shell: bash
+        working-directory: source-v1.3.9
+        run: flutter pub get
+      - name: Generate release runtime graph and Flutter engine identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p audit-dependency-graph
+          flutter --version --machine > audit-dependency-graph/flutter-sdk.json
+          cp source-v1.3.9/pubspec.lock audit-dependency-graph/pubspec.lock
+          printf 'flutter.sdk=%s\nsdk.dir=%s\n' "$FLUTTER_ROOT" "$ANDROID_HOME" \
+            > source-v1.3.9/android/local.properties
+          (
+            cd source-v1.3.9/android
+            chmod +x gradlew
+            ./gradlew :app:dependencies --configuration releaseRuntimeClasspath --console=plain
+          ) > audit-dependency-graph/gradle-releaseRuntimeClasspath.txt
+      - name: Export resolved runtime AAR/JAR binaries from immutable source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd source-v1.3.9/android
+          AUDIT_RUNTIME_ARTIFACTS_OUTPUT="$GITHUB_WORKSPACE/audit-dependency-graph/gradle-release-artifacts.json" \
+            ./gradlew -I "$GITHUB_WORKSPACE/scripts/export_gradle_runtime_artifacts.init.gradle" \
+              :app:exportReleaseRuntimeArtifacts --console=plain
+      - name: Collect embedded AAR/JAR licenses and map packaged native binaries by hash
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p release-apk
+          gh release download powerplay-v1.3.9 --repo The-Power-0/PowerPlay \
+            --pattern PowerPlay-v1.3.9.apk --dir release-apk
+          python3 scripts/audit_powerplay_gradle_runtime.py \
+            --apk release-apk/PowerPlay-v1.3.9.apk \
+            --gradle-json audit-dependency-graph/gradle-release-artifacts.json \
+            --output audit-dependency-graph
+      - name: Resolve published Maven POM licenses and critical source jars
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/audit_powerplay_maven_poms.py \
+            --gradle-report audit-dependency-graph/gradle-runtime-artifacts.json \
+            --output audit-dependency-graph/maven-license-reconciliation
+      - name: Publish exact dependency resolution evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-Android-runtime-graph
+          path: audit-dependency-graph/
+          if-no-files-found: warn
+
+
+  evaluate-native-source-signoff:
+    name: Reconcile source evidence (release remains blocked)
+    needs:
+      - packaged-native-elfs
+      - inspect-separate-static-archives
+      - reproduce-libass-armv7
+      - reproduce-libdovi-armv7
+      - resolved-android-runtime-graph
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-ELF-inventory
+          path: compliance-inputs/elf
+      - uses: actions/download-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-pinned-native-prebuilt-manifests
+          path: compliance-inputs/prebuilt
+      - uses: actions/download-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-Android-runtime-graph
+          path: compliance-inputs/gradle
+      - uses: actions/download-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-libass-source-reproduction
+          path: compliance-inputs/libass-rebuild
+      - uses: actions/download-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-libdovi-source-reproduction
+          path: compliance-inputs/libdovi-rebuild
+      - name: Verify every captured source and notice checksum; report blockers
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/check_powerplay_native_signoff.py \
+            --policy docs/compliance/native-v1.3.9-signoff.json \
+            --native compliance-inputs/elf/native-elf-inventory.json \
+            --dex compliance-inputs/elf/dex-defined-class-inventory.json \
+            --gradle compliance-inputs/gradle/gradle-runtime-artifacts.json \
+            --rust compliance-inputs/prebuilt/libdovi-locked-source-snapshot/manifest.json \
+            --wrap compliance-inputs/prebuilt/libass-historical-wrapdb-2026-07-10/wrapdb-source-manifest.json \
+            --libass-rebuild compliance-inputs/libass-rebuild/libass-armv7-rebuild-comparison.json \
+            --libdovi-rebuild compliance-inputs/libdovi-rebuild/libdovi-armv7-rebuild-comparison.json \
+            --maven compliance-inputs/gradle/maven-license-reconciliation/maven-pom-license-evidence.json \
+            --output compliance-signoff
+      - name: Strict source/legal compliance sign-off (manual opt-in)
+        if: github.event_name == 'workflow_dispatch' && inputs.strict_signoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/check_powerplay_native_signoff.py \
+            --policy docs/compliance/native-v1.3.9-signoff.json \
+            --native compliance-inputs/elf/native-elf-inventory.json \
+            --dex compliance-inputs/elf/dex-defined-class-inventory.json \
+            --gradle compliance-inputs/gradle/gradle-runtime-artifacts.json \
+            --rust compliance-inputs/prebuilt/libdovi-locked-source-snapshot/manifest.json \
+            --wrap compliance-inputs/prebuilt/libass-historical-wrapdb-2026-07-10/wrapdb-source-manifest.json \
+            --libass-rebuild compliance-inputs/libass-rebuild/libass-armv7-rebuild-comparison.json \
+            --libdovi-rebuild compliance-inputs/libdovi-rebuild/libdovi-armv7-rebuild-comparison.json \
+            --maven compliance-inputs/gradle/maven-license-reconciliation/maven-pom-license-evidence.json \
+            --output compliance-signoff \
+            --strict
+      - name: Preserve explicit source/license approval status
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-source-license-signoff-report
+          path: compliance-signoff/
+          if-no-files-found: error
+
+
+  reproduce-libass-armv7:
+    name: Rebuild historical libass ARMv7 from verified source
+    needs: inspect-separate-static-archives
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-pinned-native-prebuilt-manifests
+          path: reproduced-source-inputs
+      - name: Install original Android libass build prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config nasm gperf python3-pip zip xz-utils
+          python3 -m pip install --user --break-system-packages 'meson>=1.6.0'
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Install original upstream Android NDK family
+        shell: bash
+        env:
+          ORIGINAL_NDK_VERSION: '28.1.13356709'
+        run: |
+          set -euo pipefail
+          if [ ! -x "$ANDROID_HOME/ndk/$ORIGINAL_NDK_VERSION/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar" ]; then
+            SDKMANAGER="$(command -v sdkmanager || echo "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager")"
+            "$SDKMANAGER" "ndk;$ORIGINAL_NDK_VERSION"
+          fi
+          test -x "$ANDROID_HOME/ndk/$ORIGINAL_NDK_VERSION/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/$ORIGINAL_NDK_VERSION" >> "$GITHUB_ENV"
+      - name: Stage tag-pinned libass with time-qualified WrapDB source archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --quiet --depth 1 --branch 0.18.3 \
+            https://github.com/edde746/libass.git /tmp/rep-libass
+          test "$(git -C /tmp/rep-libass rev-parse HEAD)" = \
+            76cdb2bc174828aac74a458d38a0786cb7af922d
+          SOURCE="$GITHUB_WORKSPACE/reproduced-source-inputs/libass-historical-wrapdb-2026-07-10"
+          test -f "$SOURCE/wrapdb-source-manifest.json"
+          mkdir -p /tmp/rep-libass/subprojects/packagecache
+          cp "$SOURCE"/wraps/*.wrap /tmp/rep-libass/subprojects/
+          cp "$SOURCE"/source-archives/* /tmp/rep-libass/subprojects/packagecache/
+          mkdir -p /tmp/rep-libass/subprojects/packagefiles
+          cp -R "$SOURCE"/patches/. /tmp/rep-libass/subprojects/packagefiles/
+          python3 - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          root=Path('reproduced-source-inputs/libass-historical-wrapdb-2026-07-10')
+          m=json.loads((root/'wrapdb-source-manifest.json').read_text())
+          assert m['wrapdb_snapshot_commit']=='99634f253c3f2e83295b210018d071f6570284e6'
+          for comp in m['components']:
+              archive=Path('/tmp/rep-libass/subprojects/packagecache')/Path(comp['source_file']).name
+              actual=hashlib.sha256(archive.read_bytes()).hexdigest()
+              assert actual==comp['source_sha256'],(comp['name'],actual)
+          print('Verified all six source archives and immutable WrapDB snapshot')
+          PY
+      - name: Build ARMv7 libass with the upstream 0.18.3 recipe
+        shell: bash
+        env:
+          ANDROID_API: '21'
+          ANDROID_ABIS: 'armeabi-v7a'
+          DIST_DIR: ${{ github.workspace }}/libass-reproduced-dist
+        run: |
+          set -euo pipefail
+          bash /tmp/rep-libass/.github/scripts/build-android-release.sh \
+            2>&1 | tee /tmp/powerplay-libass-rebuild.log
+          mkdir -p reproduced-comparison
+          cp /tmp/powerplay-libass-rebuild.log reproduced-comparison/build-log.txt
+          meson --version > reproduced-comparison/rebuild-meson-version.txt
+          "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" --version \
+            > reproduced-comparison/rebuild-clang-version.txt
+      - name: Compare source-rebuilt archive against the public historical prebuilt
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 \
+            'https://github.com/edde746/libass/releases/download/0.18.3/libass-android-0.18.3.zip' \
+            -o /tmp/powerplay-original-libass.zip
+          echo 'fc98637752695d7cf9e26b02befaa634dd4cad25a2f38fba80de814bfd310a17  /tmp/powerplay-original-libass.zip' | sha256sum -c -
+          python3 scripts/compare_powerplay_libass_archives.py \
+            --original-zip /tmp/powerplay-original-libass.zip \
+            --rebuilt-zip libass-reproduced-dist/libass-android-0.18.3.zip \
+            --ar-tool "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar" \
+            --output reproduced-comparison
+      - name: Publish libass reproducibility evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-libass-source-reproduction
+          path: reproduced-comparison/
+          if-no-files-found: warn
+
+
+  reproduce-libdovi-armv7:
+    name: Rebuild historical libdovi with March 2026 Rust stable
+    needs: inspect-separate-static-archives
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install the Rust stable version available at the original build date
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: '1.93.1'
+          targets: armv7-linux-androideabi
+      - name: Clone pinned Dolby Vision source and apply original staticlib patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p libdovi-reproduced-evidence
+          rustc --version --verbose > libdovi-reproduced-evidence/rustc-version.txt
+          cargo --version > libdovi-reproduced-evidence/cargo-version.txt
+          git clone --quiet --depth 1 --branch 2.3.1 \
+            https://github.com/quietvoid/dovi_tool.git /tmp/rep-dovi-tool
+          test "$(git -C /tmp/rep-dovi-tool rev-parse HEAD)" = \
+            b25558062e4a56973482ec70133bd7b891320e48
+          cp /tmp/rep-dovi-tool/dolby_vision/Cargo.lock \
+            libdovi-reproduced-evidence/Cargo.lock.before
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          file=Path('/tmp/rep-dovi-tool/dolby_vision/Cargo.toml')
+          original=file.read_text()
+          changed,n=re.subn(r'\[lib\]', '[lib]\ncrate-type = ["staticlib"]', original, count=1)
+          if n!=1:
+              raise SystemExit('Original upstream cargo staticlib patch cannot be reproduced')
+          file.write_text(changed)
+          print('Applied exact upstream staticlib crate-type patch')
+          PY
+      - name: Build original unlocked Cargo command and retain lockfile diff
+        shell: bash
+        working-directory: /tmp/rep-dovi-tool/dolby_vision
+        run: |
+          set -euo pipefail
+          cargo build --release --target armv7-linux-androideabi --features capi \
+            2>&1 | tee "$GITHUB_WORKSPACE/libdovi-reproduced-evidence/cargo-build.log"
+          test -f target/armv7-linux-androideabi/release/libdolby_vision.a
+          cp Cargo.lock "$GITHUB_WORKSPACE/libdovi-reproduced-evidence/Cargo.lock.after"
+      - name: Compare v2.3.1 public prebuilt to pinned Rust source rebuild
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 \
+            'https://github.com/edde746/libdovi-builds/releases/download/v2.3.1/libdovi-armv7-linux-androideabi.tar.gz' \
+            -o /tmp/powerplay-original-dovi.tar.gz
+          echo 'ed6fec8bf744e41c661b97f5fc4bf1197ebe9b09a140cbde369728e790ee3a68  /tmp/powerplay-original-dovi.tar.gz' | sha256sum -c -
+          python3 scripts/compare_powerplay_libdovi_archives.py \
+            --published-tar /tmp/powerplay-original-dovi.tar.gz \
+            --rebuilt-lib /tmp/rep-dovi-tool/dolby_vision/target/armv7-linux-androideabi/release/libdolby_vision.a \
+            --lock-before libdovi-reproduced-evidence/Cargo.lock.before \
+            --lock-after libdovi-reproduced-evidence/Cargo.lock.after \
+            --output libdovi-reproduced-evidence
+      - name: Publish Rust static archive build comparison
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PowerPlay-v1.3.9-libdovi-source-reproduction
+          path: libdovi-reproduced-evidence/
+          if-no-files-found: warn

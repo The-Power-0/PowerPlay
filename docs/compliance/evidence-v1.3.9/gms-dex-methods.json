@@ -1,0 +1,134 @@
+{
+  "apk_sha256": "f832a2c507f997fcb047c0ab899254d1fd111520942e88da50e61ebc82e3c764",
+  "defined_classes": 16,
+  "classes_with_method_code": 10,
+  "methods_with_code": 61,
+  "classes": {
+    "Lcom/google/android/gms/common/internal/a;": {
+      "aar_name_matches": [],
+      "methods_with_code": 19,
+      "dex_instruction_code_units": 930,
+      "fields": 24
+    },
+    "Lcom/google/android/gms/common/internal/ReflectedParcelable;": {
+      "aar_name_matches": [
+        "play-services-basement-18.4.0.aar"
+      ],
+      "methods_with_code": 0,
+      "dex_instruction_code_units": 0,
+      "fields": 0
+    },
+    "Lcom/google/android/gms/auth/api/signin/GoogleSignInAccount;": {
+      "aar_name_matches": [
+        "play-services-base-18.5.0.aar"
+      ],
+      "methods_with_code": 6,
+      "dex_instruction_code_units": 429,
+      "fields": 14
+    },
+    "Lcom/google/android/gms/common/GooglePlayServicesManifestException;": {
+      "aar_name_matches": [
+        "play-services-basement-18.4.0.aar"
+      ],
+      "methods_with_code": 0,
+      "dex_instruction_code_units": 0,
+      "fields": 0
+    },
+    "Lcom/google/android/gms/common/GooglePlayServicesIncorrectManifestValueException;": {
+      "aar_name_matches": [
+        "play-services-basement-18.4.0.aar"
+      ],
+      "methods_with_code": 0,
+      "dex_instruction_code_units": 0,
+      "fields": 0
+    },
+    "Lcom/google/android/gms/common/GooglePlayServicesMissingManifestValueException;": {
+      "aar_name_matches": [
+        "play-services-basement-18.4.0.aar"
+      ],
+      "methods_with_code": 0,
+      "dex_instruction_code_units": 0,
+      "fields": 0
+    },
+    "Lcom/google/android/gms/common/annotation/KeepName;": {
+      "aar_name_matches": [
+        "play-services-basement-18.4.0.aar"
+      ],
+      "methods_with_code": 0,
+      "dex_instruction_code_units": 0,
+      "fields": 0
+    },
+    "Lcom/google/android/gms/common/api/GoogleApiActivity;": {
+      "aar_name_matches": [
+        "play-services-base-18.5.0.aar"
+      ],
+      "methods_with_code": 5,
+      "dex_instruction_code_units": 304,
+      "fields": 2
+    },
+    "Lcom/google/android/gms/common/api/Scope;": {
+      "aar_name_matches": [
+        "play-services-basement-18.4.0.aar"
+      ],
+      "methods_with_code": 6,
+      "dex_instruction_code_units": 88,
+      "fields": 3
+    },
+    "Lcom/google/android/gms/common/api/Status;": {
+      "aar_name_matches": [
+        "play-services-basement-18.4.0.aar"
+      ],
+      "methods_with_code": 6,
+      "dex_instruction_code_units": 277,
+      "fields": 5
+    },
+    "Lcom/google/android/gms/common/api/internal/LifecycleCallback;": {
+      "aar_name_matches": [
+        "play-services-basement-18.4.0.aar"
+      ],
+      "methods_with_code": 8,
+      "dex_instruction_code_units": 16,
+      "fields": 0
+    },
+    "Lcom/google/android/gms/common/util/DynamiteApi;": {
+      "aar_name_matches": [
+        "play-services-basement-18.4.0.aar"
+      ],
+      "methods_with_code": 0,
+      "dex_instruction_code_units": 0,
+      "fields": 0
+    },
+    "Lcom/google/android/gms/dynamite/DynamiteModule$DynamiteLoaderClassLoader;": {
+      "aar_name_matches": [
+        "play-services-basement-18.4.0.aar"
+      ],
+      "methods_with_code": 1,
+      "dex_instruction_code_units": 4,
+      "fields": 1
+    },
+    "Lcom/google/android/gms/dynamite/descriptors/com/google/android/gms/cronet/dynamite/ModuleDescriptor;": {
+      "aar_name_matches": [
+        "play-services-cronet-18.0.1.aar"
+      ],
+      "methods_with_code": 1,
+      "dex_instruction_code_units": 4,
+      "fields": 2
+    },
+    "Lcom/google/android/gms/net/PlayServicesCronetProvider;": {
+      "aar_name_matches": [
+        "play-services-cronet-18.0.1.aar"
+      ],
+      "methods_with_code": 8,
+      "dex_instruction_code_units": 216,
+      "fields": 2
+    },
+    "Lcom/google/android/gms/net/GmsCoreCronetProvider;": {
+      "aar_name_matches": [
+        "play-services-cronet-18.0.1.aar"
+      ],
+      "methods_with_code": 1,
+      "dex_instruction_code_units": 4,
+      "fields": 0
+    }
+  }
+}

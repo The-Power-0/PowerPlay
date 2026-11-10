@@ -1,0 +1,11 @@
+{
+  "family": "cronet",
+  "observed_line_table_files": 3273,
+  "matched_source_files": 2951,
+  "generated_files": 128,
+  "toolchain_files": 194,
+  "synthetic_files": 0,
+  "unmapped_paths": 0,
+  "missing_files": 0,
+  "limitation": "Existence/content hashing of observed DWARF source paths; source hashes were not embedded in DWARF v4 and are not historical checksums."
+}

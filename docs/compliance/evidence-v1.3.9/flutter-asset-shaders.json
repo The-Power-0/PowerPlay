@@ -1,0 +1,12 @@
+{
+  "ink_sparkle": {
+    "apk_sha256": "1fe8436a743884cb65078fe8c7b38e18f5365f2a2961270916f426fd13c604af",
+    "compiled_sha256": "1fe8436a743884cb65078fe8c7b38e18f5365f2a2961270916f426fd13c604af",
+    "matches": true
+  },
+  "stretch_effect": {
+    "apk_sha256": "bc7599dbbbaab310efe41520574138d21fb18a88c8fe4495ed79315309336f6f",
+    "compiled_sha256": "bc7599dbbbaab310efe41520574138d21fb18a88c8fe4495ed79315309336f6f",
+    "matches": true
+  }
+}

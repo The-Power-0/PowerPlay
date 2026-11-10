@@ -1,0 +1,72 @@
+{
+  "apk": {
+    "build_ids": [
+      "96e2060d3e46425a769344db90f2dcdb868b21a2"
+    ],
+    "size": 4185152,
+    "sections": {
+      ".note.android.ident": "a12ff204649756c402e6b675237ec835e69e498959f2d449a94bb09e5b88ccc0",
+      ".note.gnu.build-id": "1cf6a12d6969a1699aa2762a5d9da09a6686c842829b93a315362632a3729b47",
+      ".dynsym": "b23dde0bfe247e57d28fa3a5af05608576cb51f414984942ff7549357ce9f73a",
+      ".gnu.version": "0488864f2bbb4be245876498b7e21f766cb8a191c2b514b4c99cb367f6bf30be",
+      ".gnu.version_r": "6a791aa5601f28f531bbc5bc1474be217833d6dd467721a90c59bdb652566b21",
+      ".gnu.hash": "82cca4c4ed353c83bfd6af49d683c9f48f41e62dff4f25ca008574d2e173a1f0",
+      ".dynstr": "b0feb8341596b8340d84fd702eeed565b84221acd21cc890c90ab41aa37d19df",
+      ".rel.dyn": "3e8a4eececc3c9e5024425f1d35ba865e4b1a603a31f9590625f090045b0cbb8",
+      ".ARM.exidx": "6294b2985559febed515f20ec26ea2d7c4e9b98c373aa03a19e0575cf562074d",
+      ".rel.plt": "3fb45291520553a5564f080dcb86c8a035713d1208371f754bbe7325a53c543a",
+      ".ARM.extab": "82aa7314424c92b8c025968cfcd87a48b336a203df3efef98eabc133b6223958",
+      ".rodata": "4a37a84ab3e71a2066f4a94cb41dceabf7a182cb16659e1acae7aafa1491362b",
+      ".text": "301ae7a66f66659da2415043464f6ab6db80233b29134ce8dd89b95af306a0cf",
+      "malloc_hook": "67c10bc364da4547afc8649557de74f1a8b4744c925f1a21c92397af73a6928f",
+      ".plt": "e4f8366d71dea8bc15138f0e17e901d82f935c609da029ca6abe18ebbdb6fc5f",
+      ".data.rel.ro": "af9b614b35e7321b328aad891351a4d8f078dcdf61cdcfc65b7daa366b973e37",
+      ".fini_array": "8425848240f576ee1b8f23f614f821ffd41bec397bfe16f3f974de62ff7ed6f1",
+      ".init_array": "ca4000ceeb5de6bfb53edb0603f874be9925d57680cd84693c75669a5431835c",
+      ".dynamic": "1ee4af63b7315c4567023240ab135eb2cffa44f154a7bb4e9109a939a05202b8",
+      ".got": "72c51b58ac8071181ad1fda21c114d819d93c1d48da44dd4af66c0f3d1804f11",
+      ".got.plt": "178e411277f65b40d1383615b7c9165f1e35909a56bec02b97946c41b6b509ba",
+      ".relro_padding": "5b517952cbe9c4c147bc3f3434f9d82409e76d09ea58905aefe7fb5415912d9a",
+      ".data": "97b459df97bc64ccc8f38406d377fea96f53831f86e5391015c09bacf1fdb028",
+      ".bss": "b10276a4b8acc510d8126d24ceab8b6b6c986c892ee1d738a3be6bd140fb66a6"
+    }
+  },
+  "bucket": {
+    "build_ids": [
+      "96e2060d3e46425a769344db90f2dcdb868b21a2"
+    ],
+    "size": 4045040,
+    "sections": {
+      ".note.android.ident": "a12ff204649756c402e6b675237ec835e69e498959f2d449a94bb09e5b88ccc0",
+      ".note.gnu.build-id": "1cf6a12d6969a1699aa2762a5d9da09a6686c842829b93a315362632a3729b47",
+      ".dynsym": "b23dde0bfe247e57d28fa3a5af05608576cb51f414984942ff7549357ce9f73a",
+      ".gnu.version": "0488864f2bbb4be245876498b7e21f766cb8a191c2b514b4c99cb367f6bf30be",
+      ".gnu.version_r": "6a791aa5601f28f531bbc5bc1474be217833d6dd467721a90c59bdb652566b21",
+      ".gnu.hash": "82cca4c4ed353c83bfd6af49d683c9f48f41e62dff4f25ca008574d2e173a1f0",
+      ".dynstr": "b0feb8341596b8340d84fd702eeed565b84221acd21cc890c90ab41aa37d19df",
+      ".rel.dyn": "3e8a4eececc3c9e5024425f1d35ba865e4b1a603a31f9590625f090045b0cbb8",
+      ".ARM.exidx": "6294b2985559febed515f20ec26ea2d7c4e9b98c373aa03a19e0575cf562074d",
+      ".rel.plt": "3fb45291520553a5564f080dcb86c8a035713d1208371f754bbe7325a53c543a",
+      ".ARM.extab": "82aa7314424c92b8c025968cfcd87a48b336a203df3efef98eabc133b6223958",
+      ".rodata": "4a37a84ab3e71a2066f4a94cb41dceabf7a182cb16659e1acae7aafa1491362b",
+      ".text": "301ae7a66f66659da2415043464f6ab6db80233b29134ce8dd89b95af306a0cf",
+      "malloc_hook": "67c10bc364da4547afc8649557de74f1a8b4744c925f1a21c92397af73a6928f",
+      ".plt": "e4f8366d71dea8bc15138f0e17e901d82f935c609da029ca6abe18ebbdb6fc5f",
+      ".data.rel.ro": "af9b614b35e7321b328aad891351a4d8f078dcdf61cdcfc65b7daa366b973e37",
+      ".fini_array": "8425848240f576ee1b8f23f614f821ffd41bec397bfe16f3f974de62ff7ed6f1",
+      ".init_array": "ca4000ceeb5de6bfb53edb0603f874be9925d57680cd84693c75669a5431835c",
+      ".dynamic": "1ee4af63b7315c4567023240ab135eb2cffa44f154a7bb4e9109a939a05202b8",
+      ".got": "72c51b58ac8071181ad1fda21c114d819d93c1d48da44dd4af66c0f3d1804f11",
+      ".got.plt": "178e411277f65b40d1383615b7c9165f1e35909a56bec02b97946c41b6b509ba",
+      ".relro_padding": "5b517952cbe9c4c147bc3f3434f9d82409e76d09ea58905aefe7fb5415912d9a",
+      ".data": "97b459df97bc64ccc8f38406d377fea96f53831f86e5391015c09bacf1fdb028",
+      ".bss": "b10276a4b8acc510d8126d24ceab8b6b6c986c892ee1d738a3be6bd140fb66a6"
+    }
+  },
+  "symbols": {
+    "build_ids": [
+      "96e2060d3e46425a769344db90f2dcdb868b21a2"
+    ],
+    "size": 51822744
+  }
+}

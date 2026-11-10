@@ -1,0 +1,14 @@
+{
+  "original_sha256": "3b5e86f58d831dd2e09856fef68e1bd4bd7fe7b7f3916c6760645781fa4dcc8b",
+  "candidate_sha256": "4555ebdf0d389ef48ce30c703f8cc0159a7ded9d24a166f201f6865d1d32451b",
+  "original_bytes": 1201608,
+  "candidate_bytes": 1201608,
+  "original_build_id": "e790ccfb3a71b8a9498e3cd8a0de60fe6be3ae0b",
+  "candidate_build_id": "7a98b5aff9b9e2ab1a67635aa49fbcb197714870",
+  "elf_identity_matches": true,
+  "mode": "all-bytes-except-build-id-descriptor",
+  "differing_allocated_sections": [
+    ".note.gnu.build-id"
+  ],
+  "matches": true
+}

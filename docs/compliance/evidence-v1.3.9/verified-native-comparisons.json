@@ -1,0 +1,54 @@
+{
+  "libsentry.so": {
+    "original_sha256": "9d504869d4163e82eb99be3329efc21d14561dea4386939642ce9ee63997cb7d",
+    "candidate_sha256": "b47fd9a94e6f139df9a048b222f73013e94c63800c9023827e08e1074f9f15e3",
+    "original_bytes": 560916,
+    "candidate_bytes": 560916,
+    "original_build_id": "9842fbd8b6ed3fb5a6dd4cdd7d03d60724bf1e85",
+    "candidate_build_id": "5b40116139f3d89cb29c5ca2951dcb4456e35f6f",
+    "elf_identity_matches": true,
+    "mode": "all-bytes-except-build-id-descriptor",
+    "differing_allocated_sections": [
+      ".note.gnu.build-id"
+    ],
+    "matches": true
+  },
+  "libsentry-android.so": {
+    "original_sha256": "3208834b16ed8cce33f8b2d0402619bb4d4366b37ea49c29e37f2962d44c5645",
+    "candidate_sha256": "c04a245bce9c5f22b691aeaae68786f9bfc2bbea3e1ebb0f27cad281d8095d2e",
+    "original_bytes": 14300,
+    "candidate_bytes": 14300,
+    "original_build_id": "69c7a0297e059536673f858552675d049a2bb8d7",
+    "candidate_build_id": "7af420f559db6c52d1e202ee424c98cd33ca66c3",
+    "elf_identity_matches": true,
+    "mode": "all-bytes-except-build-id-descriptor",
+    "differing_allocated_sections": [
+      ".note.gnu.build-id"
+    ],
+    "matches": true
+  },
+  "libsqlite3.so": {
+    "original_sha256": "cc105bdb50343721b421ef9e4ccc309ba4aa6bc7bb7921b4265ec39b20ac562b",
+    "candidate_sha256": "cc105bdb50343721b421ef9e4ccc309ba4aa6bc7bb7921b4265ec39b20ac562b",
+    "original_bytes": 1713112,
+    "candidate_bytes": 1713112,
+    "original_build_id": null,
+    "candidate_build_id": null,
+    "elf_identity_matches": true,
+    "mode": "all-bytes-except-build-id-descriptor",
+    "differing_allocated_sections": [],
+    "matches": true
+  },
+  "cronet": {
+    "original_sha256": "363f796ed09bc584f6dff96f1a2cc7485c5f3b1fcc6e6aca1825d0f1164c7a45",
+    "candidate_sha256": "2ebb3578f61f6804cf27b7ac4eb4ee69c8df6b1fb31c3e237f600fd0d1b6ebad",
+    "original_bytes": 4185152,
+    "candidate_bytes": 4045040,
+    "original_build_id": "96e2060d3e46425a769344db90f2dcdb868b21a2",
+    "candidate_build_id": "96e2060d3e46425a769344db90f2dcdb868b21a2",
+    "elf_identity_matches": true,
+    "mode": "allocated-section-identity",
+    "differing_allocated_sections": [],
+    "matches": true
+  }
+}
